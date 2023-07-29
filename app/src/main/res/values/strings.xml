@@ -2,4 +2,6 @@
     <string name="app_name">Musical</string>
     <string name="songs">Songs</string>
     <string name="songs_tab_cd">Songs tab that show all songs in device</string>
+    <string name="albums_tab_cd">Albums tab that show all albums in device</string>
+    <string name="albums">Albums</string>
 </resources>
