@@ -1,11 +1,12 @@
 package rk.musical.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +30,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import rk.musical.data.model.Album
 import rk.musical.ui.theme.MusicalTheme
+import rk.musical.ui.theme.Purple40
+import rk.musical.ui.theme.PurpleGrey80
 import rk.musical.utils.loadCover
 
 @Composable
@@ -35,21 +39,23 @@ fun AlbumsScreen(modifier: Modifier = Modifier) {
     val viewModel: AlbumsScreenViewModel = viewModel(factory = AlbumsScreenViewModel.Factory)
     val uiState = viewModel.uiState
 
-    AnimatedVisibility(visible = uiState == AlbumsScreenUiState.Loading) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator()
+    Crossfade(targetState = uiState) {
+        if (it is AlbumsScreenUiState.Loading)
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LoadingCircle()
+            }
+        if (it is AlbumsScreenUiState.Loaded) {
+            AlbumsList(
+                albums = it.albums,
+                modifier = modifier
+            )
         }
     }
-    if (uiState is AlbumsScreenUiState.Loaded) {
-        AlbumsList(
-            albums = uiState.albums,
-            modifier = modifier
-        )
-    }
+
 
 }
 
@@ -119,6 +125,17 @@ fun AlbumItem(
         }
 
     }
+}
+
+@Composable
+fun LoadingCircle() {
+    CircularProgressIndicator(
+        strokeCap = StrokeCap.Round,
+        trackColor = PurpleGrey80,
+        color = Purple40,
+        strokeWidth = 6.dp,
+        modifier = Modifier.size(60.dp)
+    )
 }
 
 @Preview

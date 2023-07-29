@@ -18,10 +18,11 @@ class AlbumsScreenViewModel(private val albumRepository: AlbumRepository) : View
         private set
 
     init {
-        getAlbums()
+        loadAlbums()
     }
 
-    fun getAlbums() {
+
+    private fun loadAlbums() {
         uiState = AlbumsScreenUiState.Loading
         viewModelScope.launch {
             val albums = albumRepository.loadAlbums()

@@ -18,10 +18,11 @@ class SongsScreenViewModel(private val songsRepository: SongRepository) : ViewMo
         private set
 
     init {
-        getSongs()
+        loadSongs()
     }
 
-    fun getSongs() {
+
+    private fun loadSongs() {
         uiState = SongsScreenUiState.Loading
         viewModelScope.launch {
             val songs = songsRepository.loadSongs()
