@@ -1,11 +1,11 @@
 package rk.musical.data.model
 
-import android.net.Uri
-
 data class Song(
-    val id: Int,
+    val id: Long,
     val title: String,
     val artist: String,
-    val songUri: Uri,
-    val albumId: Int
+    val songUri: String,
+    val albumId: Long,
+    val albumName: String,
+    val coverUri: String? = null
 )

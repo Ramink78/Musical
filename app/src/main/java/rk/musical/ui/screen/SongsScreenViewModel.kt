@@ -8,15 +8,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import rk.musical.MusicalApplication
 import rk.musical.data.SongRepository
 import rk.musical.data.model.Song
 
 class SongsScreenViewModel(private val songsRepository: SongRepository) : ViewModel() {
-    var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Loading)
+    var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Empty)
         private set
 
     init {
@@ -27,12 +25,8 @@ class SongsScreenViewModel(private val songsRepository: SongRepository) : ViewMo
         uiState = SongsScreenUiState.Loading
         viewModelScope.launch {
             val songs = songsRepository.loadSongs()
-            withContext(Dispatchers.Main){
-                uiState = SongsScreenUiState.Loaded(songs)
-            }
+            uiState = SongsScreenUiState.Loaded(songs)
         }
-
-
     }
 
     companion object {
