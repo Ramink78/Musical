@@ -1,6 +1,6 @@
 package rk.musical.ui.screen
 
-import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.SubcomposeAsyncImage
 import rk.musical.data.model.Song
 import rk.musical.ui.theme.MusicalTheme
-import rk.musical.utils.loadMediaCover
+import rk.musical.utils.loadCover
 
 @Composable
 fun SongsScreen(
@@ -41,36 +40,38 @@ fun SongsScreen(
 ) {
     val viewModel: SongsScreenViewModel = viewModel(factory = SongsScreenViewModel.Factory)
     val uiState = viewModel.uiState
-    when (uiState) {
-        SongsScreenUiState.Loading -> {
-            Column(
-                modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-        is SongsScreenUiState.Loaded -> {
-            LazyColumn(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                items(
-                    items = uiState.songs,
-                    key = { it.id }
-                ) {
-                    SongItem(song = it, onClick = onSongClick)
-                }
-            }
-        }
-
-        SongsScreenUiState.Empty -> {
-            /*TODO: show empty screen*/
+    AnimatedVisibility(visible = uiState is SongsScreenUiState.Loading) {
+        Column(
+            modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LoadingCircle()
         }
     }
+    if (uiState is SongsScreenUiState.Loaded) {
+        SongsList(modifier = modifier, songs = uiState.songs, onSongClick = onSongClick)
+    }
 
+}
+
+@Composable
+fun SongsList(
+    songs: List<Song>,
+    modifier: Modifier = Modifier,
+    onSongClick: () -> Unit
+) {
+    LazyColumn(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(
+            items = songs,
+            key = { it.id }
+        ) {
+            SongItem(song = it, onClick = onSongClick)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +92,7 @@ fun SongItem(
                 .padding(12.dp)
         ) {
             SubcomposeAsyncImage(
-                model = loadMediaCover(LocalContext.current, song),
+                model = song.loadCover(LocalContext.current),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -150,8 +151,8 @@ fun SongsScreenPreview() {
         title = "This is song title",
         artist = "Artist name",
         albumId = 0,
-        songUri = Uri.EMPTY
-
+        songUri = "",
+        albumName = "",
     )
     MusicalTheme {
         SongItem(

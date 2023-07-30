@@ -1,33 +1,38 @@
 package rk.musical.utils
 
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
+import android.provider.MediaStore.Audio.Albums
 import android.provider.MediaStore.Audio.Media
 
-val SONGS_URI: Uri =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        Media.getContentUri(
-            MediaStore.VOLUME_EXTERNAL
-        )
-    } else {
-        Media.EXTERNAL_CONTENT_URI
-    }
-const val MEDIA_ID = Media._ID
-const val MEDIA_TITLE = Media.TITLE
-const val MEDIA_ARTIST = Media.ARTIST
-const val MEDIA_DURATION = Media.DURATION
-const val MEDIA_DATE_ADDED = Media.DATE_ADDED
-const val MEDIA_ALBUM_ID = Media.ALBUM_ID
+val SONGS_URI: Uri = Media.EXTERNAL_CONTENT_URI
+val ALBUMS_URI: Uri = Albums.EXTERNAL_CONTENT_URI
+
+const val SONG_ID = Media._ID
+const val SONG_TITLE = Media.TITLE
+const val SONG_ARTIST = Media.ARTIST
+const val SONG_DURATION = Media.DURATION
+const val SONG_DATE_ADDED = Media.DATE_ADDED
+const val ALBUM_ID2 = Media.ALBUM_ID
+const val ALBUM_ID = Albums._ID
+const val ALBUM_ART = Albums.ALBUM_ART
+const val ALBUM_NAME = Media.ALBUM
+const val ALBUM_SONGS_COUNT = Albums.NUMBER_OF_SONGS
 
 val songColumns = arrayOf(
-    MEDIA_ID,
-    MEDIA_TITLE,
-    MEDIA_ARTIST,
-    MEDIA_DATE_ADDED,
-    MEDIA_DURATION,
-    MEDIA_ALBUM_ID,
+    SONG_ID,
+    SONG_TITLE,
+    SONG_ARTIST,
+    SONG_DATE_ADDED,
+    SONG_DURATION,
+    ALBUM_ID,
+    ALBUM_NAME,
 
     )
+val albumColumns = arrayOf(
+    ALBUM_ID,
+    SONG_ARTIST,
+    ALBUM_NAME, ALBUM_SONGS_COUNT,
+    ALBUM_ART
+)
 val IS_MUSIC_CLAUSE = "${Media.IS_MUSIC}!=0"
 
