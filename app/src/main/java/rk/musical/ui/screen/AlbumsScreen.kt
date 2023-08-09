@@ -29,17 +29,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import rk.musical.data.model.Album
+import rk.musical.player.MusicalServiceConnection
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.Purple40
 import rk.musical.ui.theme.PurpleGrey80
 import rk.musical.utils.loadCover
 
 @Composable
-fun AlbumsScreen(modifier: Modifier = Modifier) {
-    val viewModel: AlbumsScreenViewModel = viewModel(factory = AlbumsScreenViewModel.Factory)
+fun AlbumsScreen(
+    modifier: Modifier = Modifier,
+    musicalServiceConnection: MusicalServiceConnection
+) {
+    val viewModel: AlbumsScreenViewModel =
+        viewModel(factory = AlbumsScreenViewModel.Factory(musicalServiceConnection))
     val uiState = viewModel.uiState
 
-    Crossfade(targetState = uiState) {
+    Crossfade(targetState = uiState, label = "") {
         if (it is AlbumsScreenUiState.Loading)
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -142,7 +147,7 @@ fun LoadingCircle() {
 @Composable
 fun AlbumItemPreview() {
     val albumForPreview = Album(
-        id = 0,
+        id = "0",
         title = "Album name",
         artist = "Artist Name",
         songsCount = 5
@@ -150,10 +155,4 @@ fun AlbumItemPreview() {
     MusicalTheme {
         AlbumItem(onClick = {}, album = albumForPreview)
     }
-}
-
-@Preview
-@Composable
-fun AlbumsScreenPreview() {
-
 }

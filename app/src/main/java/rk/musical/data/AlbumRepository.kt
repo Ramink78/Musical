@@ -17,11 +17,20 @@ import rk.musical.utils.albumSongsCountColumnIndex
 import rk.musical.utils.artistColumnIndex
 import rk.musical.utils.kuery
 
-class AlbumRepository(private val context: Context) {
+class AlbumRepository(
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val context: Context
+) : AlbumDataSource {
+    private var state: DataSourceState = DataSourceState.Created
+    override val isReady: Boolean
+        get() {
+            return state is DataSourceState.Success
+        }
+    var cachedAlbums: List<Album> = listOf()
+        private set
 
-    suspend fun loadAlbums(dispatcher: CoroutineDispatcher = Dispatchers.IO): List<Album> {
-        val albums = mutableListOf<Album>()
-        return withContext(dispatcher) {
+    private suspend fun loadAlbums() {
+        withContext(dispatcher) {
             context.contentResolver.kuery(
                 uri = ALBUMS_URI,
                 columns = albumColumns,
@@ -31,27 +40,40 @@ class AlbumRepository(private val context: Context) {
                 val albumArtCol = it.albumArtColumnIndex
                 val artistCol = it.artistColumnIndex
                 val albumSongsCountCol = it.albumSongsCountColumnIndex
-                while (it.moveToNext()) {
-                    val albumId = it.getLong(albumIdCol)
-                    val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        ContentUris.withAppendedId(
-                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                            albumId
-                        ).toString()
-                    } else {
-                        it.getString(albumArtCol)
-                    }
+                cachedAlbums = buildList {
+                    while (it.moveToNext()) {
+                        val albumId = it.getLong(albumIdCol)
+                        val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            ContentUris.withAppendedId(
+                                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                                albumId
+                            ).toString()
+                        } else {
+                            it.getString(albumArtCol)
+                        }
 
-                    albums += Album(
-                        id = albumId,
-                        title = it.getString(albumNameCol),
-                        artist = it.getString(artistCol),
-                        songsCount = it.getInt(albumSongsCountCol),
-                        coverUri = coverUri
-                    )
+                        add(
+                            Album(
+                                id = albumId.toString(),
+                                title = it.getString(albumNameCol),
+                                artist = it.getString(artistCol),
+                                songsCount = it.getInt(albumSongsCountCol),
+                                coverUri = coverUri
+                            )
+                        )
+                    }
                 }
+
             }
-            albums
         }
     }
+
+    override suspend fun load() {
+        if (isReady) return
+        state = DataSourceState.Loading
+        loadAlbums()
+        state = DataSourceState.Success
+    }
+
+    override fun iterator(): Iterator<Album> = cachedAlbums.iterator()
 }

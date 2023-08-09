@@ -22,7 +22,6 @@ val songColumns = arrayOf(
     SONG_ID,
     SONG_TITLE,
     SONG_ARTIST,
-    SONG_DATE_ADDED,
     SONG_DURATION,
     ALBUM_ID,
     ALBUM_NAME,
