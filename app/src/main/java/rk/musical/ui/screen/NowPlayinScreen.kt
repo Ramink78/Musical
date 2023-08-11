@@ -5,8 +5,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +35,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -40,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -284,6 +291,7 @@ fun FullScreenPlayerControls(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun FullScreenPlayerSlider(
     modifier: Modifier = Modifier,
@@ -306,13 +314,61 @@ fun FullScreenPlayerSlider(
                 .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = remainingTime, style = MaterialTheme.typography.bodySmall)
-            Text(text = totalTime, style = MaterialTheme.typography.bodySmall)
+            val seconds = remainingTime.substring(3..4)
+            //val secondsString = if (seconds < 10) "0$seconds" else seconds.toString()
+            ElapsedTimeText(
+                second = seconds,
+                minuet = remainingTime.substring(0..1),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(text = totalTime, style = MaterialTheme.typography.titleMedium)
         }
 
     }
 }
 
+@Composable
+fun ElapsedTimeText(
+    second: String,
+    minuet: String,
+    style: TextStyle = LocalTextStyle.current
+) {
+    Row {
+        //first digit of minuet
+        SlideUpAnimatedText(value = minuet[0].digitToInt(), textStyle = style)
+        // second digit of minuet
+        SlideUpAnimatedText(value = minuet[1].digitToInt(), textStyle = style)
+        Text(text = ":", style = style)
+        //first digit of second
+        SlideUpAnimatedText(value = second[0].digitToInt(), textStyle = style)
+        // second digit of second
+        SlideUpAnimatedText(value = second[1].digitToInt(), textStyle = style)
+
+
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun SlideUpAnimatedText(
+    value: Int,
+    textStyle: TextStyle = LocalTextStyle.current
+) {
+    AnimatedContent(targetState = value, label = "", transitionSpec = {
+        if (targetState > initialState || targetState == 0) {
+            slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(animationSpec = spring()) with
+                    slideOutVertically { height -> -height } + fadeOut()
+        } else {
+            slideInVertically(animationSpec = spring()) { height -> -height } + fadeIn(animationSpec = spring()) with
+                    slideOutVertically { height -> height } + fadeOut()
+        }.using(
+            SizeTransform(clip = false)
+        )
+    }) {
+        Text(text = it.toString(), style = textStyle)
+    }
+
+}
 
 
 @Composable
