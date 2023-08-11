@@ -36,7 +36,6 @@ class MusicalServiceConnection private constructor(
     private val sessionToken by lazy {
         SessionToken(context, component)
     }
-
     private val browserFuture by lazy {
         MediaBrowser.Builder(context, sessionToken)
             .setListener(this)
@@ -46,16 +45,17 @@ class MusicalServiceConnection private constructor(
     // initialized when browserFuture connected to the MusicalPlaybackService
     private lateinit var mediaBrowser: MediaBrowser
 
-
     private val _musicalPlaybackState = MutableStateFlow(MusicalPlaybackState())
     val musicalPlaybackState = _musicalPlaybackState.asStateFlow()
+
+    val currentPosition: Long
+        get() = mediaBrowser.currentPosition
 
     init {
         browserFuture.addListener({
             mediaBrowser = browserFuture.get()
             mediaBrowser.addListener(this)
             syncWithPlaybackService()
-            syncPosition()
             logger("connection initialized")
         }, ContextCompat.getMainExecutor(context))
 
@@ -85,29 +85,14 @@ class MusicalServiceConnection private constructor(
                 playingMediaItem = mediaBrowser.currentMediaItem ?: MediaItem.EMPTY,
                 playWhenReady = mediaBrowser.playWhenReady,
                 playbackState = mediaBrowser.playbackState,
-                currentPosition = mediaBrowser.currentPosition
             )
         }
 
     }
 
-    private fun syncPosition() {
-        scope.launch {
-            while (true) {
-                if (musicalPlaybackState.value.isPlaying) {
-                    _musicalPlaybackState.update {
-                        it.copy(currentPosition = mediaBrowser.currentPosition)
-                    }
-                    logger("update position")
-                }
-                delay(1_000)
-            }
-        }
-    }
 
 
     fun playSong(song: Song) {
-        logger("clicked song: ${song.title} , ${mediaBrowser.isConnected}")
         mediaBrowser.setMediaItem(song.toMediaItem())
         mediaBrowser.prepare()
         mediaBrowser.play()
@@ -132,13 +117,6 @@ class MusicalServiceConnection private constructor(
 
     }
 
-    private fun updatePosition(totalDuration: Long, currentPosition: Long) {
-        while (currentPosition < totalDuration) {
-            _musicalPlaybackState.update {
-                it.copy(currentPosition = mediaBrowser.currentPosition)
-            }
-        }
-    }
 
     private fun updatePlayingMediaItem(mediaItem: MediaItem?) {
         if (mediaItem == null) return

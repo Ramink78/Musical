@@ -55,11 +55,77 @@ sealed class PlayerUiState {
     object Collapsed : PlayerUiState()
     object Expanded : PlayerUiState()
 }
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun NowPlayingScreen(
+    onStateChange: (playerState: PlayerUiState) -> Unit,
+    musicalServiceConnection: MusicalServiceConnection,
+) {
+    val viewModel: NowPlayingScreenViewModel =
+        viewModel(factory = NowPlayingScreenViewModel.Factory(musicalServiceConnection))
+    val uiState = viewModel.uiState
+    BackHandler(enabled = uiState.isFullScreen) {
+        viewModel.toggleFullScreen()
+    }
+    AnimatedContent(
+        targetState = uiState.isFullScreen,
+        label = "",
+        transitionSpec = {
+            ContentTransform(
+                targetContentEnter = slideIntoContainer(towards = AnimatedContentScope.SlideDirection.Up) + fadeIn(),
+                initialContentExit = slideOutOfContainer(towards = AnimatedContentScope.SlideDirection.Down) + fadeOut()
+            )
+        }
+    ) {
+        if (it) {
+            onStateChange(PlayerUiState.Expanded)
+            FullScreenPlayer(
+                onCollapseClicked = {
+                    viewModel.toggleFullScreen()
+                },
+                playingSong = uiState.playingSong,
+                onPlayClicked = { playing ->
+                    if (playing) {
+                        viewModel.resume()
+                    } else {
+                        viewModel.pause()
+                    }
+                },
+                isPlaying = uiState.isPlaying,
+                remainingTime = uiState.currentTime,
+                progress = uiState.progress,
+                onProgressChanged = { progress ->
+                    viewModel.updateProgress(progress)
+                },
+                onSeekFinished = { position ->
+                    viewModel.seekTo(position)
+                }
+            )
+        } else {
+            onStateChange(PlayerUiState.Collapsed)
+            MiniPlayer(
+                onClick = {
+                    viewModel.toggleFullScreen()
+                },
+                playingSong = uiState.playingSong,
+                onPlayPauseClicked = {
+                    if (uiState.isPlaying) {
+                        viewModel.pause()
+                    } else {
+                        viewModel.resume()
+                    }
+                },
+                isPlaying = uiState.isPlaying
+            )
+        }
+    }
 
+}
 @Composable
 fun FullScreenPlayer(
     playingSong: Song,
     onProgressChanged: (Float) -> Unit,
+    onSeekFinished: ((Float) -> Unit)? = null,
     progress: Float,
     onCollapseClicked: () -> Unit,
     onPlayClicked: (Boolean) -> Unit,
@@ -108,7 +174,8 @@ fun FullScreenPlayer(
                 totalTime = readableDuration(playingSong.duration),
                 remainingTime = remainingTime,
                 progress = progress,
-                onProgressChanged = onProgressChanged
+                onProgressChanged = onProgressChanged,
+                onSeekFinished = onSeekFinished,
             )
             FullScreenPlayerControls(
                 onPlayChanged = onPlayClicked,
@@ -223,10 +290,16 @@ fun FullScreenPlayerSlider(
     remainingTime: String,
     totalTime: String,
     progress: Float,
-    onProgressChanged: (Float) -> Unit
+    onProgressChanged: (Float) -> Unit,
+    onSeekFinished: ((Float) -> Unit)? = null,
 ) {
     Column(modifier = modifier) {
-        Slider(value = progress, onValueChange = onProgressChanged)
+        Slider(
+            value = progress, onValueChange = onProgressChanged,
+            onValueChangeFinished = {
+                onSeekFinished?.invoke(progress)
+            },
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -240,69 +313,7 @@ fun FullScreenPlayerSlider(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun NowPlayingScreen(
-    onStateChange: (playerState: PlayerUiState) -> Unit,
-    musicalServiceConnection: MusicalServiceConnection,
-) {
-    val viewModel: NowPlayingScreenViewModel =
-        viewModel(factory = NowPlayingScreenViewModel.Factory(musicalServiceConnection))
-    val uiState = viewModel.uiState
-    BackHandler(enabled = uiState.isFullScreen) {
-        viewModel.toggleFullScreen()
-    }
-    AnimatedContent(
-        targetState = uiState.isFullScreen,
-        label = "",
-        transitionSpec = {
-            ContentTransform(
-                targetContentEnter = slideIntoContainer(towards = AnimatedContentScope.SlideDirection.Up) + fadeIn(),
-                initialContentExit = slideOutOfContainer(towards = AnimatedContentScope.SlideDirection.Down) + fadeOut()
-            )
-        }
-    ) {
-        if (it) {
-            onStateChange(PlayerUiState.Expanded)
-            FullScreenPlayer(
-                onCollapseClicked = {
-                    viewModel.toggleFullScreen()
-                },
-                playingSong = uiState.playingSong,
-                onPlayClicked = { playing ->
-                    if (playing) {
-                        viewModel.resume()
-                    } else {
-                        viewModel.pause()
-                    }
-                },
-                isPlaying = uiState.isPlaying,
-                remainingTime = uiState.remainingTime,
-                progress = uiState.progress,
-                onProgressChanged = { progress ->
-                    viewModel.seekTo(progress)
-                }
-            )
-        } else {
-            onStateChange(PlayerUiState.Collapsed)
-            MiniPlayer(
-                onClick = {
-                    viewModel.toggleFullScreen()
-                },
-                playingSong = uiState.playingSong,
-                onPlayPauseClicked = {
-                    if (uiState.isPlaying) {
-                        viewModel.pause()
-                    } else {
-                        viewModel.resume()
-                    }
-                },
-                isPlaying = uiState.isPlaying
-            )
-        }
-    }
 
-}
 
 @Composable
 fun MiniPlayer(
@@ -411,6 +422,7 @@ fun FullScreenPlayerPreview() {
         isPlaying = false,
         remainingTime = "",
         progress = 0f,
-        onProgressChanged = {}
+        onProgressChanged = {},
+        onSeekFinished = {}
     )
 }
