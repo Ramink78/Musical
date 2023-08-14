@@ -9,7 +9,6 @@ import rk.musical.data.model.Song
 import rk.musical.utils.IS_MUSIC_CLAUSE
 import rk.musical.utils.SONGS_URI
 import rk.musical.utils.SortOrder
-import rk.musical.utils.albumIdColumnIndex
 import rk.musical.utils.albumNameColumnIndex
 import rk.musical.utils.artistColumnIndex
 import rk.musical.utils.kuery
@@ -43,12 +42,10 @@ class SongRepository(
                 val idCol = cursor.songIdColumnIndex
                 val titleCol = cursor.songNameColumnIndex
                 val artistCol = cursor.artistColumnIndex
-                val albumIdCol = cursor.albumIdColumnIndex
                 val albumNameCol = cursor.albumNameColumnIndex
                 val songDurationCol = cursor.songDurationColumnIndex
                 chacedSongs = buildList {
                     while (cursor.moveToNext()) {
-                        val albumId = cursor.getLong(albumIdCol)
                         val songId = cursor.getLong(idCol)
                         val songUri = ContentUris.withAppendedId(SONGS_URI, songId)
                         add(
@@ -56,10 +53,9 @@ class SongRepository(
                                 id = songId.toString(),
                                 title = cursor.getString(titleCol),
                                 artist = cursor.getString(artistCol),
-                                albumId = albumId.toString(),
                                 songUri = songUri.toString(),
                                 albumName = cursor.getString(albumNameCol),
-                                coverUri = buildCoverUri(albumId),
+                                coverUri = buildCoverUri(songId),
                                 duration = cursor.getLong(songDurationCol)
                             ),
                         )
@@ -71,8 +67,8 @@ class SongRepository(
 
     }
 
-    private fun buildCoverUri(albumId: Long): String {
-        return "content://media/external/audio/media/$albumId/albumart"
+    private fun buildCoverUri(id: Long): String {
+        return "content://media/external/audio/media/$id/albumart"
     }
 
     override suspend fun load() {
@@ -80,6 +76,10 @@ class SongRepository(
         state = DataSourceState.Loading
         loadSongs()
         state = DataSourceState.Success
+    }
+
+    override fun getAlbumSongs(albumName: String): List<Song> {
+        return chacedSongs.filter { it.albumName == albumName }
     }
 
     override fun iterator(): Iterator<Song> = chacedSongs.iterator()

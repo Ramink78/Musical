@@ -129,7 +129,7 @@ class MusicalPlaybackService : MediaLibraryService() {
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<Void>> {
             val children =
-                mediaTree.getChildren(parentId)
+                mediaTree[parentId]
                     ?: return Futures.immediateFuture(
                         LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
                     )
@@ -154,7 +154,7 @@ class MusicalPlaybackService : MediaLibraryService() {
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             return whenReadyTree {
-                val children = mediaTree.getChildren(parentId)
+                val children = mediaTree[parentId]
                 LibraryResult.ofItemList(children ?: ImmutableList.of(), null)
             }
         }
@@ -164,7 +164,9 @@ class MusicalPlaybackService : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
-            return super.onGetItem(session, browser, mediaId)
+            return whenReadyTree {
+                LibraryResult.ofItem(mediaTree.getMediaItemById(mediaId) ?: MediaItem.EMPTY, null)
+            }
         }
 
     }

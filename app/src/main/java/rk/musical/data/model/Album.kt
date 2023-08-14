@@ -13,7 +13,6 @@ data class Album(
 )
 
 fun Album.toMediaItem() = buildAlbumMediaItem(
-    id = id,
     title = title,
     artist = artist,
     coverUri = coverUri?.toUri(),

@@ -446,7 +446,6 @@ fun MiniPlayerPreview() {
         id = "0",
         title = "This is song title",
         artist = "Artist name",
-        albumId = "0",
         songUri = "",
         albumName = "",
         duration = 0
@@ -466,7 +465,6 @@ fun FullScreenPlayerPreview() {
         id = "0",
         title = "This is song title",
         artist = "Artist name",
-        albumId = "0",
         songUri = "",
         albumName = "",
         duration = 0

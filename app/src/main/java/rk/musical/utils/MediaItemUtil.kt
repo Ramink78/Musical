@@ -10,7 +10,6 @@ fun buildSongMediaItem(
     songId: String,
     title: String,
     artist: String,
-    albumId: String,
     albumName: String,
     coverUri: Uri?,
     duration: Long,
@@ -32,21 +31,18 @@ fun buildSongMediaItem(
                         SONG_DURATION to duration
                     )
                 )
-                // set subtitle to album id
-                .setSubtitle(albumId)
                 .build()
         )
         .build()
 
 fun buildAlbumMediaItem(
-    id: String,
     title: String,
     artist: String,
     songsCount: Int,
     coverUri: Uri?
 ) =
     MediaItem.Builder()
-        .setMediaId(id)
+        .setMediaId(title)
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setIsBrowsable(true)

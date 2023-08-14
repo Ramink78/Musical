@@ -3,6 +3,7 @@ package rk.musical.data
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import rk.musical.data.model.toMediaItem
+import rk.musical.data.model.toMediaItems
 
 const val ROOT = "/"
 const val ALBUMS_NODE = "albums"
@@ -14,19 +15,11 @@ class MediaTree(
     private val songsDataSource: LocalSongsDataSource,
     private val albumDataSource: AlbumDataSource
 ) {
-    private val tree = mutableMapOf<String, MediaNode>()
+    private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaItem>>()
+    private val mediaIdToMediaItem = mutableMapOf<String, MediaItem>()
 
-    data class MediaNode(
-        val mediaItem: MediaItem,
-        val children: List<MediaItem>? = null
-    )
-
-    init {
-        initializeTree()
-    }
-
-    private fun initializeTree() {
-        val albumsMediaItem = MediaItem.Builder()
+    private val albumsNodeMediaItem by lazy {
+        MediaItem.Builder()
             .setMediaId(ALBUMS_NODE)
             .setMediaMetadata(
                 MediaMetadata.Builder()
@@ -36,7 +29,9 @@ class MediaTree(
                     .build()
             )
             .build()
-        val songsMediaItem = MediaItem.Builder()
+    }
+    private val songsNodeMediaItem by lazy {
+        MediaItem.Builder()
             .setMediaId(SONGS_NODE)
             .setMediaMetadata(
                 MediaMetadata.Builder()
@@ -46,47 +41,40 @@ class MediaTree(
                     .build()
             )
             .build()
-        initializeRoot(listOf(albumsMediaItem, songsMediaItem))
-        tree[ALBUMS_NODE] = buildAlbumsNode(albumsMediaItem)
-        tree[SONGS_NODE] = buildSongsNode(songsMediaItem)
+    }
+
+    init {
+        initializeTree()
+    }
+
+    private fun initializeTree() {
+        val rootList: MutableList<MediaItem> = mutableListOf()
+        rootList.add(albumsNodeMediaItem)
+        rootList.add(songsNodeMediaItem)
+        mediaIdToChildren[ROOT] = rootList
+
+        val albumsRoot = mutableListOf<MediaItem>()
+        albumDataSource.forEach { album ->
+            albumsRoot.add(album.toMediaItem())
+        }
+        val songsRoot = mutableListOf<MediaItem>()
+        songsDataSource.forEach {
+            songsRoot.add(it.toMediaItem())
+        }
+        mediaIdToChildren[SONGS_NODE] = songsRoot
+        mediaIdToChildren[ALBUMS_NODE] = albumsRoot
+        albumsRoot.forEach {
+            val albumChildren = songsDataSource.getAlbumSongs(it.mediaId).toMediaItems()
+            val albumFolder = mutableListOf<MediaItem>()
+            albumFolder.addAll(albumChildren)
+            mediaIdToChildren[it.mediaMetadata.title.toString()] = albumFolder
+        }
 
     }
 
-    private fun initializeRoot(children: List<MediaItem>) {
-        val rootMediaItem = MediaItem.Builder()
-            .setMediaId(ROOT)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setIsBrowsable(true)
-                    .setIsPlayable(false)
-                    .build()
-            )
-            .build()
-        tree[rootMediaItem.mediaId] = MediaNode(
-            mediaItem = rootMediaItem,
-            children = children
-        )
 
-    }
-
-    private fun buildAlbumsNode(albumsMediaItem: MediaItem) =
-        MediaNode(
-            mediaItem = albumsMediaItem,
-            children = albumDataSource.map { it.toMediaItem() }
-        )
-
-    private fun buildSongsNode(songsMediaItem: MediaItem) =
-        MediaNode(
-            mediaItem = songsMediaItem,
-            children = songsDataSource.map { it.toMediaItem() }
-        )
-
-
-    fun getChildren(parentId: String): List<MediaItem>? =
-        tree[parentId]?.children
-
-
-    fun getRoot() = tree[ROOT]!!.mediaItem
+    operator fun get(mediaId: String) = mediaIdToChildren[mediaId]
+    fun getMediaItemById(mediaId: String) = mediaIdToMediaItem[mediaId]
 
 
 }

@@ -15,12 +15,10 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.launch
 import rk.musical.data.ALBUMS_NODE
 import rk.musical.data.SONGS_NODE
 import rk.musical.data.model.Song
@@ -70,12 +68,17 @@ class MusicalServiceConnection private constructor(
     suspend fun getSongsMediaItems(): List<MediaItem>? {
         return mediaBrowser.getChildren(
             SONGS_NODE, 0, Int.MAX_VALUE, null
-        ).await().value?.toList()
+        ).await().value
     }
 
     suspend fun getAlbumsMediaItems(): List<MediaItem>? {
         return mediaBrowser.getChildren(ALBUMS_NODE, 0, Int.MAX_VALUE, null)
-            .await().value?.toList()
+            .await().value
+    }
+
+    suspend fun getAlbumChild(albumId: String): List<MediaItem>? {
+        return mediaBrowser.getChildren(albumId, 0, Int.MAX_VALUE, null)
+            .await().value
     }
 
     private fun syncWithPlaybackService() {

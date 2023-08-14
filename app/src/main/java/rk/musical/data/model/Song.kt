@@ -13,7 +13,6 @@ data class Song(
     val title: String,
     val artist: String,
     val songUri: String,
-    val albumId: String,
     val albumName: String,
     val duration: Long,
     val coverUri: String? = null,
@@ -25,7 +24,6 @@ data class Song(
             artist = "",
             songUri = "",
             albumName = "",
-            albumId = "",
             duration = 0
         )
     }
@@ -36,7 +34,6 @@ fun Song.toMediaItem() = buildSongMediaItem(
     title = title,
     artist = artist,
     songUri = songUri.toUri(),
-    albumId = albumId,
     albumName = albumName,
     coverUri = coverUri?.toUri(),
     duration = duration
@@ -49,7 +46,6 @@ fun MediaItem.toSong() =
         title = mediaMetadata.title.toString(),
         artist = mediaMetadata.artist.toString(),
         songUri = ContentUris.withAppendedId(SONGS_URI, mediaId.toLong()).toString(),
-        albumId = mediaMetadata.extras?.getString(ALBUM_ID, "") ?: "",
         albumName = mediaMetadata.albumTitle.toString(),
         coverUri = mediaMetadata.artworkUri.toString(),
         duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0
