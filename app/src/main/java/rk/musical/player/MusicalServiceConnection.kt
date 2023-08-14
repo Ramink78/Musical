@@ -2,7 +2,6 @@ package rk.musical.player
 
 import android.content.ComponentName
 import android.content.Context
-import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -26,7 +25,6 @@ import rk.musical.data.model.logger
 import rk.musical.data.model.toMediaItem
 import rk.musical.utils.SONG_DURATION
 
-@Stable
 class MusicalServiceConnection private constructor(
     context: Context, component: ComponentName
 ) : Player.Listener, MediaBrowser.Listener {
