@@ -2,7 +2,6 @@ package rk.musical.player
 
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
-import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.exoplayer.ExoPlayer
@@ -12,8 +11,7 @@ import androidx.media3.session.MediaSession
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.ListeningExecutorService
-import com.google.common.util.concurrent.MoreExecutors
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,30 +20,31 @@ import rk.musical.data.AlbumRepository
 import rk.musical.data.MediaTree
 import rk.musical.data.ROOT
 import rk.musical.data.SongRepository
-import java.util.concurrent.Executors
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MusicalPlaybackService : MediaLibraryService() {
+    @Inject
+    lateinit var exoPlayer: ExoPlayer
+
+    @Inject
+    lateinit var albumRepository: AlbumRepository
+
+    @Inject
+    lateinit var songRepository: SongRepository
+
+
+    private val mediaTree: MediaTree by lazy {
+        MediaTree(songRepository, albumRepository)
+    }
+
     var mediaSession: MediaLibrarySession? = null
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
-    private val executor: ListeningExecutorService by lazy {
-        MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
-    }
+    private val isLoadedRepositories
+        get() =
+            songRepository.isReady && albumRepository.isReady
 
-    private val albumRepository = AlbumRepository(context = this)
-    private val songRepository = SongRepository(context = this)
-
-    private var isLoadedRepositories =
-        songRepository.isReady && albumRepository.isReady
-
-
-    private val mediaTree by lazy {
-        MediaTree(
-            songsDataSource = songRepository,
-            albumDataSource = albumRepository
-        )
-    }
 
     // onGetLibraryRoot immediate return this
     private val rootMediaItem by lazy {
@@ -63,7 +62,6 @@ class MusicalPlaybackService : MediaLibraryService() {
 
     override fun onCreate() {
         super.onCreate()
-        val exoPlayer = buildExoplayer()
         mediaSession = buildMediaSession(exoPlayer)
     }
 
@@ -94,14 +92,6 @@ class MusicalPlaybackService : MediaLibraryService() {
                 action()
             }
         }
-    }
-
-
-    private fun buildExoplayer(): ExoPlayer {
-        return ExoPlayer.Builder(this)
-            .setAudioAttributes(AudioAttributes.DEFAULT, true)
-            .setHandleAudioBecomingNoisy(true)
-            .build()
     }
 
     override fun onDestroy() {
