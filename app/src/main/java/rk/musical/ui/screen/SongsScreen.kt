@@ -1,6 +1,6 @@
 package rk.musical.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,23 +35,35 @@ import rk.musical.utils.loadCover
 
 @Composable
 fun SongsScreen(
-    modifier: Modifier = Modifier,
-    onSongClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val viewModel: SongsScreenViewModel = viewModel(factory = SongsScreenViewModel.Factory)
+    val viewModel: SongsScreenViewModel = viewModel()
     val uiState = viewModel.uiState
-    AnimatedVisibility(visible = uiState is SongsScreenUiState.Loading) {
-        Column(
-            modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            LoadingCircle()
+    Crossfade(targetState = uiState, label = "") {
+        when (it) {
+            SongsScreenUiState.Loading -> {
+                Column(
+                    modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    LoadingCircle()
+                }
+            }
+
+            is SongsScreenUiState.Loaded -> {
+                SongsList(modifier = modifier, songs = it.songs, onSongClick = {
+                    viewModel.playSong(it)
+                })
+            }
+
+            else -> {
+                // Show empty screen
+            }
         }
+
     }
-    if (uiState is SongsScreenUiState.Loaded) {
-        SongsList(modifier = modifier, songs = uiState.songs, onSongClick = onSongClick)
-    }
+
 
 }
 
@@ -59,8 +71,9 @@ fun SongsScreen(
 fun SongsList(
     songs: List<Song>,
     modifier: Modifier = Modifier,
-    onSongClick: () -> Unit
+    onSongClick: (Song) -> Unit
 ) {
+
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -69,7 +82,9 @@ fun SongsList(
             items = songs,
             key = { it.id }
         ) {
-            SongItem(song = it, onClick = onSongClick)
+            SongItem(song = it, onClick = { song ->
+                onSongClick(song)
+            })
         }
     }
 }
@@ -78,12 +93,14 @@ fun SongsList(
 @Composable
 fun SongItem(
     song: Song,
-    onClick: () -> Unit,
+    onClick: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        onClick = {
+            onClick(song)
+        }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -147,12 +164,12 @@ fun SongItem(
 @Composable
 fun SongsScreenPreview() {
     val songForPreview = Song(
-        id = 0,
+        id = "0",
         title = "This is song title",
         artist = "Artist name",
-        albumId = 0,
         songUri = "",
         albumName = "",
+        duration = 0
     )
     MusicalTheme {
         SongItem(

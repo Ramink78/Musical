@@ -5,44 +5,81 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import rk.musical.MusicalApplication
-import rk.musical.data.AlbumRepository
 import rk.musical.data.model.Album
+import rk.musical.data.model.Song
+import rk.musical.data.model.toAlbums
+import rk.musical.data.model.toSongs
+import rk.musical.player.MusicalServiceConnection
+import javax.inject.Inject
 
-class AlbumsScreenViewModel(private val albumRepository: AlbumRepository) : ViewModel() {
-    var uiState: AlbumsScreenUiState by mutableStateOf(AlbumsScreenUiState.Empty)
+@HiltViewModel
+class AlbumsScreenViewModel @Inject constructor(
+    private val musicalServiceConnection: MusicalServiceConnection
+) : ViewModel() {
+    var uiState: AlbumsScreenUiState by mutableStateOf(AlbumsScreenUiState.Loading)
         private set
+    var albums: List<Album> by mutableStateOf(emptyList())
+    var albumChildren: List<Song> by mutableStateOf(emptyList())
 
     init {
-        loadAlbums()
+        collectMusicalPlaybackState()
+    }
+
+    private fun collectMusicalPlaybackState() {
+        viewModelScope.launch {
+            musicalServiceConnection.musicalPlaybackState.collect {
+                if (it.isConnected && uiState is AlbumsScreenUiState.Loading) {
+                    loadAlbums()
+                }
+            }
+        }
     }
 
 
     private fun loadAlbums() {
-        uiState = AlbumsScreenUiState.Loading
         viewModelScope.launch {
-            val albums = albumRepository.loadAlbums()
-            uiState = AlbumsScreenUiState.Loaded(albums)
+            val loadedAlbums = musicalServiceConnection.getAlbumsMediaItems()
+            uiState = AlbumsScreenUiState.Loaded
+            albums = loadedAlbums?.toAlbums() ?: emptyList()
+            if (albums.isEmpty())
+                uiState = AlbumsScreenUiState.Empty
+
         }
     }
 
-    companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val application = checkNotNull(extras[APPLICATION_KEY])
-                return AlbumsScreenViewModel(albumRepository = AlbumRepository(application as MusicalApplication)) as T
-            }
+    fun play(song: Song) {
+        musicalServiceConnection.playSong(song)
+    }
+
+    fun navigateBackToAlbums() {
+        uiState = AlbumsScreenUiState.NavigateBack
+    }
+
+    fun loadAlbumChildren(album: Album) {
+        viewModelScope.launch {
+            uiState = AlbumsScreenUiState.Loading
+            val childrenMediaItems = musicalServiceConnection.getAlbumChild(album.id) ?: emptyList()
+            uiState =
+                if (childrenMediaItems.isNotEmpty()) {
+                    AlbumsScreenUiState.LoadedChildren.also {
+                        albumChildren = childrenMediaItems.toSongs()
+                    }
+                } else AlbumsScreenUiState.Empty
+
         }
     }
+
 }
 
+
 sealed interface AlbumsScreenUiState {
-    data class Loaded(val albums: List<Album>) : AlbumsScreenUiState
+    object Loaded : AlbumsScreenUiState
+    object LoadedChildren : AlbumsScreenUiState
     object Loading : AlbumsScreenUiState
+    object NavigateBack : AlbumsScreenUiState
     object Empty : AlbumsScreenUiState
 }

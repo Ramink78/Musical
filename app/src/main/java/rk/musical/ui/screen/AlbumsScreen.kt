@@ -1,5 +1,6 @@
 package rk.musical.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,32 +36,58 @@ import rk.musical.ui.theme.PurpleGrey80
 import rk.musical.utils.loadCover
 
 @Composable
-fun AlbumsScreen(modifier: Modifier = Modifier) {
-    val viewModel: AlbumsScreenViewModel = viewModel(factory = AlbumsScreenViewModel.Factory)
+fun AlbumsScreen(
+    modifier: Modifier = Modifier,
+) {
+    val viewModel: AlbumsScreenViewModel = viewModel()
     val uiState = viewModel.uiState
-
-    Crossfade(targetState = uiState) {
-        if (it is AlbumsScreenUiState.Loading)
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                LoadingCircle()
+    val albums = viewModel.albums
+    val albumChildren = viewModel.albumChildren
+    BackHandler(uiState is AlbumsScreenUiState.LoadedChildren) {
+        viewModel.navigateBackToAlbums()
+    }
+    Crossfade(targetState = uiState, label = "") { state ->
+        when (state) {
+            AlbumsScreenUiState.Loading -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    LoadingCircle()
+                }
             }
-        if (it is AlbumsScreenUiState.Loaded) {
-            AlbumsList(
-                albums = it.albums,
-                modifier = modifier
-            )
+
+            is AlbumsScreenUiState.Loaded, AlbumsScreenUiState.NavigateBack -> {
+                AlbumsList(
+                    albums = albums,
+                    modifier = modifier,
+                    onAlbumClicked = { album ->
+                        viewModel.loadAlbumChildren(album)
+                    }
+                )
+            }
+
+            is AlbumsScreenUiState.LoadedChildren -> {
+                SongsList(songs = albumChildren, onSongClick = { song ->
+                    viewModel.play(song)
+                }, modifier = modifier)
+            }
+
+            AlbumsScreenUiState.Empty -> {}
         }
+
     }
 
 
 }
 
 @Composable
-fun AlbumsList(albums: List<Album>, modifier: Modifier = Modifier) {
+fun AlbumsList(
+    albums: List<Album>,
+    onAlbumClicked: (Album) -> Unit,
+    modifier: Modifier = Modifier
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -72,7 +99,9 @@ fun AlbumsList(albums: List<Album>, modifier: Modifier = Modifier) {
             key = { it.id }
         ) {
             AlbumItem(
-                onClick = {},
+                onClick = {
+                    onAlbumClicked(it)
+                },
                 album = it
             )
         }
@@ -142,7 +171,7 @@ fun LoadingCircle() {
 @Composable
 fun AlbumItemPreview() {
     val albumForPreview = Album(
-        id = 0,
+        id = "0",
         title = "Album name",
         artist = "Artist Name",
         songsCount = 5
@@ -150,10 +179,4 @@ fun AlbumItemPreview() {
     MusicalTheme {
         AlbumItem(onClick = {}, album = albumForPreview)
     }
-}
-
-@Preview
-@Composable
-fun AlbumsScreenPreview() {
-
 }
