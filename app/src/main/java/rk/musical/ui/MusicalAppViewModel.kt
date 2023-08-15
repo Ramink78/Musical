@@ -4,14 +4,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import rk.musical.player.MusicalPlaybackState
 import rk.musical.player.MusicalServiceConnection
+import javax.inject.Inject
 
-class MusicalAppViewModel(
+@HiltViewModel
+class MusicalAppViewModel @Inject constructor(
     private val musicalServiceConnection: MusicalServiceConnection,
 ) : ViewModel(), Player.Listener {
 
@@ -22,16 +24,6 @@ class MusicalAppViewModel(
         viewModelScope.launch {
             musicalServiceConnection.musicalPlaybackState.collect {
                 musicalPlaybackState = it
-            }
-        }
-    }
-
-    companion object {
-        @Suppress("UNCHECKED_CAST")
-        class Factory(private val musicalServiceConnection: MusicalServiceConnection) :
-            ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MusicalAppViewModel(musicalServiceConnection) as T
             }
         }
     }

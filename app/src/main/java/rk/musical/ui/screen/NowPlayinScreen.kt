@@ -66,10 +66,8 @@ sealed class PlayerUiState {
 @Composable
 fun NowPlayingScreen(
     onStateChange: (playerState: PlayerUiState) -> Unit,
-    musicalServiceConnection: MusicalServiceConnection,
 ) {
-    val viewModel: NowPlayingScreenViewModel =
-        viewModel(factory = NowPlayingScreenViewModel.Factory(musicalServiceConnection))
+    val viewModel: NowPlayingScreenViewModel = viewModel()
     val uiState = viewModel.uiState
     BackHandler(enabled = uiState.isFullScreen) {
         viewModel.toggleFullScreen()

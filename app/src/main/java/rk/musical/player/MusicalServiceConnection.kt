@@ -10,10 +10,8 @@ import androidx.media3.common.Player.EVENT_MEDIA_METADATA_CHANGED
 import androidx.media3.common.Player.EVENT_PLAYBACK_STATE_CHANGED
 import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
 import androidx.media3.session.MediaBrowser
-import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,19 +22,11 @@ import rk.musical.data.model.Song
 import rk.musical.data.model.logger
 import rk.musical.data.model.toMediaItem
 import rk.musical.utils.SONG_DURATION
+import javax.inject.Inject
 
-class MusicalServiceConnection private constructor(
-    context: Context, component: ComponentName
-) : Player.Listener, MediaBrowser.Listener {
-    private val scope = CoroutineScope(Dispatchers.Main)
-    private val sessionToken by lazy {
-        SessionToken(context, component)
-    }
-    private val browserFuture by lazy {
-        MediaBrowser.Builder(context, sessionToken)
-            .setListener(this)
-            .buildAsync()
-    }
+@ActivityRetainedScoped
+class MusicalServiceConnection @Inject constructor() :
+    Player.Listener, MediaBrowser.Listener {
 
     // initialized when browserFuture connected to the MusicalPlaybackService
     private lateinit var mediaBrowser: MediaBrowser
@@ -47,20 +37,26 @@ class MusicalServiceConnection private constructor(
     val currentPosition: Long
         get() = mediaBrowser.currentPosition
 
-    init {
+    fun connectToService(context: Context) {
+        val sessionToken =
+            SessionToken(
+                context,
+                ComponentName(context, MusicalPlaybackService::class.java)
+            )
+        val browserFuture = MediaBrowser.Builder(context, sessionToken)
+            .setListener(this)
+            .buildAsync()
         browserFuture.addListener({
             mediaBrowser = browserFuture.get()
             mediaBrowser.addListener(this)
             syncWithPlaybackService()
             logger("connection initialized")
         }, ContextCompat.getMainExecutor(context))
-
     }
 
-    private fun releaseConnection() {
+    fun releaseConnection() {
         mediaBrowser.removeListener(this)
         mediaBrowser.release()
-        instance = null
     }
 
     suspend fun getSongsMediaItems(): List<MediaItem>? {
@@ -142,26 +138,7 @@ class MusicalServiceConnection private constructor(
                     playbackState = player.playbackState,
                     playWhenReady = player.playWhenReady
                 )
-
             }
         }
-    }
-
-    override fun onDisconnected(controller: MediaController) {
-        releaseConnection()
-        _musicalPlaybackState.update {
-            it.copy(isConnected = false)
-        }
-    }
-
-    companion object {
-        @Volatile
-        private var instance: MusicalServiceConnection? = null
-        fun getInstance(context: Context, component: ComponentName): MusicalServiceConnection =
-            instance ?: synchronized(this) {
-                instance ?: MusicalServiceConnection(context, component)
-                    .also { instance = it }
-            }
-
     }
 }

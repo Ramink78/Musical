@@ -30,17 +30,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.SubcomposeAsyncImage
 import rk.musical.data.model.Song
-import rk.musical.player.MusicalServiceConnection
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.utils.loadCover
 
 @Composable
 fun SongsScreen(
-    modifier: Modifier = Modifier,
-    musicalServiceConnection: MusicalServiceConnection
+    modifier: Modifier = Modifier
 ) {
-    val viewModel: SongsScreenViewModel =
-        viewModel(factory = SongsScreenViewModel.Factory(musicalServiceConnection))
+    val viewModel: SongsScreenViewModel = viewModel()
     val uiState = viewModel.uiState
     Crossfade(targetState = uiState, label = "") {
         when (it) {

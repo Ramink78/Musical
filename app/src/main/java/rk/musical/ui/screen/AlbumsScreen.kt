@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import rk.musical.data.model.Album
-import rk.musical.player.MusicalServiceConnection
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.Purple40
 import rk.musical.ui.theme.PurpleGrey80
@@ -39,10 +38,8 @@ import rk.musical.utils.loadCover
 @Composable
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
-    musicalServiceConnection: MusicalServiceConnection
 ) {
-    val viewModel: AlbumsScreenViewModel =
-        viewModel(factory = AlbumsScreenViewModel.Factory(musicalServiceConnection))
+    val viewModel: AlbumsScreenViewModel = viewModel()
     val uiState = viewModel.uiState
     val albums = viewModel.albums
     val albumChildren = viewModel.albumChildren

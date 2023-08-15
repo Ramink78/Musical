@@ -7,12 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
 import rk.musical.data.model.toSongs
 import rk.musical.player.MusicalServiceConnection
+import javax.inject.Inject
 
-class SongsScreenViewModel(
+@HiltViewModel
+class SongsScreenViewModel @Inject constructor(
     private val musicalServiceConnection: MusicalServiceConnection,
 ) : ViewModel() {
     var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Empty)
@@ -50,14 +53,6 @@ class SongsScreenViewModel(
         musicalServiceConnection.playSong(song)
     }
 
-    class Factory(
-        private val musicalServiceConnection: MusicalServiceConnection,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-            return SongsScreenViewModel(musicalServiceConnection = musicalServiceConnection) as T
-        }
-    }
 
 }
 

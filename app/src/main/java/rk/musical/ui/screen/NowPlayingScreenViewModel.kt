@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -13,8 +14,10 @@ import rk.musical.data.model.Song
 import rk.musical.data.model.toSong
 import rk.musical.player.MusicalServiceConnection
 import rk.musical.utils.readableDuration
+import javax.inject.Inject
 
-class NowPlayingScreenViewModel(
+@HiltViewModel
+class NowPlayingScreenViewModel @Inject constructor(
     private val musicalServiceConnection: MusicalServiceConnection
 ) : ViewModel() {
 
@@ -108,12 +111,6 @@ class NowPlayingScreenViewModel(
         needToUpdatePosition = false
     }
 
-    class Factory(private val musicalServiceConnection: MusicalServiceConnection) :
-        ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return NowPlayingScreenViewModel(musicalServiceConnection) as T
-        }
-    }
 
 
 }

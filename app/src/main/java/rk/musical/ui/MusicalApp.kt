@@ -21,9 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import rk.musical.R
-import rk.musical.player.MusicalServiceConnection
 import rk.musical.ui.screen.AlbumsScreen
 import rk.musical.ui.screen.NowPlayingScreen
 import rk.musical.ui.screen.PlayerUiState
@@ -32,7 +32,6 @@ import rk.musical.ui.screen.SongsScreen
 @Composable
 fun MusicalApp(
     musicalViewModel: MusicalAppViewModel,
-    musicalServiceConnection: MusicalServiceConnection
 ) {
     var currentScreen: Int by remember {
         mutableStateOf(0)
@@ -45,7 +44,6 @@ fun MusicalApp(
                 currentScreen = currentScreen,
                 onSelectedAlbums = { currentScreen = 1 },
                 onSelectedSongs = { currentScreen = 0 },
-                musicalServiceConnection = musicalServiceConnection,
                 playingSong = musicalPlaybackState.playingMediaItem,
             )
         },
@@ -53,7 +51,6 @@ fun MusicalApp(
             when (currentScreen) {
                 0 -> {
                     SongsScreen(
-                        musicalServiceConnection = musicalServiceConnection,
                         modifier = Modifier
                             .padding(paddingValues)
                             .padding(
@@ -67,7 +64,6 @@ fun MusicalApp(
                 1 -> {
                     AlbumsScreen(
                         modifier = Modifier.padding(paddingValues),
-                        musicalServiceConnection = musicalServiceConnection
                     )
                 }
             }
@@ -85,14 +81,13 @@ fun MusicalBottomBar(
     currentScreen: Int,
     onSelectedAlbums: () -> Unit,
     onSelectedSongs: () -> Unit,
-    musicalServiceConnection: MusicalServiceConnection
 ) {
     var isShowNavigationBar by remember {
         mutableStateOf(true)
     }
     Column(modifier = modifier) {
         AnimatedVisibility(visible = playingSong != MediaItem.EMPTY) {
-            NowPlayingScreen(musicalServiceConnection = musicalServiceConnection,
+            NowPlayingScreen(
                 onStateChange = {
                     isShowNavigationBar = when (it) {
                         PlayerUiState.Expanded -> false
