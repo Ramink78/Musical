@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -20,55 +22,60 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import rk.musical.R
+import rk.musical.navigation.MusicalRoutes
 import rk.musical.ui.screen.AlbumsScreen
 import rk.musical.ui.screen.NowPlayingScreen
 import rk.musical.ui.screen.PlayerUiState
 import rk.musical.ui.screen.SongsScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MusicalApp(
     musicalViewModel: MusicalAppViewModel,
 ) {
-    var currentScreen: Int by remember {
-        mutableStateOf(0)
-    }
     val musicalPlaybackState = musicalViewModel.musicalPlaybackState
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route ?: MusicalRoutes.Songs.name
 
     Scaffold(
         bottomBar = {
             MusicalBottomBar(
-                currentScreen = currentScreen,
-                onSelectedAlbums = { currentScreen = 1 },
-                onSelectedSongs = { currentScreen = 0 },
+                currentRoute = currentRoute,
+                onSelectedAlbums = { navController.navigate(MusicalRoutes.Albums.name) },
+                onSelectedSongs = { navController.navigate(MusicalRoutes.Songs.name) },
                 playingSong = musicalPlaybackState.playingMediaItem,
             )
         },
         content = { paddingValues ->
-            when (currentScreen) {
-                0 -> {
+            NavHost(
+                navController = navController,
+                startDestination = MusicalRoutes.Songs.name,
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable(route = MusicalRoutes.Songs.name) {
                     SongsScreen(
-                        modifier = Modifier
-                            .padding(paddingValues)
-                            .padding(
-                                start = 8.dp,
-                                end = 8.dp,
-                                top = 16.dp
-                            ),
+                        contentPadding = paddingValues,
+                        onSongClick = {
+
+                        }
                     )
                 }
-
-                1 -> {
+                composable(route = MusicalRoutes.Albums.name) {
                     AlbumsScreen(
                         modifier = Modifier.padding(paddingValues),
                     )
                 }
+                composable(route = MusicalRoutes.NowPlaying.name) {
+
+                }
             }
-
-
         }
     )
 
@@ -78,7 +85,7 @@ fun MusicalApp(
 fun MusicalBottomBar(
     modifier: Modifier = Modifier,
     playingSong: MediaItem = MediaItem.EMPTY,
-    currentScreen: Int,
+    currentRoute: String,
     onSelectedAlbums: () -> Unit,
     onSelectedSongs: () -> Unit,
 ) {
@@ -103,7 +110,7 @@ fun MusicalBottomBar(
         ) {
             NavigationBar {
                 NavigationBarItem(
-                    selected = currentScreen == 0,
+                    selected = currentRoute == MusicalRoutes.Songs.name,
                     onClick = onSelectedSongs,
                     icon = {
                         Icon(
@@ -115,7 +122,7 @@ fun MusicalBottomBar(
                         Text(text = stringResource(R.string.songs))
                     }
                 )
-                NavigationBarItem(selected = currentScreen == 1,
+                NavigationBarItem(selected = currentRoute == MusicalRoutes.Albums.name,
                     onClick = onSelectedAlbums,
                     icon = {
                         Icon(

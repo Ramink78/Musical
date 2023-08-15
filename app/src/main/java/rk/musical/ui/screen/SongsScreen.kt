@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import rk.musical.data.model.Song
 import rk.musical.ui.theme.MusicalTheme
@@ -35,9 +36,11 @@ import rk.musical.utils.loadCover
 
 @Composable
 fun SongsScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSongClick: (Song) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    val viewModel: SongsScreenViewModel = viewModel()
+    val viewModel: SongsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
     Crossfade(targetState = uiState, label = "") {
         when (it) {
@@ -52,9 +55,15 @@ fun SongsScreen(
             }
 
             is SongsScreenUiState.Loaded -> {
-                SongsList(modifier = modifier, songs = it.songs, onSongClick = {
-                    viewModel.playSong(it)
-                })
+                SongsList(
+                    modifier = modifier,
+                    songs = it.songs,
+                    contentPadding = contentPadding,
+                    onSongClick = { song ->
+                        viewModel.playSong(song)
+                        onSongClick(song)
+                    }
+                )
             }
 
             else -> {
@@ -71,12 +80,14 @@ fun SongsScreen(
 fun SongsList(
     songs: List<Song>,
     modifier: Modifier = Modifier,
-    onSongClick: (Song) -> Unit
+    onSongClick: (Song) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
 
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = contentPadding
     ) {
         items(
             items = songs,
