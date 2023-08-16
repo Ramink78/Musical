@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import rk.musical.data.model.Album
@@ -39,7 +40,7 @@ import rk.musical.utils.loadCover
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
 ) {
-    val viewModel: AlbumsScreenViewModel = viewModel()
+    val viewModel: AlbumsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
     val albums = viewModel.albums
     val albumChildren = viewModel.albumChildren

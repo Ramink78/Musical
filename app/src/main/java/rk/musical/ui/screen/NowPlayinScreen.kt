@@ -2,7 +2,7 @@ package rk.musical.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
@@ -50,11 +50,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import rk.musical.data.model.Song
-import rk.musical.player.MusicalServiceConnection
 import rk.musical.utils.loadCover
 import rk.musical.utils.readableDuration
 
@@ -62,12 +61,12 @@ sealed class PlayerUiState {
     object Collapsed : PlayerUiState()
     object Expanded : PlayerUiState()
 }
-@OptIn(ExperimentalAnimationApi::class)
+
 @Composable
 fun NowPlayingScreen(
     onStateChange: (playerState: PlayerUiState) -> Unit,
 ) {
-    val viewModel: NowPlayingScreenViewModel = viewModel()
+    val viewModel: NowPlayingScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
     BackHandler(enabled = uiState.isFullScreen) {
         viewModel.toggleFullScreen()
@@ -77,8 +76,8 @@ fun NowPlayingScreen(
         label = "",
         transitionSpec = {
             ContentTransform(
-                targetContentEnter = slideIntoContainer(towards = AnimatedContentScope.SlideDirection.Up) + fadeIn(),
-                initialContentExit = slideOutOfContainer(towards = AnimatedContentScope.SlideDirection.Down) + fadeOut()
+                targetContentEnter = slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Up) + fadeIn(),
+                initialContentExit = slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Down) + fadeOut()
             )
         }
     ) {
@@ -126,6 +125,7 @@ fun NowPlayingScreen(
     }
 
 }
+
 @Composable
 fun FullScreenPlayer(
     playingSong: Song,
@@ -289,7 +289,6 @@ fun FullScreenPlayerControls(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun FullScreenPlayerSlider(
     modifier: Modifier = Modifier,
