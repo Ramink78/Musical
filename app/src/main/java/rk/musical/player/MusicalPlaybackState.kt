@@ -8,7 +8,7 @@ data class MusicalPlaybackState(
     val playbackState: Int = Player.STATE_IDLE,
     val playWhenReady: Boolean = false,
     val playingMediaItem: MediaItem = MediaItem.EMPTY,
-    val currentPosition: Long = 0
+    val isReady: Boolean = false
 ) {
     val isPlaying: Boolean
         get() {

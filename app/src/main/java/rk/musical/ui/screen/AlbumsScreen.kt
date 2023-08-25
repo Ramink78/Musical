@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,6 +40,7 @@ import rk.musical.utils.loadCover
 @Composable
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues
 ) {
     val viewModel: AlbumsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
@@ -65,7 +67,8 @@ fun AlbumsScreen(
                     modifier = modifier,
                     onAlbumClicked = { album ->
                         viewModel.loadAlbumChildren(album)
-                    }
+                    },
+                    contentPadding = contentPadding
                 )
             }
 
@@ -86,6 +89,7 @@ fun AlbumsScreen(
 @Composable
 fun AlbumsList(
     albums: List<Album>,
+    contentPadding: PaddingValues,
     onAlbumClicked: (Album) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -93,7 +97,8 @@ fun AlbumsList(
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
+        modifier = modifier,
+        contentPadding = contentPadding
     ) {
         items(
             items = albums,
