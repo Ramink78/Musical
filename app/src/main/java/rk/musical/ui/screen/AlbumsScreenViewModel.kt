@@ -4,21 +4,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Album
 import rk.musical.data.model.Song
 import rk.musical.data.model.toAlbums
 import rk.musical.data.model.toSongs
-import rk.musical.player.MusicalServiceConnection
+import rk.musical.player.MusicalRemoteControl
 import javax.inject.Inject
 
 @HiltViewModel
 class AlbumsScreenViewModel @Inject constructor(
-    private val musicalServiceConnection: MusicalServiceConnection
+    private val remoteControl: MusicalRemoteControl
 ) : ViewModel() {
     var uiState: AlbumsScreenUiState by mutableStateOf(AlbumsScreenUiState.Loading)
         private set
@@ -31,7 +29,7 @@ class AlbumsScreenViewModel @Inject constructor(
 
     private fun collectMusicalPlaybackState() {
         viewModelScope.launch {
-            musicalServiceConnection.musicalPlaybackState.collect {
+            remoteControl.musicalPlaybackState.collect {
                 if (it.isConnected && uiState is AlbumsScreenUiState.Loading) {
                     loadAlbums()
                 }
@@ -42,7 +40,7 @@ class AlbumsScreenViewModel @Inject constructor(
 
     private fun loadAlbums() {
         viewModelScope.launch {
-            val loadedAlbums = musicalServiceConnection.getAlbumsMediaItems()
+            val loadedAlbums = remoteControl.getAlbumsMediaItems()
             uiState = AlbumsScreenUiState.Loaded
             albums = loadedAlbums?.toAlbums() ?: emptyList()
             if (albums.isEmpty())
@@ -52,7 +50,7 @@ class AlbumsScreenViewModel @Inject constructor(
     }
 
     fun play(song: Song) {
-        musicalServiceConnection.playSong(song)
+        remoteControl.playSong(song)
     }
 
     fun navigateBackToAlbums() {
@@ -62,7 +60,7 @@ class AlbumsScreenViewModel @Inject constructor(
     fun loadAlbumChildren(album: Album) {
         viewModelScope.launch {
             uiState = AlbumsScreenUiState.Loading
-            val childrenMediaItems = musicalServiceConnection.getAlbumChild(album.id) ?: emptyList()
+            val childrenMediaItems = remoteControl.getAlbumChild(album.id) ?: emptyList()
             uiState =
                 if (childrenMediaItems.isNotEmpty()) {
                     AlbumsScreenUiState.LoadedChildren.also {

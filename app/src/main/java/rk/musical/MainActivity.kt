@@ -10,17 +10,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
-import rk.musical.player.MusicalServiceConnection
+import rk.musical.player.ServiceConnection
 import rk.musical.ui.MusicalApp
-import rk.musical.ui.MusicalAppViewModel
 import rk.musical.ui.theme.MusicalTheme
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     @Inject
-    lateinit var serviceConnection: MusicalServiceConnection
-    private val musicalViewModel: MusicalAppViewModel by viewModels()
+    lateinit var serviceConnection: ServiceConnection
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,9 +31,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MusicalApp(
-                        musicalViewModel = musicalViewModel
-                    )
+                    MusicalApp()
                 }
             }
         }
@@ -42,12 +39,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        serviceConnection.connectToService(this)
+        serviceConnection.connect(this)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        serviceConnection.releaseConnection()
+    override fun onStop() {
+        super.onStop()
+        serviceConnection.disconnect()
     }
 
 

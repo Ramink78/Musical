@@ -3,12 +3,13 @@ package rk.musical.ui.screen
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,8 +66,10 @@ import rk.musical.R
 import rk.musical.utils.loadCover
 import rk.musical.utils.readableDuration
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PlayerScreen(
+    onSheetStateChange: (BottomSheetValue) -> Unit,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val viewModel: NowPlayingScreenViewModel = hiltViewModel()
@@ -91,6 +94,11 @@ fun PlayerScreen(
             model = uiState.playingSong.loadCover(LocalContext.current)
         ),
         progress = uiState.progress,
+        isSheetVisible = uiState.isVisible,
+        onSheetStateChange = {
+            onSheetStateChange(it)
+            viewModel.setExpanded(it == BottomSheetValue.Expanded)
+        },
         behindContent = behindContent
     )
 
@@ -109,10 +117,22 @@ private fun PlayerScreen(
     imagePainter: Painter,
     onSeekFinished: ((Float) -> Unit)?,
     progress: Float,
+    isSheetVisible: Boolean,
+    onSheetStateChange: (BottomSheetValue) -> Unit,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
-
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(
+            initialValue = BottomSheetValue.Collapsed,
+            confirmStateChange = {
+                onSheetStateChange(it)
+                true
+            })
+    )
+    val sheetPeekHeight by animateDpAsState(
+        targetValue =
+        if (isSheetVisible) 72.dp else 0.dp, label = ""
+    )
     BottomSheetScaffold(
         sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         sheetContent = {
@@ -148,7 +168,7 @@ private fun PlayerScreen(
                 }
             }
         },
-        sheetPeekHeight = 72.dp,
+        sheetPeekHeight = sheetPeekHeight,
         scaffoldState = scaffoldState
     ) {
         behindContent(it)
@@ -215,20 +235,25 @@ private fun ExpandedPlayer(
     onSeekFinished: ((Float) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         CoverImage(
             imagePainter = imagePainter,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(.9f)
+                .padding(top = 12.dp)
                 .aspectRatio(1f)
-                .sizeIn(maxHeight = 350.dp)
                 .clip(RoundedCornerShape(28.dp))
         )
         Spacer(modifier = Modifier.height(8.dp))
         SongInfo(
             title = title,
             subtitle = subtitle,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         )
 
         PlayerControls(
@@ -352,7 +377,7 @@ private fun SongInfo(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
+        modifier = modifier,
     ) {
         Text(
             text = title,
@@ -412,11 +437,11 @@ fun SlideUpAnimatedText(
 ) {
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
-            slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(animationSpec = spring()) with
-                    slideOutVertically { height -> -height } + fadeOut()
+            (slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(animationSpec = spring())).togetherWith(
+                slideOutVertically { height -> -height } + fadeOut())
         } else {
-            slideInVertically(animationSpec = spring()) { height -> -height } + fadeIn(animationSpec = spring()) with
-                    slideOutVertically { height -> height } + fadeOut()
+            (slideInVertically(animationSpec = spring()) { height -> -height } + fadeIn(animationSpec = spring())).togetherWith(
+                slideOutVertically { height -> height } + fadeOut())
         }.using(
             SizeTransform(clip = false)
         )
@@ -426,6 +451,7 @@ fun SlideUpAnimatedText(
 
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 fun PlayerScreenPreview() {
@@ -439,7 +465,9 @@ fun PlayerScreenPreview() {
         progress = .23f,
         subtitle = "Music Subtitle",
         onSeekValueChange = {},
-        onSeekFinished = {}
+        onSeekFinished = {},
+        isSheetVisible = true,
+        onSheetStateChange = {}
     ) {}
 
 }
