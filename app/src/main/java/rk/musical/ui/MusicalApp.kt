@@ -1,8 +1,5 @@
 package rk.musical.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
@@ -16,10 +13,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,14 +35,14 @@ fun MusicalApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: MusicalRoutes.Songs.name
-    var isVisibleBottomBar by remember {
-        mutableStateOf(true)
+    var bottomBarAlpha by remember {
+        mutableFloatStateOf(1f)
     }
     Scaffold(
         bottomBar = {
             MusicalBottomBar(
-                isVisible = isVisibleBottomBar,
                 currentRoute = currentRoute,
+                alpha = bottomBarAlpha,
                 onSelectedAlbums = { navController.navigate(MusicalRoutes.Albums.name) },
                 onSelectedSongs = { navController.navigate(MusicalRoutes.Songs.name) },
             )
@@ -55,8 +53,8 @@ fun MusicalApp() {
                     .padding(paddingValues)
             ) {
                 PlayerScreen(
-                    onSheetStateChange = {
-
+                    onSheetStateChange = { _, progress ->
+                        bottomBarAlpha = 1f - progress
                     },
                     behindContent = { sheetPadding ->
                         NavHost(
@@ -83,46 +81,37 @@ fun MusicalApp() {
 fun MusicalBottomBar(
     modifier: Modifier = Modifier,
     currentRoute: String,
+    alpha: Float,
     onSelectedAlbums: () -> Unit,
     onSelectedSongs: () -> Unit,
-    isVisible: Boolean = true
 ) {
+    if (alpha > 0f)
+        NavigationBar(modifier = modifier.alpha(alpha)) {
+            NavigationBarItem(
+                selected = currentRoute == MusicalRoutes.Songs.name,
+                onClick = onSelectedSongs,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = stringResource(R.string.songs_tab_cd)
+                    )
+                },
+                label = {
+                    Text(text = stringResource(R.string.songs))
+                }
+            )
+            NavigationBarItem(selected = currentRoute == MusicalRoutes.Albums.name,
+                onClick = onSelectedAlbums,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Album,
+                        contentDescription = stringResource(R.string.albums_tab_cd)
+                    )
+                },
+                label = {
+                    Text(text = stringResource(R.string.albums))
+                })
 
-    Column(modifier = modifier) {
-        AnimatedVisibility(
-            visible = isVisible,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = currentRoute == MusicalRoutes.Songs.name,
-                    onClick = onSelectedSongs,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.MusicNote,
-                            contentDescription = stringResource(R.string.songs_tab_cd)
-                        )
-                    },
-                    label = {
-                        Text(text = stringResource(R.string.songs))
-                    }
-                )
-                NavigationBarItem(selected = currentRoute == MusicalRoutes.Albums.name,
-                    onClick = onSelectedAlbums,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Album,
-                            contentDescription = stringResource(R.string.albums_tab_cd)
-                        )
-                    },
-                    label = {
-                        Text(text = stringResource(R.string.albums))
-                    })
-
-            }
         }
-
-    }
 
 }

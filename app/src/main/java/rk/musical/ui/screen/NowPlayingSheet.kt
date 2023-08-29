@@ -1,6 +1,7 @@
 package rk.musical.ui.screen
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateDpAsState
@@ -36,7 +37,6 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,7 +66,7 @@ import rk.musical.utils.readableDuration
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PlayerScreen(
-    onSheetStateChange: (BottomSheetValue) -> Unit,
+    onSheetStateChange: (BottomSheetValue, Float) -> Unit,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val viewModel: NowPlayingScreenViewModel = hiltViewModel()
@@ -92,9 +92,9 @@ fun PlayerScreen(
         ),
         progress = uiState.progress,
         isSheetVisible = uiState.isVisible,
-        onSheetStateChange = {
-            onSheetStateChange(it)
-            viewModel.setExpanded(it == BottomSheetValue.Expanded)
+        onSheetStateChange = { value, progress ->
+            onSheetStateChange(value, progress)
+            viewModel.setExpanded(value == BottomSheetValue.Expanded)
         },
         behindContent = behindContent
     )
@@ -115,17 +115,10 @@ private fun PlayerScreen(
     onSeekFinished: ((Float) -> Unit)?,
     progress: Float,
     isSheetVisible: Boolean,
-    onSheetStateChange: (BottomSheetValue) -> Unit,
+    onSheetStateChange: (BottomSheetValue, Float) -> Unit,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(
-            initialValue = BottomSheetValue.Collapsed,
-            confirmStateChange = {
-                onSheetStateChange(it)
-                true
-            })
-    )
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val sheetPeekHeight by animateDpAsState(
         targetValue =
         if (isSheetVisible) 72.dp else 0.dp, label = ""
@@ -134,7 +127,7 @@ private fun PlayerScreen(
         sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         sheetContent = {
             Box(modifier = Modifier.fillMaxSize()) {
-                AnimatedContent(
+                Crossfade(
                     targetState = scaffoldState.bottomSheetState.calculateProgress() >= .25f,
                     label = ""
                 ) {
@@ -160,8 +153,12 @@ private fun PlayerScreen(
                             isPlaying = isPlaying,
                             modifier = Modifier.fillMaxWidth()
                         )
-                    }
 
+                    }
+                    onSheetStateChange(
+                        scaffoldState.bottomSheetState.targetValue,
+                        scaffoldState.bottomSheetState.calculateProgress()
+                    )
                 }
             }
         },
@@ -462,7 +459,7 @@ fun PlayerScreenPreview() {
         onSeekValueChange = {},
         onSeekFinished = {},
         isSheetVisible = true,
-        onSheetStateChange = {}
+        onSheetStateChange = { _, _ -> }
     ) {}
 
 }
