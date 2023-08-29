@@ -9,12 +9,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
 import rk.musical.data.model.toSongs
-import rk.musical.player.MusicalServiceConnection
+import rk.musical.player.MusicalRemoteControl
 import javax.inject.Inject
 
 @HiltViewModel
 class SongsScreenViewModel @Inject constructor(
-    private val musicalServiceConnection: MusicalServiceConnection,
+    private val remoteControl: MusicalRemoteControl,
 ) : ViewModel() {
     var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Empty)
         private set
@@ -26,7 +26,7 @@ class SongsScreenViewModel @Inject constructor(
 
     private fun collectMusicalPlaybackState() {
         viewModelScope.launch {
-            musicalServiceConnection.musicalPlaybackState.collect {
+            remoteControl.musicalPlaybackState.collect {
                 if (it.isConnected && uiState !is SongsScreenUiState.Loaded)
                     loadSongs()
             }
@@ -37,18 +37,23 @@ class SongsScreenViewModel @Inject constructor(
     private fun loadSongs() {
         uiState = SongsScreenUiState.Loading
         viewModelScope.launch {
-            val songs = musicalServiceConnection.getSongsMediaItems()?.toSongs()
+            val songs = remoteControl.getSongsMediaItems()?.toSongs()
             uiState = if (songs == null) {
                 SongsScreenUiState.Empty
             } else {
+                isLoadedSongs = true
                 SongsScreenUiState.Loaded(songs)
             }
-            isLoadedSongs = true
         }
     }
 
     fun playSong(song: Song) {
-        musicalServiceConnection.playSong(song)
+        remoteControl.playSong(song)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        remoteControl.releaseControl()
     }
 
 

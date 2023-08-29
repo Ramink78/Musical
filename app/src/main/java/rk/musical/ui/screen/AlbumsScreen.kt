@@ -29,7 +29,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import rk.musical.data.model.Album
 import rk.musical.ui.theme.MusicalTheme
@@ -73,9 +72,14 @@ fun AlbumsScreen(
             }
 
             is AlbumsScreenUiState.LoadedChildren -> {
-                SongsList(songs = albumChildren, onSongClick = { song ->
-                    viewModel.play(song)
-                }, modifier = modifier)
+                SongsList(
+                    songs = albumChildren,
+                    onSongClick = { song ->
+                        viewModel.play(song)
+                    },
+                    modifier = modifier,
+                    contentPadding = contentPadding
+                )
             }
 
             AlbumsScreenUiState.Empty -> {}

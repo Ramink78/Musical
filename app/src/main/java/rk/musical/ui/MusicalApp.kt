@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
@@ -30,11 +31,9 @@ import rk.musical.ui.screen.AlbumsScreen
 import rk.musical.ui.screen.PlayerScreen
 import rk.musical.ui.screen.SongsScreen
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MusicalApp(
-    musicalViewModel: MusicalAppViewModel,
-) {
-    val musicalPlaybackState = musicalViewModel.musicalPlaybackState
+fun MusicalApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: MusicalRoutes.Songs.name
@@ -55,20 +54,24 @@ fun MusicalApp(
                 modifier = Modifier
                     .padding(paddingValues)
             ) {
-                PlayerScreen { sheetPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = MusicalRoutes.Songs.name,
-                    ) {
-                        composable(route = MusicalRoutes.Songs.name) {
-                            SongsScreen(onSongClick = {}, contentPadding = sheetPadding)
-                        }
-                        composable(route = MusicalRoutes.Albums.name) {
-                            AlbumsScreen(contentPadding = sheetPadding)
-                        }
+                PlayerScreen(
+                    onSheetStateChange = {
 
-                    }
-                }
+                    },
+                    behindContent = { sheetPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = MusicalRoutes.Songs.name,
+                        ) {
+                            composable(route = MusicalRoutes.Songs.name) {
+                                SongsScreen(onSongClick = {}, contentPadding = sheetPadding)
+                            }
+                            composable(route = MusicalRoutes.Albums.name) {
+                                AlbumsScreen(contentPadding = sheetPadding)
+                            }
+
+                        }
+                    })
             }
 
         }
