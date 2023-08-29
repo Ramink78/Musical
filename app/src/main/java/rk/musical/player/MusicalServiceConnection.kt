@@ -31,11 +31,14 @@ class MusicalServiceConnection @Inject constructor() :
     // initialized when browserFuture connected to the MusicalPlaybackService
     private lateinit var mediaBrowser: MediaBrowser
 
-    private val _musicalPlaybackState = MutableStateFlow(MusicalPlaybackState())
+    val currentPosition: Long
+        get() =
+            if (this::mediaBrowser.isInitialized)
+                mediaBrowser.currentPosition
+            else 0L
+    val _musicalPlaybackState = MutableStateFlow(MusicalPlaybackState())
     val musicalPlaybackState = _musicalPlaybackState.asStateFlow()
 
-    val currentPosition: Long
-        get() = mediaBrowser.currentPosition
 
     fun connectToService(context: Context) {
         val sessionToken =
@@ -78,6 +81,7 @@ class MusicalServiceConnection @Inject constructor() :
     private fun syncWithPlaybackService() {
         _musicalPlaybackState.update {
             it.copy(
+                isReady = mediaBrowser.playbackState == Player.STATE_IDLE,
                 isConnected = mediaBrowser.isConnected,
                 playingMediaItem = mediaBrowser.currentMediaItem ?: MediaItem.EMPTY,
                 playWhenReady = mediaBrowser.playWhenReady,
@@ -86,7 +90,6 @@ class MusicalServiceConnection @Inject constructor() :
         }
 
     }
-
 
 
     fun playSong(song: Song) {
@@ -136,9 +139,17 @@ class MusicalServiceConnection @Inject constructor() :
             _musicalPlaybackState.update {
                 it.copy(
                     playbackState = player.playbackState,
-                    playWhenReady = player.playWhenReady
+                    playWhenReady = player.playWhenReady,
                 )
             }
         }
     }
+
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        _musicalPlaybackState.update {
+            it.copy(isReady = playbackState == Player.STATE_READY)
+        }
+    }
+
+
 }

@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import androidx.media3.common.MediaItem
 import coil.request.ImageRequest
+import coil.size.Size
 import okio.IOException
+import rk.musical.R
 import rk.musical.data.model.Album
 import rk.musical.data.model.Song
 import java.util.concurrent.TimeUnit
@@ -13,6 +15,7 @@ fun Song.loadCover(context: Context): ImageRequest? {
     return try {
         ImageRequest.Builder(context)
             .data(coverUri)
+            .size(Size.ORIGINAL)
             .crossfade(250)
             .build()
     } catch (e: IOException) {

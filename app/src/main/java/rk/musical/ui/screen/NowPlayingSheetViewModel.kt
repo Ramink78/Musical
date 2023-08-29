@@ -4,8 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -46,23 +46,29 @@ class NowPlayingScreenViewModel @Inject constructor(
     }
 
     fun skipToPrevious() {}
-    fun resume() {
-        needToUpdatePosition = true && uiState.isFullScreen
+    private fun resume() {
+        needToUpdatePosition = true
         musicalServiceConnection.resume()
     }
 
-    fun pause() {
+    private fun pause() {
         needToUpdatePosition = false
         musicalServiceConnection.pause()
     }
 
+    fun togglePlay() {
+        if (uiState.isPlaying)
+            pause()
+        else resume()
+    }
+
     fun seekTo(progress: Float) {
-        needToUpdatePosition = true
         musicalServiceConnection.seekTo(progress)
         uiState = uiState.copy(
             progress = progress,
             currentTime = readableDuration((progress * uiState.playingSong.duration).toLong())
         )
+        needToUpdatePosition = true
     }
 
     init {
@@ -73,8 +79,9 @@ class NowPlayingScreenViewModel @Inject constructor(
     private fun syncWithPlaybackService() {
         viewModelScope.launch {
             playbackState.collectLatest { state ->
-                if (state.isConnected) {
+                if (state.playingMediaItem != MediaItem.EMPTY) {
                     uiState = uiState.copy(
+                        isReady = state.isReady,
                         isPlaying = state.isPlaying,
                         playingSong = state.playingMediaItem.toSong(),
                     )
@@ -92,7 +99,7 @@ class NowPlayingScreenViewModel @Inject constructor(
     private fun updateProgressAndTime() {
         viewModelScope.launch {
             while (true) {
-                if (!needToUpdatePosition || !uiState.isFullScreen) return@launch
+                if (!needToUpdatePosition) return@launch
                 val currentPosition = musicalServiceConnection.currentPosition
                 val totalDuration = uiState.playingSong.duration
                 val remainingTime = readableDuration(currentPosition)
@@ -112,14 +119,14 @@ class NowPlayingScreenViewModel @Inject constructor(
     }
 
 
-
 }
 
 data class NowPlayingUiState(
+    val isReady: Boolean = false,
     val isPlaying: Boolean = false,
     val playingSong: Song = Song.Empty,
     val isFullScreen: Boolean = false,
-    val currentTime: String = "",
+    val currentTime: String = "00:00",
     val progress: Float = 0f
 )
 
