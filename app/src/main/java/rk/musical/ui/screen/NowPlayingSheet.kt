@@ -46,9 +46,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -321,9 +318,9 @@ private fun PlayerControls(
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            var playImageVector by remember {
-                mutableStateOf(Icons.Rounded.PlayArrow)
-            }
+            val playImageVector = if (isPlaying)
+                Icons.Rounded.Pause
+            else Icons.Rounded.PlayArrow
             IconButton(
                 onClick = onSkipPrevious,
                 modifier = Modifier
@@ -337,11 +334,7 @@ private fun PlayerControls(
             }
             FilledIconToggleButton(
                 checked = isPlaying,
-                onCheckedChange = { isChecked ->
-                    playImageVector = if (isChecked)
-                        Icons.Rounded.Pause
-                    else
-                        Icons.Rounded.PlayArrow
+                onCheckedChange = { _ ->
                     onPlayPauseClicked()
                 },
                 modifier = Modifier
@@ -440,7 +433,9 @@ fun SlideUpAnimatedText(
             (slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(animationSpec = spring())).togetherWith(
                 slideOutVertically { height -> -height } + fadeOut())
         } else {
-            (slideInVertically(animationSpec = spring()) { height -> -height } + fadeIn(animationSpec = spring())).togetherWith(
+            (slideInVertically(animationSpec = spring()) { height -> -height } + fadeIn(
+                animationSpec = spring()
+            )).togetherWith(
                 slideOutVertically { height -> height } + fadeOut())
         }.using(
             SizeTransform(clip = false)
