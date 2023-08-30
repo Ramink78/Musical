@@ -78,6 +78,8 @@ fun PlayerScreen(
         onSeekValueChange = {
             viewModel.updateProgress(it)
         },
+        onSkipNext = {viewModel.skipToNext()},
+        onSkipPrevious = {viewModel.skipToPrevious()},
         title = uiState.playingSong.title,
         subtitle = uiState.playingSong.artist,
         isPlaying = uiState.isPlaying,
@@ -116,6 +118,8 @@ private fun PlayerScreen(
     progress: Float,
     isSheetVisible: Boolean,
     onSheetStateChange: (BottomSheetValue, Float) -> Unit,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -143,6 +147,8 @@ private fun PlayerScreen(
                             progress = progress,
                             onSeekValueChange = onSeekValueChange,
                             onSeekFinished = onSeekFinished,
+                            onSkipNext = onSkipNext,
+                            onSkipPrevious = onSkipPrevious,
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
@@ -227,6 +233,8 @@ private fun ExpandedPlayer(
     progress: Float,
     onSeekValueChange: (Float) -> Unit,
     onSeekFinished: ((Float) -> Unit)? = null,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -258,6 +266,8 @@ private fun ExpandedPlayer(
             progress = progress,
             onSeekValueChange = onSeekValueChange,
             onSeekFinished = onSeekFinished,
+            onSkipNext = onSkipNext,
+            onSkipPrevious = onSkipPrevious,
             modifier = Modifier.padding(horizontal = 12.dp)
         )
 
@@ -326,7 +336,6 @@ private fun PlayerControls(
                 Icon(
                     imageVector = Icons.Rounded.SkipPrevious, contentDescription = "",
                     modifier = Modifier.size(34.dp)
-
                 )
             }
             FilledIconToggleButton(
@@ -459,6 +468,8 @@ fun PlayerScreenPreview() {
         onSeekValueChange = {},
         onSeekFinished = {},
         isSheetVisible = true,
+        onSkipNext = {},
+        onSkipPrevious = {},
         onSheetStateChange = { _, _ -> }
     ) {}
 

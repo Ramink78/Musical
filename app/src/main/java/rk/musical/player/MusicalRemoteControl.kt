@@ -17,7 +17,6 @@ import rk.musical.data.SONGS_NODE
 import rk.musical.data.model.Song
 import rk.musical.data.model.toMediaItem
 import rk.musical.utils.SONG_DURATION
-import kotlin.properties.Delegates
 
 class MusicalRemoteControl(
     private val serviceConnection: ServiceConnection
@@ -106,6 +105,24 @@ class MusicalRemoteControl(
 
         )
 
+    }
+
+    fun skipNext() {
+        mediaBrowser?.seekToNext()
+    }
+
+    fun skipPrevious() {
+        mediaBrowser?.seekToPrevious()
+    }
+
+    fun playSongFromIndex(index: Int) {
+        mediaBrowser?.seekTo(index, 0L)
+        mediaBrowser?.prepare()
+        mediaBrowser?.playWhenReady = true
+    }
+
+    fun setPlaylist(playlist: List<MediaItem>) {
+        mediaBrowser?.setMediaItems(playlist, false)
     }
 
     private fun updatePlayingMediaItem(mediaItem: MediaItem?) {

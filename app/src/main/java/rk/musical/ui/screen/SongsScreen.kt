@@ -59,8 +59,8 @@ fun SongsScreen(
                     modifier = modifier,
                     songs = it.songs,
                     contentPadding = contentPadding,
-                    onSongClick = { song ->
-                        viewModel.playSong(song)
+                    onSongClick = { song,index ->
+                        viewModel.playSong(index)
                         onSongClick(song)
                     }
                 )
@@ -80,7 +80,7 @@ fun SongsScreen(
 fun SongsList(
     songs: List<Song>,
     modifier: Modifier = Modifier,
-    onSongClick: (Song) -> Unit,
+    onSongClick: (item: Song, index: Int) -> Unit,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
 
@@ -94,7 +94,7 @@ fun SongsList(
             key = { it.id }
         ) {
             SongItem(song = it, onClick = { song ->
-                onSongClick(song)
+                onSongClick(song, songs.indexOf(song))
             })
         }
     }

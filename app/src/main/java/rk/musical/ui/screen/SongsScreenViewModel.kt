@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
+import rk.musical.data.model.toMediaItems
 import rk.musical.data.model.toSongs
 import rk.musical.player.MusicalRemoteControl
 import javax.inject.Inject
@@ -38,6 +39,7 @@ class SongsScreenViewModel @Inject constructor(
         uiState = SongsScreenUiState.Loading
         viewModelScope.launch {
             val songs = remoteControl.getSongsMediaItems()?.toSongs()
+            remoteControl.setPlaylist(songs?.toMediaItems() ?: emptyList())
             uiState = if (songs == null) {
                 SongsScreenUiState.Empty
             } else {
@@ -47,8 +49,8 @@ class SongsScreenViewModel @Inject constructor(
         }
     }
 
-    fun playSong(song: Song) {
-        remoteControl.playSong(song)
+    fun playSong(index: Int) {
+        remoteControl.playSongFromIndex(index)
     }
 
     override fun onCleared() {
