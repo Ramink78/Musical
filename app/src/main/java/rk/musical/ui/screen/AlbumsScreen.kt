@@ -74,7 +74,7 @@ fun AlbumsScreen(
             is AlbumsScreenUiState.LoadedChildren -> {
                 SongsList(
                     songs = albumChildren,
-                    onSongClick = { song ->
+                    onSongClick = { song,index ->
                         viewModel.play(song)
                     },
                     modifier = modifier,

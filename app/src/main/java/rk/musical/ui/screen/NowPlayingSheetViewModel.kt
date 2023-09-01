@@ -47,9 +47,13 @@ class NowPlayingScreenViewModel @Inject constructor(
     }
 
     fun skipToNext() {
+        remoteControl.skipNext()
     }
 
-    fun skipToPrevious() {}
+    fun skipToPrevious() {
+        remoteControl.skipPrevious()
+    }
+
     private fun resume() {
         needToUpdatePosition = true
         remoteControl.resume()
