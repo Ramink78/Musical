@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
@@ -22,6 +23,7 @@ import rk.musical.data.ROOT
 import rk.musical.data.SongRepository
 import javax.inject.Inject
 
+@UnstableApi
 @AndroidEntryPoint
 class MusicalPlaybackService : MediaLibraryService() {
     @Inject
@@ -36,6 +38,9 @@ class MusicalPlaybackService : MediaLibraryService() {
 
     private val mediaTree: MediaTree by lazy {
         MediaTree(songRepository, albumRepository)
+    }
+    private val notificationProvider by lazy {
+        MusicalNotificationProvider(this)
     }
 
     var mediaSession: MediaLibrarySession? = null
@@ -68,6 +73,7 @@ class MusicalPlaybackService : MediaLibraryService() {
     private fun buildMediaSession(exoPlayer: ExoPlayer) =
         with(MediaLibrarySession.Builder(this, exoPlayer, LibrarySessionCallback())) {
             setId(packageName)
+            setMediaNotificationProvider(notificationProvider)
             packageManager?.getLaunchIntentForPackage(packageName)?.let {
                 setSessionActivity(
                     PendingIntent.getActivity(
