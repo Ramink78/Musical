@@ -1,7 +1,11 @@
 package rk.musical.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
@@ -49,8 +53,7 @@ fun MusicalApp() {
         },
         content = { paddingValues ->
             Column(
-                modifier = Modifier
-                    .padding(paddingValues)
+                modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())
             ) {
                 PlayerScreen(
                     onSheetStateChange = { _, progress ->
@@ -62,10 +65,24 @@ fun MusicalApp() {
                             startDestination = MusicalRoutes.Songs.name,
                         ) {
                             composable(route = MusicalRoutes.Songs.name) {
-                                SongsScreen(onSongClick = {}, contentPadding = sheetPadding)
+                                SongsScreen(
+                                    onSongClick = {},
+                                    contentPadding = PaddingValues(
+                                        top = WindowInsets.statusBars.asPaddingValues()
+                                            .calculateTopPadding(),
+                                        bottom = sheetPadding.calculateBottomPadding()
+                                    ),
+                                )
                             }
                             composable(route = MusicalRoutes.Albums.name) {
-                                AlbumsScreen(contentPadding = sheetPadding)
+                                AlbumsScreen(
+                                    contentPadding =
+                                    PaddingValues(
+                                        bottom = sheetPadding.calculateBottomPadding(),
+                                        top = WindowInsets.statusBars.asPaddingValues()
+                                            .calculateTopPadding()
+                                    )
+                                )
                             }
 
                         }

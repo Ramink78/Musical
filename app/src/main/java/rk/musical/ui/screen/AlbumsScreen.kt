@@ -39,7 +39,7 @@ import rk.musical.utils.loadCover
 @Composable
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues = PaddingValues()
 ) {
     val viewModel: AlbumsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
@@ -67,6 +67,7 @@ fun AlbumsScreen(
                     onAlbumClicked = { album ->
                         viewModel.loadAlbumChildren(album)
                     },
+
                     contentPadding = contentPadding
                 )
             }
@@ -74,12 +75,13 @@ fun AlbumsScreen(
             is AlbumsScreenUiState.LoadedChildren -> {
                 SongsList(
                     songs = albumChildren,
-                    onSongClick = { song,index ->
+                    onSongClick = { song, index ->
                         viewModel.play(song)
                     },
                     modifier = modifier,
                     contentPadding = contentPadding
-                )
+
+                    )
             }
 
             AlbumsScreenUiState.Empty -> {}
@@ -93,7 +95,7 @@ fun AlbumsScreen(
 @Composable
 fun AlbumsList(
     albums: List<Album>,
-    contentPadding: PaddingValues,
+    contentPadding: PaddingValues = PaddingValues(),
     onAlbumClicked: (Album) -> Unit,
     modifier: Modifier = Modifier
 ) {

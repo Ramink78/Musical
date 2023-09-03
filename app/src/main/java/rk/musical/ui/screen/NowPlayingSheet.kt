@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +47,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,8 +58,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
@@ -71,6 +77,9 @@ fun PlayerScreen(
 ) {
     val viewModel: NowPlayingScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
+    var sheetRadius by remember {
+        mutableStateOf(16.dp)
+    }
     PlayerScreen(
         onSeekFinished = {
             viewModel.seekTo(it)
@@ -78,8 +87,8 @@ fun PlayerScreen(
         onSeekValueChange = {
             viewModel.updateProgress(it)
         },
-        onSkipNext = {viewModel.skipToNext()},
-        onSkipPrevious = {viewModel.skipToPrevious()},
+        onSkipNext = { viewModel.skipToNext() },
+        onSkipPrevious = { viewModel.skipToPrevious() },
         title = uiState.playingSong.title,
         subtitle = uiState.playingSong.artist,
         isPlaying = uiState.isPlaying,
@@ -94,8 +103,10 @@ fun PlayerScreen(
         ),
         progress = uiState.progress,
         isSheetVisible = uiState.isVisible,
+        sheetRadius = sheetRadius,
         onSheetStateChange = { value, progress ->
             onSheetStateChange(value, progress)
+            sheetRadius = 20.dp * (1 - progress)
             viewModel.setExpanded(value == BottomSheetValue.Expanded)
         },
         behindContent = behindContent
@@ -120,15 +131,16 @@ private fun PlayerScreen(
     onSheetStateChange: (BottomSheetValue, Float) -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
+    sheetRadius: Dp = 16.dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val sheetPeekHeight by animateDpAsState(
         targetValue =
-        if (isSheetVisible) 72.dp else 0.dp, label = ""
+        if (isSheetVisible) 64.dp else 0.dp, label = ""
     )
     BottomSheetScaffold(
-        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        sheetShape = RoundedCornerShape(topStart = sheetRadius, topEnd = sheetRadius),
         sheetContent = {
             Box(modifier = Modifier.fillMaxSize()) {
                 Crossfade(
@@ -149,7 +161,9 @@ private fun PlayerScreen(
                             onSeekFinished = onSeekFinished,
                             onSkipNext = onSkipNext,
                             onSkipPrevious = onSkipPrevious,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
                         )
                     } else {
                         CollapsedPlayer(
@@ -189,13 +203,13 @@ private fun CollapsedPlayer(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .height(72.dp),
+            .height(64.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CoverImage(
             imagePainter = imagePainter,
             modifier = Modifier
-                .size(56.dp)
+                .size(48.dp)
                 .clip(CircleShape)
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -244,10 +258,10 @@ private fun ExpandedPlayer(
         CoverImage(
             imagePainter = imagePainter,
             modifier = Modifier
-                .fillMaxWidth(.9f)
-                .padding(top = 12.dp)
+                .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(28.dp))
+                .padding(horizontal = 8.dp)
+                .clip(RoundedCornerShape(10.dp))
         )
         Spacer(modifier = Modifier.height(8.dp))
         SongInfo(
@@ -316,9 +330,9 @@ private fun PlayerControls(
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime.substring(0..1),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleSmall
             )
-            Text(text = totalTime, style = MaterialTheme.typography.titleMedium)
+            Text(text = totalTime, style = MaterialTheme.typography.titleSmall)
         }
 
 
@@ -381,7 +395,7 @@ private fun SongInfo(
         Text(
             text = title,
             modifier = Modifier.padding(bottom = 4.dp),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             maxLines = 1
         )
         Text(

@@ -38,7 +38,7 @@ import rk.musical.utils.loadCover
 fun SongsScreen(
     modifier: Modifier = Modifier,
     onSongClick: (Song) -> Unit,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(),
 ) {
     val viewModel: SongsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
@@ -59,7 +59,7 @@ fun SongsScreen(
                     modifier = modifier,
                     songs = it.songs,
                     contentPadding = contentPadding,
-                    onSongClick = { song,index ->
+                    onSongClick = { song, index ->
                         viewModel.playSong(index)
                         onSongClick(song)
                     }
@@ -81,9 +81,8 @@ fun SongsList(
     songs: List<Song>,
     modifier: Modifier = Modifier,
     onSongClick: (item: Song, index: Int) -> Unit,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues= PaddingValues(),
 ) {
-
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
