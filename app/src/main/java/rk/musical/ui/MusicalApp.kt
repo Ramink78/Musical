@@ -1,16 +1,19 @@
 package rk.musical.ui
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -23,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -52,15 +56,16 @@ fun MusicalApp() {
             )
         },
         content = { paddingValues ->
-            Column(
+            Surface(
                 modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())
             ) {
                 PlayerScreen(
                     onSheetStateChange = { _, progress ->
-                        bottomBarAlpha = 1f - progress
+                        bottomBarAlpha = 1f - (progress * 2)
                     },
                     behindContent = { sheetPadding ->
                         NavHost(
+                            modifier = Modifier.background(MaterialTheme.colorScheme.background),
                             navController = navController,
                             startDestination = MusicalRoutes.Songs.name,
                         ) {
@@ -70,8 +75,11 @@ fun MusicalApp() {
                                     contentPadding = PaddingValues(
                                         top = WindowInsets.statusBars.asPaddingValues()
                                             .calculateTopPadding(),
-                                        bottom = sheetPadding.calculateBottomPadding()
+                                        bottom = sheetPadding.calculateBottomPadding(),
+                                        end = 8.dp,
+                                        start = 8.dp
                                     ),
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
                             composable(route = MusicalRoutes.Albums.name) {
@@ -81,7 +89,8 @@ fun MusicalApp() {
                                         bottom = sheetPadding.calculateBottomPadding(),
                                         top = WindowInsets.statusBars.asPaddingValues()
                                             .calculateTopPadding()
-                                    )
+                                    ),
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
 
@@ -102,8 +111,11 @@ fun MusicalBottomBar(
     onSelectedAlbums: () -> Unit,
     onSelectedSongs: () -> Unit,
 ) {
-    if (alpha > 0f)
-        NavigationBar(modifier = modifier.alpha(alpha)) {
+    if (alpha > .3f)
+        NavigationBar(
+            modifier = modifier.alpha(alpha),
+            tonalElevation = 0.dp
+        ) {
             NavigationBarItem(
                 selected = currentRoute == MusicalRoutes.Songs.name,
                 onClick = onSelectedSongs,
@@ -128,7 +140,7 @@ fun MusicalBottomBar(
                 label = {
                     Text(text = stringResource(R.string.albums))
                 })
-
         }
+
 
 }

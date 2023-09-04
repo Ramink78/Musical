@@ -81,7 +81,7 @@ fun AlbumsScreen(
                     modifier = modifier,
                     contentPadding = contentPadding
 
-                    )
+                )
             }
 
             AlbumsScreenUiState.Empty -> {}
@@ -100,10 +100,10 @@ fun AlbumsList(
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
+        modifier = modifier,
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier,
         contentPadding = contentPadding
     ) {
         items(

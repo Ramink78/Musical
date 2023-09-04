@@ -46,7 +46,7 @@ fun SongsScreen(
         when (it) {
             SongsScreenUiState.Loading -> {
                 Column(
-                    modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -81,12 +81,12 @@ fun SongsList(
     songs: List<Song>,
     modifier: Modifier = Modifier,
     onSongClick: (item: Song, index: Int) -> Unit,
-    contentPadding: PaddingValues= PaddingValues(),
+    contentPadding: PaddingValues = PaddingValues(),
 ) {
     LazyColumn(
-        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        contentPadding = contentPadding
+        contentPadding = contentPadding,
+        modifier = modifier
     ) {
         items(
             items = songs,

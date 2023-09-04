@@ -183,7 +183,8 @@ private fun PlayerScreen(
             }
         },
         sheetPeekHeight = sheetPeekHeight,
-        scaffoldState = scaffoldState
+        scaffoldState = scaffoldState,
+        sheetBackgroundColor = MaterialTheme.colorScheme.surface,
     ) {
         behindContent(it)
     }
@@ -212,7 +213,7 @@ private fun CollapsedPlayer(
                 .size(48.dp)
                 .clip(CircleShape)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             modifier=Modifier.weight(1f),
             text = title,
@@ -227,7 +228,8 @@ private fun CollapsedPlayer(
                     Icons.Rounded.Pause
                 else
                     Icons.Rounded.PlayArrow,
-                contentDescription = ""
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.primary
             )
         }
 

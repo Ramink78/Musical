@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContent {
-            MusicalTheme {
+            MusicalTheme(darkTheme = true) {
                 MusicalApp()
             }
         }
