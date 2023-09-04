@@ -214,12 +214,12 @@ private fun CollapsedPlayer(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
+            modifier=Modifier.weight(1f),
             text = title,
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = onPlayPauseClicked) {
             Icon(
                 imageVector =
@@ -330,9 +330,9 @@ private fun PlayerControls(
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime.substring(0..1),
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.bodySmall
             )
-            Text(text = totalTime, style = MaterialTheme.typography.titleSmall)
+            Text(text = totalTime, style = MaterialTheme.typography.bodySmall)
         }
 
 
@@ -395,12 +395,13 @@ private fun SongInfo(
         Text(
             text = title,
             modifier = Modifier.padding(bottom = 4.dp),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            maxLines = 1
+            style = MaterialTheme.typography.headlineLarge,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             maxLines = 1
         )
 
