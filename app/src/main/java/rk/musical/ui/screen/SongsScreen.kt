@@ -1,6 +1,8 @@
 package rk.musical.ui.screen
 
-import androidx.compose.animation.Crossfade
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,65 +16,122 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
+import rk.musical.R
 import rk.musical.data.model.Song
+import rk.musical.data.model.logger
+import rk.musical.ui.RationaleWarning
+import rk.musical.ui.RequiredMediaPermission
+import rk.musical.ui.mediaPermission
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.utils.loadCover
 
+
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SongsScreen(
     modifier: Modifier = Modifier,
     onSongClick: (Song) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
+    val context = LocalContext.current
     val viewModel: SongsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
-    Crossfade(targetState = uiState, label = "") {
-        when (it) {
-            SongsScreenUiState.Loading -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    LoadingCircle()
-                }
-            }
+    val permissionState = rememberPermissionState(permission = mediaPermission)
 
-            is SongsScreenUiState.Loaded -> {
-                SongsList(
-                    modifier = modifier,
-                    songs = it.songs,
-                    contentPadding = contentPadding,
-                    onSongClick = { song, index ->
-                        viewModel.playSong(index)
-                        onSongClick(song)
+    RequiredMediaPermission(
+        permissionState = permissionState,
+        grantedContent = {
+            LaunchedEffect(Unit) {
+                viewModel.startToCollectSongs()
+            }
+            when (uiState) {
+
+                SongsScreenUiState.Loading -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        LoadingCircle()
                     }
+                }
+
+                is SongsScreenUiState.Loaded -> {
+                    SongsList(
+                        modifier = modifier,
+                        songs = uiState.songs,
+                        contentPadding = contentPadding,
+                        onSongClick = { song, index ->
+                            viewModel.playSong(index)
+                            onSongClick(song)
+                        }
+                    )
+                }
+
+                else -> {}
+
+            }
+        },
+        rationalContent = {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                RationaleWarning(
+                    onRequest = { permissionState.launchPermissionRequest() },
+                    buttonText = "Request",
+                    rationaleText = stringResource(R.string.songs_permission_rationale),
+                    icon = Icons.Rounded.MusicNote,
+                    rationaleTitle = stringResource(R.string.media_permission_title)
                 )
             }
+        },
+        deniedContent = {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                RationaleWarning(
+                    onRequest = {
+                        context.startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null)
+                            )
+                        )
+                    },
+                    buttonText = "Grant in setting",
+                    icon = Icons.Rounded.MusicNote,
+                    rationaleText = stringResource(R.string.songs_permission_rationale),
+                    rationaleTitle = stringResource(R.string.media_permission_title)
 
-            else -> {
-                // Show empty screen
+                )
             }
-        }
-
-    }
-
+        })
 
 }
 

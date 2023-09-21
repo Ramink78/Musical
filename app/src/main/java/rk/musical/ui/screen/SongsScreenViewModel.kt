@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
 import rk.musical.data.model.toMediaItems
@@ -19,43 +21,31 @@ class SongsScreenViewModel @Inject constructor(
 ) : ViewModel() {
     var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Empty)
         private set
-    private var isLoadedSongs = false
 
-    init {
-        collectMusicalPlaybackState()
-    }
-
-    private fun collectMusicalPlaybackState() {
+    fun startToCollectSongs() {
         viewModelScope.launch {
-            remoteControl.musicalPlaybackState.collect {
-                if (it.isConnected && uiState !is SongsScreenUiState.Loaded)
+            remoteControl.browserEvent.collectLatest {
+                if (it is MusicalRemoteControl.BrowserEvent.Connected)
                     loadSongs()
             }
         }
     }
 
 
-    private fun loadSongs() {
+    private suspend fun loadSongs() {
         uiState = SongsScreenUiState.Loading
-        viewModelScope.launch {
-            val songs = remoteControl.getSongsMediaItems()?.toSongs()
-            remoteControl.setPlaylist(songs?.toMediaItems() ?: emptyList())
-            uiState = if (songs == null) {
-                SongsScreenUiState.Empty
-            } else {
-                isLoadedSongs = true
-                SongsScreenUiState.Loaded(songs)
-            }
+        val songs = remoteControl.getSongsMediaItems()?.toSongs()
+        remoteControl.setPlaylist(songs?.toMediaItems() ?: emptyList())
+        uiState = if (songs == null) {
+            SongsScreenUiState.Empty
+        } else {
+            SongsScreenUiState.Loaded(songs)
         }
     }
 
+
     fun playSong(index: Int) {
         remoteControl.playSongFromIndex(index)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        remoteControl.releaseControl()
     }
 
 

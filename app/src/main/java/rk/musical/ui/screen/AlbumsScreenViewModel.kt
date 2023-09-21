@@ -6,9 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Album
 import rk.musical.data.model.Song
+import rk.musical.data.model.logger
 import rk.musical.data.model.toAlbums
 import rk.musical.data.model.toSongs
 import rk.musical.player.MusicalRemoteControl
@@ -18,19 +20,15 @@ import javax.inject.Inject
 class AlbumsScreenViewModel @Inject constructor(
     private val remoteControl: MusicalRemoteControl
 ) : ViewModel() {
-    var uiState: AlbumsScreenUiState by mutableStateOf(AlbumsScreenUiState.Loading)
+    var uiState: AlbumsScreenUiState by mutableStateOf(AlbumsScreenUiState.Empty)
         private set
     var albums: List<Album> by mutableStateOf(emptyList())
     var albumChildren: List<Song> by mutableStateOf(emptyList())
 
-    init {
-        collectMusicalPlaybackState()
-    }
-
-    private fun collectMusicalPlaybackState() {
+    fun startToCollectAlbums() {
         viewModelScope.launch {
-            remoteControl.musicalPlaybackState.collect {
-                if (it.isConnected && uiState is AlbumsScreenUiState.Loading) {
+            remoteControl.browserEvent.collectLatest {
+                if (it is MusicalRemoteControl.BrowserEvent.Connected) {
                     loadAlbums()
                 }
             }
@@ -38,15 +36,15 @@ class AlbumsScreenViewModel @Inject constructor(
     }
 
 
-    private fun loadAlbums() {
-        viewModelScope.launch {
-            val loadedAlbums = remoteControl.getAlbumsMediaItems()
-            uiState = AlbumsScreenUiState.Loaded
-            albums = loadedAlbums?.toAlbums() ?: emptyList()
-            if (albums.isEmpty())
-                uiState = AlbumsScreenUiState.Empty
-
+    private suspend fun loadAlbums() {
+        uiState = AlbumsScreenUiState.Loading
+        val loadedAlbums = remoteControl.getAlbumsMediaItems()
+        albums = loadedAlbums?.toAlbums() ?: emptyList()
+        uiState = AlbumsScreenUiState.Loaded
+        if (albums.isEmpty()) {
+            uiState = AlbumsScreenUiState.Empty
         }
+
     }
 
     fun play(song: Song) {

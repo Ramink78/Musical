@@ -6,7 +6,9 @@ import androidx.media3.session.MediaBrowser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
@@ -24,8 +26,11 @@ class MusicalRemoteControl(
     private var mediaBrowser: MediaBrowser? = null
     private val remoteJob = SupervisorJob()
     private val remoteScope = CoroutineScope(Dispatchers.Main + remoteJob)
+    private val _browserEvent = MutableSharedFlow<BrowserEvent>(replay = 1)
+     val browserEvent = _browserEvent.asSharedFlow()
     private val _musicalPlaybackState = MutableStateFlow(MusicalPlaybackState())
     val musicalPlaybackState = _musicalPlaybackState.asStateFlow()
+
     val currentPosition: Long
         get() = mediaBrowser?.currentPosition ?: 0L
 
@@ -37,11 +42,14 @@ class MusicalRemoteControl(
                         mediaBrowser = event.mediaBrowser
                         mediaBrowser?.addListener(this@MusicalRemoteControl)
                         syncWithPlaybackService(event.mediaBrowser)
+                        _browserEvent.emit(BrowserEvent.Connected)
                     }
 
                     ConnectionEvent.Disconnected -> {
                         mediaBrowser?.removeListener(this@MusicalRemoteControl)
                         mediaBrowser = null
+                        _browserEvent.emit(BrowserEvent.Disconnected)
+
                     }
 
                 }
@@ -157,6 +165,11 @@ class MusicalRemoteControl(
         _musicalPlaybackState.update {
             it.copy(isReady = playbackState == Player.STATE_READY)
         }
+    }
+
+    sealed interface BrowserEvent {
+        object Connected : BrowserEvent
+        object Disconnected : BrowserEvent
     }
 
 }
