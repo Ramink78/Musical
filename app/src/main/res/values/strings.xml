@@ -4,4 +4,7 @@
     <string name="songs_tab_cd">Songs tab that show all songs in device</string>
     <string name="albums_tab_cd">Albums tab that show all albums in device</string>
     <string name="albums">Albums</string>
+    <string name="songs_permission_rationale">Musical needs to access your media, after that you granted you will see all songs</string>
+    <string name="albums_permission_rationale">Musical needs to access your media, after that you granted you will see all albums</string>
+    <string name="media_permission_title">Media Permission</string>
 </resources>

@@ -110,7 +110,6 @@ class NowPlayingScreenViewModel @Inject constructor(
         updatePositionJob?.cancel()
         updatePositionJob = viewModelScope.async {
             while (true) {
-                if (!needToUpdatePosition) break
                 computeCurrentPositionAndTime()
                 delay(1000)
             }

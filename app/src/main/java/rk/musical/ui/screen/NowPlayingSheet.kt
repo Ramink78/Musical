@@ -15,35 +15,41 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.areNavigationBarsVisible
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.BottomSheetState
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -56,56 +62,57 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import rk.musical.R
+import rk.musical.data.model.Song
 import rk.musical.utils.loadCover
 import rk.musical.utils.readableDuration
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
-    onSheetStateChange: (BottomSheetValue, Float) -> Unit,
-    behindContent: @Composable (PaddingValues) -> Unit
+    behindContent: @Composable (PaddingValues) -> Unit,
+    sheetState: BottomSheetScaffoldState
 ) {
     val viewModel: NowPlayingScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
+    val sheetRadius by animateDpAsState(
+        targetValue =
+        if (sheetState.bottomSheetState.targetValue == SheetValue.Expanded) 0.dp else 16.dp,
+        label = ""
+    )
     PlayerScreen(
-        onSeekFinished = {
-            viewModel.seekTo(it)
-        },
-        onSeekValueChange = {
-            viewModel.updateProgress(it)
-        },
-        onSkipNext = {viewModel.skipToNext()},
-        onSkipPrevious = {viewModel.skipToPrevious()},
+        sheetState = sheetState,
+        onSeekFinished = viewModel::seekTo,
+        onSeekValueChange = viewModel::updateProgress,
+        onSkipNext = viewModel::skipToNext,
+        onSkipPrevious = viewModel::skipToPrevious,
         title = uiState.playingSong.title,
         subtitle = uiState.playingSong.artist,
         isPlaying = uiState.isPlaying,
         remainingTime = uiState.currentTime,
         totalTime = readableDuration(uiState.playingSong.duration),
-        onPlayPauseClicked = {
-            viewModel.togglePlay()
-        },
+        onPlayPauseClicked = viewModel::togglePlay,
         imagePainter =
         rememberAsyncImagePainter(
             model = uiState.playingSong.loadCover(LocalContext.current)
         ),
         progress = uiState.progress,
-        isSheetVisible = uiState.isVisible,
-        onSheetStateChange = { value, progress ->
-            onSheetStateChange(value, progress)
-            viewModel.setExpanded(value == BottomSheetValue.Expanded)
-        },
+        isSheetVisible = uiState.playingSong != Song.Empty,
+        sheetRadius = sheetRadius,
         behindContent = behindContent
     )
 
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun PlayerScreen(
+    sheetState: BottomSheetScaffoldState,
     title: String,
     subtitle: String,
     isPlaying: Boolean,
@@ -117,59 +124,64 @@ private fun PlayerScreen(
     onSeekFinished: ((Float) -> Unit)?,
     progress: Float,
     isSheetVisible: Boolean,
-    onSheetStateChange: (BottomSheetValue, Float) -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
+    sheetRadius: Dp = 16.dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    val bottomNavigationHeight = 80.dp
+    val collapsedHeight = if (WindowInsets.Companion.areNavigationBarsVisible) 90.dp else 60.dp
+    val peekHeight = bottomNavigationHeight + collapsedHeight
     val sheetPeekHeight by animateDpAsState(
         targetValue =
-        if (isSheetVisible) 72.dp else 0.dp, label = ""
+        if (isSheetVisible) peekHeight else 0.dp, label = ""
     )
     BottomSheetScaffold(
-        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        sheetDragHandle = null,
+        sheetShape = RoundedCornerShape(topStart = sheetRadius, topEnd = sheetRadius),
         sheetContent = {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Crossfade(
-                    targetState = scaffoldState.bottomSheetState.calculateProgress() >= .25f,
-                    label = ""
-                ) {
-                    if (it) {
-                        ExpandedPlayer(
-                            title = title,
-                            subtitle = subtitle,
-                            imagePainter = imagePainter,
-                            onPlayPauseClicked = onPlayPauseClicked,
-                            isPlaying = isPlaying,
-                            remainingTime = remainingTime,
-                            totalTime = totalTime,
-                            progress = progress,
-                            onSeekValueChange = onSeekValueChange,
-                            onSeekFinished = onSeekFinished,
-                            onSkipNext = onSkipNext,
-                            onSkipPrevious = onSkipPrevious,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        CollapsedPlayer(
-                            title = title,
-                            imagePainter = imagePainter,
-                            onPlayPauseClicked = onPlayPauseClicked,
-                            isPlaying = isPlaying,
-                            modifier = Modifier.fillMaxWidth()
-                        )
 
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Box {
+                    Crossfade(
+                        targetState = sheetState.bottomSheetState.targetValue,
+                        label = "",
+                    ) {
+                        if (it == SheetValue.Expanded) {
+                            ExpandedPlayer(
+                                title = title,
+                                subtitle = subtitle,
+                                imagePainter = imagePainter,
+                                onPlayPauseClicked = onPlayPauseClicked,
+                                isPlaying = isPlaying,
+                                remainingTime = remainingTime,
+                                totalTime = totalTime,
+                                progress = progress,
+                                onSeekValueChange = onSeekValueChange,
+                                onSeekFinished = onSeekFinished,
+                                onSkipNext = onSkipNext,
+                                onSkipPrevious = onSkipPrevious,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                            )
+
+                        } else {
+                            CollapsedPlayer(
+                                title = title,
+                                imagePainter = imagePainter,
+                                onPlayPauseClicked = onPlayPauseClicked,
+                                isPlaying = isPlaying,
+                            )
+
+                        }
                     }
-                    onSheetStateChange(
-                        scaffoldState.bottomSheetState.targetValue,
-                        scaffoldState.bottomSheetState.calculateProgress()
-                    )
                 }
             }
         },
+        sheetTonalElevation = 0.dp,
         sheetPeekHeight = sheetPeekHeight,
-        scaffoldState = scaffoldState
+        scaffoldState = sheetState,
     ) {
         behindContent(it)
     }
@@ -189,23 +201,23 @@ private fun CollapsedPlayer(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .height(72.dp),
+            .height(64.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CoverImage(
             imagePainter = imagePainter,
             modifier = Modifier
-                .size(56.dp)
+                .size(48.dp)
                 .clip(CircleShape)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
+            modifier = Modifier.weight(1f),
             text = title,
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = onPlayPauseClicked) {
             Icon(
                 imageVector =
@@ -213,7 +225,8 @@ private fun CollapsedPlayer(
                     Icons.Rounded.Pause
                 else
                     Icons.Rounded.PlayArrow,
-                contentDescription = ""
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -244,10 +257,10 @@ private fun ExpandedPlayer(
         CoverImage(
             imagePainter = imagePainter,
             modifier = Modifier
-                .fillMaxWidth(.9f)
-                .padding(top = 12.dp)
+                .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(28.dp))
+                .padding(horizontal = 8.dp)
+                .clip(RoundedCornerShape(10.dp))
         )
         Spacer(modifier = Modifier.height(8.dp))
         SongInfo(
@@ -272,6 +285,7 @@ private fun ExpandedPlayer(
         )
 
     }
+
 }
 
 @Composable
@@ -316,9 +330,9 @@ private fun PlayerControls(
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime.substring(0..1),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.bodySmall
             )
-            Text(text = totalTime, style = MaterialTheme.typography.titleMedium)
+            Text(text = totalTime, style = MaterialTheme.typography.bodySmall)
         }
 
 
@@ -381,12 +395,13 @@ private fun SongInfo(
         Text(
             text = title,
             modifier = Modifier.padding(bottom = 4.dp),
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1
+            style = MaterialTheme.typography.headlineLarge,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             maxLines = 1
         )
 
@@ -416,14 +431,14 @@ fun ElapsedTimeText(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-private fun BottomSheetState.calculateProgress(): Float {
+@OptIn(ExperimentalMaterial3Api::class)
+fun SheetState.calculateProgress(): Float {
     val currentState = currentValue
     return when {
-        currentState == BottomSheetValue.Expanded && targetValue == BottomSheetValue.Expanded -> 1f
-        currentState == BottomSheetValue.Collapsed && targetValue == BottomSheetValue.Collapsed -> 0f
-        currentState == BottomSheetValue.Collapsed && targetValue == BottomSheetValue.Expanded -> progress
-        else -> 1 - progress
+        currentState == SheetValue.Expanded && targetValue == SheetValue.Expanded -> 1f
+        currentState == SheetValue.PartiallyExpanded && targetValue == SheetValue.PartiallyExpanded -> 0f
+        currentState == SheetValue.PartiallyExpanded && targetValue == SheetValue.Expanded -> requireOffset()
+        else -> 1 - requireOffset()
     }
 
 }
@@ -452,7 +467,7 @@ fun SlideUpAnimatedText(
 
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun PlayerScreenPreview() {
@@ -470,7 +485,9 @@ fun PlayerScreenPreview() {
         isSheetVisible = true,
         onSkipNext = {},
         onSkipPrevious = {},
-        onSheetStateChange = { _, _ -> }
-    ) {}
+        behindContent = {},
+        sheetState = rememberBottomSheetScaffoldState()
+
+    )
 
 }
