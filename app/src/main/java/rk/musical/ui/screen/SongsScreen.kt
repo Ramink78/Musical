@@ -40,7 +40,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import rk.musical.R
 import rk.musical.data.model.Song
-import rk.musical.data.model.logger
 import rk.musical.ui.RationaleWarning
 import rk.musical.ui.RequiredMediaPermission
 import rk.musical.ui.mediaPermission
@@ -156,6 +155,8 @@ fun SongsList(
             })
         }
     }
+
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -211,14 +212,14 @@ fun SongItem(
             ) {
                 Text(
                     text = song.title,
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 4.dp),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = song.artist,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -240,7 +241,7 @@ fun SongsScreenPreview() {
         albumName = "",
         duration = 0
     )
-    MusicalTheme {
+    MusicalTheme(darkTheme = true) {
         SongItem(
             song = songForPreview,
             onClick = { }
