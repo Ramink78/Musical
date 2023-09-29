@@ -78,19 +78,19 @@ class MusicalRemoteControl @Inject constructor(
     }
 
     suspend fun getSongsMediaItems(): List<MediaItem>? {
-        return mediaBrowser?.getChildren(
+        return mediaBrowser.getChildren(
             SONGS_NODE, 0, Int.MAX_VALUE, null
-        )?.await()?.value
+        ).await().value
     }
 
     suspend fun getAlbumsMediaItems(): List<MediaItem>? {
-        return mediaBrowser?.getChildren(ALBUMS_NODE, 0, Int.MAX_VALUE, null)
-            ?.await()?.value
+        return mediaBrowser.getChildren(ALBUMS_NODE, 0, Int.MAX_VALUE, null)
+            .await().value
     }
 
     suspend fun getAlbumChild(albumId: String): List<MediaItem>? {
-        return mediaBrowser?.getChildren(albumId, 0, Int.MAX_VALUE, null)
-            ?.await()?.value
+        return mediaBrowser.getChildren(albumId, 0, Int.MAX_VALUE, null)
+            .await().value
     }
 
     fun playSong(song: Song) {
