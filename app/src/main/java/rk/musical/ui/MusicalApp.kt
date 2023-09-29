@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -47,8 +48,28 @@ fun MusicalApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: MusicalRoutes.Songs.name
     val sheetState = rememberBottomSheetScaffoldState()
-    val navigateToAlbumsScreen = remember { { navController.navigate(MusicalRoutes.Albums.name) } }
-    val navigateToSongsScreen = remember { { navController.navigate(MusicalRoutes.Songs.name) } }
+    val navigateToAlbumsScreen = remember {
+        {
+            navController.navigate(MusicalRoutes.Albums.name) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+    val navigateToSongsScreen = remember {
+        {
+            navController.navigate(MusicalRoutes.Songs.name) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     Scaffold(
         bottomBar = {
             MusicalBottomBar(
