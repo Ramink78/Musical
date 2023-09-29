@@ -3,53 +3,54 @@ package rk.musical.player
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import rk.musical.data.ALBUMS_NODE
 import rk.musical.data.SONGS_NODE
 import rk.musical.data.model.Song
+import rk.musical.data.model.logger
 import rk.musical.data.model.toMediaItem
 import rk.musical.utils.SONG_DURATION
+import javax.inject.Inject
 
-class MusicalRemoteControl(
+@ActivityRetainedScoped
+class MusicalRemoteControl @Inject constructor(
     private val serviceConnection: ServiceConnection
 ) : Player.Listener {
-    private var mediaBrowser: MediaBrowser? = null
-    private val remoteJob = SupervisorJob()
+    private lateinit var mediaBrowser: MediaBrowser
+    private var remoteJob = SupervisorJob()
     private val remoteScope = CoroutineScope(Dispatchers.Main + remoteJob)
-    private val _browserEvent = MutableSharedFlow<BrowserEvent>(replay = 1)
-     val browserEvent = _browserEvent.asSharedFlow()
+    private val _browserEvent = MutableStateFlow<BrowserEvent>(BrowserEvent.Disconnected)
+    val browserEvent = _browserEvent.asStateFlow()
     private val _musicalPlaybackState = MutableStateFlow(MusicalPlaybackState())
     val musicalPlaybackState = _musicalPlaybackState.asStateFlow()
-
-    val currentPosition: Long
-        get() = mediaBrowser?.currentPosition ?: 0L
+    private val _playbackPosition = MutableStateFlow(0L)
+    val playbackPosition = _playbackPosition.asStateFlow()
 
     init {
         remoteScope.launch {
-            serviceConnection.state.collectLatest { event ->
+            serviceConnection.connectionEvent.collect { event ->
                 when (event) {
-                    is ConnectionEvent.Connected -> {
+                    is ServiceConnectionEvent.Connected -> {
                         mediaBrowser = event.mediaBrowser
-                        mediaBrowser?.addListener(this@MusicalRemoteControl)
+                        mediaBrowser.addListener(this@MusicalRemoteControl)
+                        _browserEvent.value = BrowserEvent.Connected
+                        logger("Service connected")
                         syncWithPlaybackService(event.mediaBrowser)
-                        _browserEvent.emit(BrowserEvent.Connected)
                     }
 
-                    ConnectionEvent.Disconnected -> {
-                        mediaBrowser?.removeListener(this@MusicalRemoteControl)
-                        mediaBrowser = null
-                        _browserEvent.emit(BrowserEvent.Disconnected)
-
+                    ServiceConnectionEvent.Disconnected -> {
+                        logger("Service disconnected")
+                        mediaBrowser.removeListener(this@MusicalRemoteControl)
+                        _browserEvent.value = BrowserEvent.Disconnected
                     }
 
                 }
@@ -67,45 +68,47 @@ class MusicalRemoteControl(
                 playbackState = mediaBrowser.playbackState,
             )
         }
+        remoteScope.launch {
+            while (true) {
+                _playbackPosition.emit(mediaBrowser.currentPosition)
+                delay(1000)
+            }
+        }
 
-    }
-
-    fun releaseControl() {
-        remoteJob.cancel()
     }
 
     suspend fun getSongsMediaItems(): List<MediaItem>? {
-        return mediaBrowser?.getChildren(
+        return mediaBrowser.getChildren(
             SONGS_NODE, 0, Int.MAX_VALUE, null
-        )?.await()?.value
+        ).await().value
     }
 
     suspend fun getAlbumsMediaItems(): List<MediaItem>? {
-        return mediaBrowser?.getChildren(ALBUMS_NODE, 0, Int.MAX_VALUE, null)
-            ?.await()?.value
+        return mediaBrowser.getChildren(ALBUMS_NODE, 0, Int.MAX_VALUE, null)
+            .await().value
     }
 
     suspend fun getAlbumChild(albumId: String): List<MediaItem>? {
-        return mediaBrowser?.getChildren(albumId, 0, Int.MAX_VALUE, null)
-            ?.await()?.value
+        return mediaBrowser.getChildren(albumId, 0, Int.MAX_VALUE, null)
+            .await().value
     }
 
     fun playSong(song: Song) {
-        mediaBrowser?.setMediaItem(song.toMediaItem())
-        mediaBrowser?.prepare()
-        mediaBrowser?.play()
+        mediaBrowser.setMediaItem(song.toMediaItem())
+        mediaBrowser.prepare()
+        mediaBrowser.play()
     }
 
     fun resume() {
-        mediaBrowser?.play()
+        mediaBrowser.play()
     }
 
     fun pause() {
-        mediaBrowser?.pause()
+        mediaBrowser.pause()
     }
 
     fun seekTo(progress: Float) {
-        mediaBrowser?.seekTo(
+        mediaBrowser.seekTo(
             (progress * musicalPlaybackState.value.playingMediaItem.mediaMetadata.extras!!.getLong(
                 SONG_DURATION, 0
             )
@@ -116,21 +119,21 @@ class MusicalRemoteControl(
     }
 
     fun skipNext() {
-        mediaBrowser?.seekToNext()
+        mediaBrowser.seekToNext()
     }
 
     fun skipPrevious() {
-        mediaBrowser?.seekToPrevious()
+        mediaBrowser.seekToPrevious()
     }
 
     fun playSongFromIndex(index: Int) {
-        mediaBrowser?.seekTo(index, 0L)
-        mediaBrowser?.prepare()
-        mediaBrowser?.playWhenReady = true
+        mediaBrowser.seekTo(index, 0L)
+        mediaBrowser.prepare()
+        mediaBrowser.playWhenReady = true
     }
 
     fun setPlaylist(playlist: List<MediaItem>) {
-        mediaBrowser?.setMediaItems(playlist, false)
+        mediaBrowser.setMediaItems(playlist, false)
     }
 
     private fun updatePlayingMediaItem(mediaItem: MediaItem?) {

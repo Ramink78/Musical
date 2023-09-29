@@ -3,7 +3,6 @@ package rk.musical.data.model
 import android.content.ContentUris
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
-import rk.musical.utils.ALBUM_ID
 import rk.musical.utils.SONGS_URI
 import rk.musical.utils.SONG_DURATION
 import rk.musical.utils.buildSongMediaItem
@@ -45,7 +44,7 @@ fun MediaItem.toSong() =
         id = mediaId,
         title = mediaMetadata.title.toString(),
         artist = mediaMetadata.artist.toString(),
-        songUri = ContentUris.withAppendedId(SONGS_URI, mediaId.toLong()).toString(),
+        songUri = ContentUris.withAppendedId(SONGS_URI, mediaId.toLongOrNull() ?: 0L).toString(),
         albumName = mediaMetadata.albumTitle.toString(),
         coverUri = mediaMetadata.artworkUri.toString(),
         duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0

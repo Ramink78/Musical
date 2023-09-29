@@ -7,10 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
 import rk.musical.data.model.toSong
@@ -22,15 +19,7 @@ import javax.inject.Inject
 class NowPlayingScreenViewModel @Inject constructor(
     private val remoteControl: MusicalRemoteControl
 ) : ViewModel() {
-    private var updatePositionJob: Job? = null
-    private var needToUpdatePosition: Boolean = true
-        set(value) {
-            field = value
-            if (value)
-                updateProgressAndTime()
-            else updatePositionJob?.cancel()
-        }
-        get() = uiState.isFullScreen && field
+    var isDragging = false
 
 
     var uiState by mutableStateOf(NowPlayingUiState())
@@ -39,7 +28,7 @@ class NowPlayingScreenViewModel @Inject constructor(
     private val playbackState = remoteControl.musicalPlaybackState
 
     fun updateProgress(progress: Float) {
-        needToUpdatePosition = false
+        isDragging = true
         uiState = uiState.copy(
             progress = progress,
             currentTime = readableDuration((progress * uiState.playingSong.duration).toLong())
@@ -55,12 +44,10 @@ class NowPlayingScreenViewModel @Inject constructor(
     }
 
     private fun resume() {
-        needToUpdatePosition = true
         remoteControl.resume()
     }
 
     private fun pause() {
-        needToUpdatePosition = false
         remoteControl.pause()
     }
 
@@ -71,68 +58,40 @@ class NowPlayingScreenViewModel @Inject constructor(
     }
 
     fun seekTo(progress: Float) {
+        isDragging = false
         remoteControl.seekTo(progress)
         uiState = uiState.copy(
             progress = progress,
             currentTime = readableDuration((progress * uiState.playingSong.duration).toLong())
         )
-        needToUpdatePosition = true
     }
 
     init {
         syncWithPlaybackService()
-        updateProgressAndTime()
     }
 
     private fun syncWithPlaybackService() {
         viewModelScope.launch {
-            playbackState.collectLatest { state ->
-                if (state.playingMediaItem != MediaItem.EMPTY) {
-                    needToUpdatePosition = state.isPlaying
-                    uiState = uiState.copy(
-                        isVisible = true,
-                        isReady = state.isReady,
-                        isPlaying = state.isPlaying,
-                        playingSong = state.playingMediaItem.toSong(),
-                    )
-                }
+            playbackState.combine(remoteControl.playbackPosition) { state, position ->
+                val playingSong = state.playingMediaItem.toSong()
+                val totalDuration = uiState.playingSong.duration
+                val progress = position.toFloat() / totalDuration
+                val remainingTime = readableDuration(position)
+                NowPlayingUiState(
+                    isReady = state.isReady,
+                    isPlaying = state.isPlaying,
+                    playingSong = playingSong,
+                    totalDuration = playingSong.duration,
+                    progress = progress,
+                    currentTime = remainingTime
+
+                )
+            }.collect {
+                if (!isDragging)
+                    uiState = it
             }
         }
     }
-
-    fun setExpanded(isExpanded: Boolean) {
-        uiState = uiState.copy(isFullScreen = isExpanded)
-        needToUpdatePosition = isExpanded
-    }
-
-
-    private fun updateProgressAndTime() {
-        updatePositionJob?.cancel()
-        updatePositionJob = viewModelScope.async {
-            while (true) {
-                computeCurrentPositionAndTime()
-                delay(1000)
-            }
-        }
-    }
-
-
-    private fun computeCurrentPositionAndTime() {
-        val currentPosition = remoteControl.currentPosition
-        val totalDuration = uiState.playingSong.duration
-        val remainingTime = readableDuration(currentPosition)
-        uiState = uiState.copy(
-            progress = currentPosition.toFloat() / totalDuration,
-            currentTime = remainingTime
-        )
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        needToUpdatePosition = false
-    }
-
-
 }
 
 data class NowPlayingUiState(
@@ -142,6 +101,7 @@ data class NowPlayingUiState(
     val isFullScreen: Boolean = false,
     val currentTime: String = "00:00",
     val isVisible: Boolean = false,
-    val progress: Float = 0f
+    val progress: Float = 0f,
+    val totalDuration: Long = 0L
 )
 
