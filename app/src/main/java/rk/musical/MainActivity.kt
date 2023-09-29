@@ -29,14 +29,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        serviceConnection.connect(this)
+    override fun onResume() {
+        super.onResume()
+        serviceConnection.sendConnectedEvent()
     }
 
     override fun onStop() {
         super.onStop()
-        serviceConnection.disconnect()
+        serviceConnection.sendDisconnectedEvent()
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceConnection.destroyConnection()
     }
 
 
