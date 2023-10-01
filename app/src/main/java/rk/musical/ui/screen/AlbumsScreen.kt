@@ -61,15 +61,13 @@ fun AlbumsScreen(
     val albumChildren = viewModel.albumChildren
     val permissionState = rememberPermissionState(permission = mediaPermission)
 
-    BackHandler(uiState is AlbumsScreenUiState.LoadedChildren) {
-        viewModel.navigateBackToAlbums()
-    }
+
 
     RequiredMediaPermission(
         permissionState = permissionState,
         grantedContent = {
             LaunchedEffect(Unit) {
-                viewModel.startToCollectAlbums()
+                viewModel.refreshAlbums()
             }
             when (uiState) {
                 AlbumsScreenUiState.Loading -> {
@@ -87,7 +85,6 @@ fun AlbumsScreen(
                         albums = albums,
                         modifier = modifier,
                         onAlbumClicked = { album ->
-                            viewModel.loadAlbumChildren(album)
                         },
 
                         contentPadding = contentPadding
@@ -98,7 +95,6 @@ fun AlbumsScreen(
                     SongsList(
                         songs = albumChildren,
                         onSongClick = { song, index ->
-                            viewModel.play(song)
                         },
                         modifier = modifier,
                         contentPadding = contentPadding

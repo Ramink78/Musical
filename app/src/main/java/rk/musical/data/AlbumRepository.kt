@@ -6,6 +6,8 @@ import android.os.Build
 import android.provider.MediaStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import rk.musical.data.model.Album
 import rk.musical.utils.ALBUMS_URI
@@ -28,8 +30,10 @@ class AlbumRepository(
         }
     var cachedAlbums: List<Album> = listOf()
         private set
+    private val _localAlbums = MutableSharedFlow<List<Album>>()
+    val localAlbums = _localAlbums.asSharedFlow()
 
-    private suspend fun loadAlbums() {
+    suspend fun loadAlbums() {
         withContext(dispatcher) {
             context.contentResolver.kuery(
                 uri = ALBUMS_URI,
@@ -40,29 +44,32 @@ class AlbumRepository(
                 val albumArtCol = it.albumArtColumnIndex
                 val artistCol = it.artistColumnIndex
                 val albumSongsCountCol = it.albumSongsCountColumnIndex
-                cachedAlbums = buildList {
-                    while (it.moveToNext()) {
-                        val albumId = it.getLong(albumIdCol)
-                        val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            ContentUris.withAppendedId(
-                                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                                albumId
-                            ).toString()
-                        } else {
-                            it.getString(albumArtCol)
-                        }
+                val tempList = mutableListOf<Album>()
 
-                        add(
-                            Album(
-                                id = albumId.toString(),
-                                title = it.getString(albumNameCol),
-                                artist = it.getString(artistCol),
-                                songsCount = it.getInt(albumSongsCountCol),
-                                coverUri = coverUri
-                            )
-                        )
+                while (it.moveToNext()) {
+                    val albumId = it.getLong(albumIdCol)
+                    val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        ContentUris.withAppendedId(
+                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                            albumId
+                        ).toString()
+                    } else {
+                        it.getString(albumArtCol)
                     }
+
+                    tempList.add(
+                        Album(
+                            id = albumId.toString(),
+                            title = it.getString(albumNameCol),
+                            artist = it.getString(artistCol),
+                            songsCount = it.getInt(albumSongsCountCol),
+                            coverUri = coverUri
+                        )
+                    )
+
                 }
+                cachedAlbums = tempList
+                _localAlbums.emit(tempList)
 
             }
         }
