@@ -47,10 +47,10 @@ class ExpandedNowPlayingViewModel @Inject constructor(
     fun skipToNext() = musicalRemote.seekNext()
     fun skipToPrevious() = musicalRemote.seekPrevious()
     fun togglePlay() = musicalRemote.togglePlay()
-    fun seekToProgress() {
+    fun seekToProgress(progress: Float) {
         val duration = nowPlayingUiStateFlow.value.currentSong.duration
         isSeeking = false
-        musicalRemote.seekToPosition((uiProgress.value * duration).roundToLong())
+        musicalRemote.seekToPosition((progress * duration).roundToLong())
     }
 
     fun updateProgress(progress: Float) {

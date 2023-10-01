@@ -43,11 +43,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,15 +55,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
-import rk.musical.utils.loadCover
+import com.galaxygoldfish.waveslider.CircleThumb
+import com.galaxygoldfish.waveslider.WaveSliderDefaults
+import rk.musical.ui.component.WaveSlider
+import rk.musical.ui.theme.MusicalTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,6 +208,7 @@ private fun ExpandedPlayer(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         )
+        Spacer(modifier = Modifier.height(8.dp))
 
         PlayerControls(
             onPlayPauseClicked = viewModel::togglePlay,
@@ -248,34 +252,49 @@ private fun PlayerControls(
     totalTime: String,
     progress: Float,
     onSeekValueChange: (Float) -> Unit,
-    onSeekFinished: () -> Unit
+    onSeekFinished: (Float) -> Unit
 ) {
+    val nextIcon = remember {
+        Icons.Rounded.SkipNext
+    }
+    val previousIcon = remember {
+        Icons.Rounded.SkipPrevious
+    }
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Slider(
-            value = progress,
-            onValueChange = onSeekValueChange,
-            onValueChangeFinished = onSeekFinished,
-        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val seconds = remainingTime.substring(3..4)
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime.substring(0..1),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodyMedium
             )
-            Text(text = totalTime, style = MaterialTheme.typography.bodySmall)
+            WaveSlider(
+                value = progress,
+                onValueChange = onSeekValueChange,
+                onValueChangeFinished = onSeekFinished,
+                animationOptions = WaveSliderDefaults.animationOptions(
+                    animateWave = isPlaying
+                ),
+                modifier = Modifier.weight(1f),
+                thumb = { CircleThumb() },
+            )
+            Text(text = totalTime, style = MaterialTheme.typography.bodyMedium)
         }
 
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
             val playImageVector = if (isPlaying)
                 Icons.Rounded.Pause
@@ -283,13 +302,15 @@ private fun PlayerControls(
             IconButton(
                 onClick = onSkipPrevious,
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.SkipPrevious, contentDescription = "",
-                    modifier = Modifier.size(34.dp)
+                    imageVector = previousIcon,
+                    contentDescription = "",
+                    modifier = Modifier.fillMaxSize()
                 )
             }
+            Spacer(modifier = Modifier.width(12.dp))
             FilledIconToggleButton(
                 checked = isPlaying,
                 onCheckedChange = { _ ->
@@ -300,18 +321,22 @@ private fun PlayerControls(
                     .size(60.dp)
             ) {
                 Icon(
-                    imageVector = playImageVector, contentDescription = "",
+                    imageVector = playImageVector,
+                    contentDescription = "",
                     modifier = Modifier.size(36.dp)
                 )
             }
+            Spacer(modifier = Modifier.width(12.dp))
+
             IconButton(
                 onClick = onSkipNext,
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.SkipNext, contentDescription = "",
-                    modifier = Modifier.size(34.dp)
+                    imageVector = nextIcon,
+                    contentDescription = "",
+                    modifier = Modifier.fillMaxSize()
 
                 )
             }
@@ -319,6 +344,22 @@ private fun PlayerControls(
         }
     }
 
+}
+
+@Preview
+@Composable
+fun PlayerControlsPreview() {
+    MusicalTheme(darkTheme = true) {
+        PlayerControls(
+            onPlayPauseClicked = { /*TODO*/ },
+            isPlaying = true,
+            remainingTime = "00:00",
+            totalTime = "12:22",
+            progress = .3f,
+            onSeekValueChange = {},
+            onSeekFinished = {}
+        )
+    }
 }
 
 @Composable
