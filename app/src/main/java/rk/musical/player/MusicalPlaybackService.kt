@@ -43,7 +43,7 @@ class MusicalPlaybackService : MediaLibraryService() {
         MusicalNotificationProvider(this)
     }
 
-    var mediaSession: MediaLibrarySession? = null
+    private var mediaSession: MediaLibrarySession? = null
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private val isLoadedRepositories

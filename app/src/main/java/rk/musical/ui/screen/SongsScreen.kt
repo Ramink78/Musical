@@ -63,7 +63,7 @@ fun SongsScreen(
         permissionState = permissionState,
         grantedContent = {
             LaunchedEffect(Unit) {
-                viewModel.startToCollectSongs()
+                viewModel.refreshSongs()
             }
             when (uiState) {
 

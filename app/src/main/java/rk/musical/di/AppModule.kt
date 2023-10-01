@@ -7,16 +7,17 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import rk.musical.data.AlbumRepository
-import rk.musical.data.MediaTree
 import rk.musical.data.SongRepository
+import javax.inject.Singleton
 
-@InstallIn(ServiceComponent::class)
 @Module
-class ServiceModule {
+@InstallIn(SingletonComponent::class)
+object AppModule {
 
+    @Singleton
     @Provides
     fun provideAudioAttributes(): AudioAttributes {
         return AudioAttributes.Builder()
@@ -26,6 +27,7 @@ class ServiceModule {
             .build()
     }
 
+    @Singleton
     @Provides
     fun provideExoPlayer(
         @ApplicationContext context: Context,
@@ -37,13 +39,14 @@ class ServiceModule {
             .build()
     }
 
+    @Singleton
     @Provides
     fun provideSongRepository(@ApplicationContext context: Context) =
         SongRepository(context = context)
 
-
+    @Singleton
     @Provides
     fun provideAlbumRepository(@ApplicationContext context: Context) =
         AlbumRepository(context = context)
-    
+
 }
