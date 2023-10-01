@@ -16,7 +16,7 @@ import javax.inject.Inject
 import kotlin.math.roundToLong
 
 @HiltViewModel
-class NowPlayingScreenViewModel @Inject constructor(
+class ExpandedNowPlayingViewModel @Inject constructor(
     private val musicalRemote: MusicalRemote
 ) : ViewModel() {
     private val _uiProgress = MutableStateFlow(0f)
@@ -28,10 +28,8 @@ class NowPlayingScreenViewModel @Inject constructor(
             if (!isSeeking) {
                 _uiProgress.value = it.currentPosition.toFloat() / it.currentSong.duration
             }
-            NowPlayingUiState(
+            ExpandedNowPlayingUiState(
                 currentSong = it.currentSong,
-                isExpanded = false,
-                isVisible = it.currentSong != Song.Empty,
                 currentTime = readableDuration(it.currentPosition),
                 totalTime = readableDuration(it.currentSong.duration),
                 isPlaying = it.isPlaying
@@ -41,7 +39,7 @@ class NowPlayingScreenViewModel @Inject constructor(
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
-            initialValue = NowPlayingUiState()
+            initialValue = ExpandedNowPlayingUiState()
         )
     private var isSeeking = false
 
@@ -62,12 +60,10 @@ class NowPlayingScreenViewModel @Inject constructor(
 }
 
 
-data class NowPlayingUiState(
-    val isVisible: Boolean = false,
+data class ExpandedNowPlayingUiState(
     val currentSong: Song = Song.Empty,
-    val totalTime: String = "--:--",
-    val currentTime: String = "--:--",
-    val isExpanded: Boolean = false,
+    val totalTime: String = "00:00",
+    val currentTime: String = "00:00",
     val isPlaying: Boolean = false
 )
 

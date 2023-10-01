@@ -5,7 +5,6 @@ import androidx.media3.common.Player
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -35,9 +34,9 @@ fun Player.playingSongFlow() = callbackFlow {
     awaitClose { removeListener(listener) }
 }.flowOn(Dispatchers.Main)
 
+// this flow emit only in NowPlaying expanded state
 fun Player.currentPositionFlow() = flow {
     while (true) {
         emit(currentPosition)
-        delay(500)
     }
 }.flowOn(Dispatchers.Main)

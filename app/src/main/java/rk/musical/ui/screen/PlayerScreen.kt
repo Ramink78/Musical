@@ -2,7 +2,6 @@ package rk.musical.ui.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -11,7 +10,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,30 +42,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import rk.musical.R
+import coil.request.ImageRequest
+import coil.size.Size
 import rk.musical.utils.loadCover
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,9 +71,8 @@ fun PlayerScreen(
     behindContent: @Composable (PaddingValues) -> Unit,
     sheetState: BottomSheetScaffoldState
 ) {
-    val viewModel: NowPlayingScreenViewModel = hiltViewModel()
-    val stateFlow by viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
-    val progressFlow by viewModel.uiProgress.collectAsStateWithLifecycle()
+    val viewModel: PlayerScreenViewModel = hiltViewModel()
+    val isVisibleState by viewModel.isVisibleSheetFlow.collectAsStateWithLifecycle()
     val sheetRadius by animateDpAsState(
         targetValue =
         if (sheetState.bottomSheetState.targetValue == SheetValue.Expanded) 0.dp else 16.dp,
@@ -86,22 +80,7 @@ fun PlayerScreen(
     )
     PlayerScreen(
         sheetState = sheetState,
-        onSeekFinished = viewModel::seekToProgress,
-        onSeekValueChange = viewModel::updateProgress,
-        onSkipNext = viewModel::skipToNext,
-        onSkipPrevious = viewModel::skipToPrevious,
-        title = stateFlow.currentSong.title,
-        subtitle = stateFlow.currentSong.artist,
-        isPlaying = stateFlow.isPlaying,
-        remainingTime = stateFlow.currentTime,
-        totalTime = stateFlow.totalTime,
-        onPlayPauseClicked = viewModel::togglePlay,
-        imagePainter =
-        rememberAsyncImagePainter(
-            model = stateFlow.currentSong.loadCover(LocalContext.current)
-        ),
-        progress = progressFlow,
-        isSheetVisible = stateFlow.isVisible,
+        isSheetVisible = isVisibleState,
         sheetRadius = sheetRadius,
         behindContent = behindContent
     )
@@ -113,19 +92,7 @@ fun PlayerScreen(
 @Composable
 private fun PlayerScreen(
     sheetState: BottomSheetScaffoldState,
-    title: String,
-    subtitle: String,
-    isPlaying: Boolean,
-    remainingTime: String,
-    totalTime: String,
-    onPlayPauseClicked: () -> Unit,
-    onSeekValueChange: (Float) -> Unit,
-    imagePainter: Painter,
-    onSeekFinished: () -> Unit,
-    progress: Float,
     isSheetVisible: Boolean,
-    onSkipNext: () -> Unit,
-    onSkipPrevious: () -> Unit,
     sheetRadius: Dp = 16.dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
@@ -147,38 +114,16 @@ private fun PlayerScreen(
                             targetState = sheetState.bottomSheetState.targetValue,
                             label = "",
                         ) {
-                            if (it == SheetValue.Expanded) {
+                            if (it == SheetValue.Expanded)
                                 ExpandedPlayer(
-                                    title = title,
-                                    subtitle = subtitle,
-                                    imagePainter = imagePainter,
-                                    onPlayPauseClicked = onPlayPauseClicked,
-                                    isPlaying = isPlaying,
-                                    remainingTime = remainingTime,
-                                    totalTime = totalTime,
-                                    progress = progress,
-                                    onSeekValueChange = onSeekValueChange,
-                                    onSeekFinished = onSeekFinished,
-                                    onSkipNext = onSkipNext,
-                                    onSkipPrevious = onSkipPrevious,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .statusBarsPadding()
                                 )
-
-                            } else {
-                                CollapsedPlayer(
-                                    title = title,
-                                    imagePainter = imagePainter,
-                                    onPlayPauseClicked = onPlayPauseClicked,
-                                    isPlaying = isPlaying,
-                                )
-
-                            }
+                            else CollapsedPlayer()
                         }
                     }
                 }
-
         },
         sheetTonalElevation = 0.dp,
         sheetPeekHeight = sheetPeekHeight,
@@ -191,12 +136,10 @@ private fun PlayerScreen(
 
 @Composable
 private fun CollapsedPlayer(
-    title: String,
-    imagePainter: Painter,
-    onPlayPauseClicked: () -> Unit,
-    isPlaying: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val viewModel: CollapsedNowPlayingViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Row(
         modifier = modifier
@@ -206,7 +149,7 @@ private fun CollapsedPlayer(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CoverImage(
-            imagePainter = imagePainter,
+            coverUri = uiState.playingSong.coverUri,
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
@@ -214,15 +157,15 @@ private fun CollapsedPlayer(
         Spacer(modifier = Modifier.width(12.dp))
         Text(
             modifier = Modifier.weight(1f),
-            text = title,
+            text = uiState.playingSong.title,
             style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        IconButton(onClick = onPlayPauseClicked) {
+        IconButton(onClick = viewModel::togglePlay) {
             Icon(
                 imageVector =
-                if (isPlaying)
+                if (uiState.isPlaying)
                     Icons.Rounded.Pause
                 else
                     Icons.Rounded.PlayArrow,
@@ -237,26 +180,17 @@ private fun CollapsedPlayer(
 
 @Composable
 private fun ExpandedPlayer(
-    title: String,
-    subtitle: String,
-    imagePainter: Painter,
-    onPlayPauseClicked: () -> Unit,
-    isPlaying: Boolean,
-    remainingTime: String,
-    totalTime: String,
-    progress: Float,
-    onSeekValueChange: (Float) -> Unit,
-    onSeekFinished: () -> Unit,
-    onSkipNext: () -> Unit,
-    onSkipPrevious: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val viewModel: ExpandedNowPlayingViewModel = hiltViewModel()
+    val uiState by viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
+    val progress by viewModel.uiProgress.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CoverImage(
-            imagePainter = imagePainter,
+            coverUri = uiState.currentSong.coverUri,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
@@ -265,23 +199,23 @@ private fun ExpandedPlayer(
         )
         Spacer(modifier = Modifier.height(8.dp))
         SongInfo(
-            title = title,
-            subtitle = subtitle,
+            title = uiState.currentSong.title,
+            subtitle = uiState.currentSong.artist,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         )
 
         PlayerControls(
-            onPlayPauseClicked = onPlayPauseClicked,
-            isPlaying = isPlaying,
-            remainingTime = remainingTime,
-            totalTime = totalTime,
+            onPlayPauseClicked = viewModel::togglePlay,
+            isPlaying = uiState.isPlaying,
+            remainingTime = uiState.currentTime,
+            totalTime = uiState.totalTime,
             progress = progress,
-            onSeekValueChange = onSeekValueChange,
-            onSeekFinished = onSeekFinished,
-            onSkipNext = onSkipNext,
-            onSkipPrevious = onSkipPrevious,
+            onSeekValueChange = viewModel::updateProgress,
+            onSeekFinished = viewModel::seekToProgress,
+            onSkipNext = viewModel::skipToNext,
+            onSkipPrevious = viewModel::skipToPrevious,
             modifier = Modifier.padding(horizontal = 12.dp)
         )
 
@@ -290,12 +224,16 @@ private fun ExpandedPlayer(
 }
 
 @Composable
-private fun CoverImage(imagePainter: Painter, modifier: Modifier = Modifier) {
-    Image(
-        painter = imagePainter,
-        contentDescription = "",
+private fun CoverImage(coverUri: String?, modifier: Modifier = Modifier) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(coverUri)
+            .size(Size.ORIGINAL)
+            .crossfade(250)
+            .build(),
         contentScale = ContentScale.Crop,
-        modifier = modifier
+        modifier = modifier,
+        contentDescription = ""
     )
 }
 
@@ -431,19 +369,6 @@ fun ElapsedTimeText(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-fun SheetState.calculateProgress(): Float {
-    val currentState = currentValue
-    return when {
-        currentState == SheetValue.Expanded && targetValue == SheetValue.Expanded -> 1f
-        currentState == SheetValue.PartiallyExpanded && targetValue == SheetValue.PartiallyExpanded -> 0f
-        currentState == SheetValue.PartiallyExpanded && targetValue == SheetValue.Expanded -> requireOffset()
-        else -> 1 - requireOffset()
-    }
-
-}
-
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SlideUpAnimatedText(
     value: Int,
@@ -467,27 +392,3 @@ fun SlideUpAnimatedText(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
-@Composable
-fun PlayerScreenPreview() {
-    PlayerScreen(
-        title = "Music Title",
-        imagePainter = painterResource(id = R.drawable.cover_preview),
-        onPlayPauseClicked = { /*TODO*/ },
-        isPlaying = false,
-        totalTime = "04:32",
-        remainingTime = "01:23",
-        progress = .23f,
-        subtitle = "Music Subtitle",
-        onSeekValueChange = {},
-        isSheetVisible = true,
-        onSkipNext = {},
-        onSkipPrevious = {},
-        behindContent = {},
-        sheetState = rememberBottomSheetScaffoldState(),
-        onSeekFinished = {}
-
-    )
-
-}

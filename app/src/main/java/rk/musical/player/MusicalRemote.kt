@@ -9,9 +9,9 @@ import javax.inject.Inject
 
 @ActivityRetainedScoped
 class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
-    private val playingSongFlow = exoPlayer.playingSongFlow()
-    private val isPlayingFlow = exoPlayer.isPlayingFlow()
-    private val currentPositionFlow = exoPlayer.currentPositionFlow()
+    val playingSongFlow = exoPlayer.playingSongFlow()
+    val isPlayingFlow = exoPlayer.isPlayingFlow()
+    val currentPositionFlow = exoPlayer.currentPositionFlow()
     val playbackStateFlow = combine(
         playingSongFlow,
         isPlayingFlow,
