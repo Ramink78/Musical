@@ -65,11 +65,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import rk.musical.R
-import rk.musical.data.model.Song
 import rk.musical.utils.loadCover
-import rk.musical.utils.readableDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +77,8 @@ fun PlayerScreen(
     sheetState: BottomSheetScaffoldState
 ) {
     val viewModel: NowPlayingScreenViewModel = hiltViewModel()
-    val uiState = viewModel.uiState
+    val stateFlow by viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
+    val progressFlow by viewModel.uiProgress.collectAsStateWithLifecycle()
     val sheetRadius by animateDpAsState(
         targetValue =
         if (sheetState.bottomSheetState.targetValue == SheetValue.Expanded) 0.dp else 16.dp,
@@ -86,22 +86,22 @@ fun PlayerScreen(
     )
     PlayerScreen(
         sheetState = sheetState,
-        onSeekFinished = viewModel::seekTo,
+        onSeekFinished = viewModel::seekToProgress,
         onSeekValueChange = viewModel::updateProgress,
         onSkipNext = viewModel::skipToNext,
         onSkipPrevious = viewModel::skipToPrevious,
-        title = uiState.playingSong.title,
-        subtitle = uiState.playingSong.artist,
-        isPlaying = uiState.isPlaying,
-        remainingTime = uiState.currentTime,
-        totalTime = readableDuration(uiState.playingSong.duration),
+        title = stateFlow.currentSong.title,
+        subtitle = stateFlow.currentSong.artist,
+        isPlaying = stateFlow.isPlaying,
+        remainingTime = stateFlow.currentTime,
+        totalTime = stateFlow.totalTime,
         onPlayPauseClicked = viewModel::togglePlay,
         imagePainter =
         rememberAsyncImagePainter(
-            model = uiState.playingSong.loadCover(LocalContext.current)
+            model = stateFlow.currentSong.loadCover(LocalContext.current)
         ),
-        progress = uiState.progress,
-        isSheetVisible = uiState.playingSong != Song.Empty,
+        progress = progressFlow,
+        isSheetVisible = stateFlow.isVisible,
         sheetRadius = sheetRadius,
         behindContent = behindContent
     )
@@ -121,7 +121,7 @@ private fun PlayerScreen(
     onPlayPauseClicked: () -> Unit,
     onSeekValueChange: (Float) -> Unit,
     imagePainter: Painter,
-    onSeekFinished: ((Float) -> Unit)?,
+    onSeekFinished: () -> Unit,
     progress: Float,
     isSheetVisible: Boolean,
     onSkipNext: () -> Unit,
@@ -140,44 +140,45 @@ private fun PlayerScreen(
         sheetDragHandle = null,
         sheetShape = RoundedCornerShape(topStart = sheetRadius, topEnd = sheetRadius),
         sheetContent = {
+            if (isSheetVisible)
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    Box {
+                        Crossfade(
+                            targetState = sheetState.bottomSheetState.targetValue,
+                            label = "",
+                        ) {
+                            if (it == SheetValue.Expanded) {
+                                ExpandedPlayer(
+                                    title = title,
+                                    subtitle = subtitle,
+                                    imagePainter = imagePainter,
+                                    onPlayPauseClicked = onPlayPauseClicked,
+                                    isPlaying = isPlaying,
+                                    remainingTime = remainingTime,
+                                    totalTime = totalTime,
+                                    progress = progress,
+                                    onSeekValueChange = onSeekValueChange,
+                                    onSeekFinished = onSeekFinished,
+                                    onSkipNext = onSkipNext,
+                                    onSkipPrevious = onSkipPrevious,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .statusBarsPadding()
+                                )
 
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Box {
-                    Crossfade(
-                        targetState = sheetState.bottomSheetState.targetValue,
-                        label = "",
-                    ) {
-                        if (it == SheetValue.Expanded) {
-                            ExpandedPlayer(
-                                title = title,
-                                subtitle = subtitle,
-                                imagePainter = imagePainter,
-                                onPlayPauseClicked = onPlayPauseClicked,
-                                isPlaying = isPlaying,
-                                remainingTime = remainingTime,
-                                totalTime = totalTime,
-                                progress = progress,
-                                onSeekValueChange = onSeekValueChange,
-                                onSeekFinished = onSeekFinished,
-                                onSkipNext = onSkipNext,
-                                onSkipPrevious = onSkipPrevious,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .statusBarsPadding()
-                            )
+                            } else {
+                                CollapsedPlayer(
+                                    title = title,
+                                    imagePainter = imagePainter,
+                                    onPlayPauseClicked = onPlayPauseClicked,
+                                    isPlaying = isPlaying,
+                                )
 
-                        } else {
-                            CollapsedPlayer(
-                                title = title,
-                                imagePainter = imagePainter,
-                                onPlayPauseClicked = onPlayPauseClicked,
-                                isPlaying = isPlaying,
-                            )
-
+                            }
                         }
                     }
                 }
-            }
+
         },
         sheetTonalElevation = 0.dp,
         sheetPeekHeight = sheetPeekHeight,
@@ -245,7 +246,7 @@ private fun ExpandedPlayer(
     totalTime: String,
     progress: Float,
     onSeekValueChange: (Float) -> Unit,
-    onSeekFinished: ((Float) -> Unit)? = null,
+    onSeekFinished: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     modifier: Modifier = Modifier
@@ -309,17 +310,16 @@ private fun PlayerControls(
     totalTime: String,
     progress: Float,
     onSeekValueChange: (Float) -> Unit,
-    onSeekFinished: ((Float) -> Unit)? = null,
+    onSeekFinished: () -> Unit
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Slider(
-            value = progress, onValueChange = onSeekValueChange,
-            onValueChangeFinished = {
-                onSeekFinished?.invoke(progress)
-            },
+            value = progress,
+            onValueChange = onSeekValueChange,
+            onValueChangeFinished = onSeekFinished,
         )
         Row(
             modifier = Modifier
@@ -481,12 +481,12 @@ fun PlayerScreenPreview() {
         progress = .23f,
         subtitle = "Music Subtitle",
         onSeekValueChange = {},
-        onSeekFinished = {},
         isSheetVisible = true,
         onSkipNext = {},
         onSkipPrevious = {},
         behindContent = {},
-        sheetState = rememberBottomSheetScaffoldState()
+        sheetState = rememberBottomSheetScaffoldState(),
+        onSeekFinished = {}
 
     )
 

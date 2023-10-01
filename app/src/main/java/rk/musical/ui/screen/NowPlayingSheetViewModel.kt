@@ -1,107 +1,73 @@
 package rk.musical.ui.screen
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import rk.musical.data.model.Song
-import rk.musical.data.model.toSong
-import rk.musical.player.MusicalRemoteControl
+import rk.musical.player.MusicalRemote
 import rk.musical.utils.readableDuration
 import javax.inject.Inject
+import kotlin.math.roundToLong
 
 @HiltViewModel
 class NowPlayingScreenViewModel @Inject constructor(
-    private val remoteControl: MusicalRemoteControl
+    private val musicalRemote: MusicalRemote
 ) : ViewModel() {
-    var isDragging = false
+    private val _uiProgress = MutableStateFlow(0f)
+    val uiProgress = _uiProgress.asStateFlow()
+
+    val nowPlayingUiStateFlow = musicalRemote.playbackStateFlow
+        .distinctUntilChanged()
+        .map {
+            if (!isSeeking) {
+                _uiProgress.value = it.currentPosition.toFloat() / it.currentSong.duration
+            }
+            NowPlayingUiState(
+                currentSong = it.currentSong,
+                isExpanded = false,
+                isVisible = it.currentSong != Song.Empty,
+                currentTime = readableDuration(it.currentPosition),
+                totalTime = readableDuration(it.currentSong.duration),
+                isPlaying = it.isPlaying
+            )
+        }
+
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            initialValue = NowPlayingUiState()
+        )
+    private var isSeeking = false
 
 
-    var uiState by mutableStateOf(NowPlayingUiState())
-        private set
-
-    private val playbackState = remoteControl.musicalPlaybackState
+    fun skipToNext() = musicalRemote.seekNext()
+    fun skipToPrevious() = musicalRemote.seekPrevious()
+    fun togglePlay() = musicalRemote.togglePlay()
+    fun seekToProgress() {
+        val duration = nowPlayingUiStateFlow.value.currentSong.duration
+        isSeeking = false
+        musicalRemote.seekToPosition((uiProgress.value * duration).roundToLong())
+    }
 
     fun updateProgress(progress: Float) {
-        isDragging = true
-        uiState = uiState.copy(
-            progress = progress,
-            currentTime = readableDuration((progress * uiState.playingSong.duration).toLong())
-        )
-    }
-
-    fun skipToNext() {
-        remoteControl.skipNext()
-    }
-
-    fun skipToPrevious() {
-        remoteControl.skipPrevious()
-    }
-
-    private fun resume() {
-        remoteControl.resume()
-    }
-
-    private fun pause() {
-        remoteControl.pause()
-    }
-
-    fun togglePlay() {
-        if (uiState.isPlaying)
-            pause()
-        else resume()
-    }
-
-    fun seekTo(progress: Float) {
-        isDragging = false
-        remoteControl.seekTo(progress)
-        uiState = uiState.copy(
-            progress = progress,
-            currentTime = readableDuration((progress * uiState.playingSong.duration).toLong())
-        )
-    }
-
-    init {
-        syncWithPlaybackService()
-    }
-
-    private fun syncWithPlaybackService() {
-        viewModelScope.launch {
-            playbackState.combine(remoteControl.playbackPosition) { state, position ->
-                val playingSong = state.playingMediaItem.toSong()
-                val totalDuration = uiState.playingSong.duration
-                val progress = position.toFloat() / totalDuration
-                val remainingTime = readableDuration(position)
-                NowPlayingUiState(
-                    isReady = state.isReady,
-                    isPlaying = state.isPlaying,
-                    playingSong = playingSong,
-                    totalDuration = playingSong.duration,
-                    progress = progress,
-                    currentTime = remainingTime
-
-                )
-            }.collect {
-                if (!isDragging)
-                    uiState = it
-            }
-        }
+        isSeeking = true
+        _uiProgress.value = progress
     }
 }
 
+
 data class NowPlayingUiState(
-    val isReady: Boolean = false,
-    val isPlaying: Boolean = false,
-    val playingSong: Song = Song.Empty,
-    val isFullScreen: Boolean = false,
-    val currentTime: String = "00:00",
     val isVisible: Boolean = false,
-    val progress: Float = 0f,
-    val totalDuration: Long = 0L
+    val currentSong: Song = Song.Empty,
+    val totalTime: String = "--:--",
+    val currentTime: String = "--:--",
+    val isExpanded: Boolean = false,
+    val isPlaying: Boolean = false
 )
 
