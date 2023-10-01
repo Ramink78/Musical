@@ -4,6 +4,10 @@ import android.content.ContentUris
 import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import rk.musical.data.model.Song
 import rk.musical.utils.IS_MUSIC_CLAUSE
@@ -24,12 +28,16 @@ class SongRepository(
     var chacedSongs: List<Song> = emptyList()
         private set
     private var state: DataSourceState = DataSourceState.Created
+    private val _localSongs = MutableSharedFlow<List<Song>>()
+    val localSongs = _localSongs.asSharedFlow()
+
+
     override val isReady: Boolean
         get() {
             return state is DataSourceState.Success
         }
 
-    private suspend fun loadSongs(
+    suspend fun loadSongs(
         sortOrder: String = SortOrder.Descending.dateAdded,
     ) {
         withContext(dispatcher) {
@@ -44,23 +52,25 @@ class SongRepository(
                 val artistCol = cursor.artistColumnIndex
                 val albumNameCol = cursor.albumNameColumnIndex
                 val songDurationCol = cursor.songDurationColumnIndex
-                chacedSongs = buildList {
-                    while (cursor.moveToNext()) {
-                        val songId = cursor.getLong(idCol)
-                        val songUri = ContentUris.withAppendedId(SONGS_URI, songId)
-                        add(
-                            Song(
-                                id = songId.toString(),
-                                title = cursor.getString(titleCol),
-                                artist = cursor.getString(artistCol),
-                                songUri = songUri.toString(),
-                                albumName = cursor.getString(albumNameCol),
-                                coverUri = buildCoverUri(songId),
-                                duration = cursor.getLong(songDurationCol)
-                            ),
-                        )
-                    }
+                val tempList = mutableListOf<Song>()
+                while (cursor.moveToNext()) {
+                    val songId = cursor.getLong(idCol)
+                    val songUri = ContentUris.withAppendedId(SONGS_URI, songId)
+                    tempList.add(
+                        Song(
+                            id = songId.toString(),
+                            title = cursor.getString(titleCol),
+                            artist = cursor.getString(artistCol),
+                            songUri = songUri.toString(),
+                            albumName = cursor.getString(albumNameCol),
+                            coverUri = buildCoverUri(songId),
+                            duration = cursor.getLong(songDurationCol)
+                        ),
+                    )
                 }
+                chacedSongs = tempList
+                _localSongs.emit(tempList)
+
 
             }
         }
