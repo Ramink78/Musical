@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "rk.musical"
-        minSdk 24
+        minSdk 26
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -79,8 +79,7 @@ dependencies {
     implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
     implementation "com.google.accompanist:accompanist-permissions:0.32.0"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:2.6.2"
-
-
+    implementation 'com.github.galaxygoldfish:waveslider:0.0.3'
 
 
     testImplementation 'junit:junit:4.13.2'
