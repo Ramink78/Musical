@@ -32,6 +32,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.BottomSheetScaffold
@@ -223,6 +225,7 @@ private fun ExpandedPlayer(
             modifier = Modifier.padding(horizontal = 12.dp)
         )
 
+
     }
 
 }
@@ -260,6 +263,12 @@ private fun PlayerControls(
     val previousIcon = remember {
         Icons.Rounded.SkipPrevious
     }
+    val shuffleIcon = remember {
+        Icons.Rounded.Shuffle
+    }
+    val repeatIcon = remember {
+        Icons.Rounded.Repeat
+    }
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -275,7 +284,7 @@ private fun PlayerControls(
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime.substring(0..1),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.labelMedium
             )
             WaveSlider(
                 value = progress,
@@ -287,8 +296,9 @@ private fun PlayerControls(
                 modifier = Modifier.weight(1f),
                 thumb = { CircleThumb() },
             )
-            Text(text = totalTime, style = MaterialTheme.typography.bodyMedium)
+            Text(text = totalTime, style = MaterialTheme.typography.labelMedium)
         }
+        Spacer(modifier = Modifier.height(16.dp))
 
 
         Row(
@@ -299,6 +309,19 @@ private fun PlayerControls(
             val playImageVector = if (isPlaying)
                 Icons.Rounded.Pause
             else Icons.Rounded.PlayArrow
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = {},
+                modifier = Modifier
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = repeatIcon,
+                    contentDescription = "",
+
+                    )
+            }
+            Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = onSkipPrevious,
                 modifier = Modifier
@@ -310,7 +333,7 @@ private fun PlayerControls(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             FilledIconToggleButton(
                 checked = isPlaying,
                 onCheckedChange = { _ ->
@@ -326,7 +349,7 @@ private fun PlayerControls(
                     modifier = Modifier.size(36.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             IconButton(
                 onClick = onSkipNext,
@@ -340,6 +363,19 @@ private fun PlayerControls(
 
                 )
             }
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = {},
+                modifier = Modifier
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = shuffleIcon,
+                    contentDescription = "",
+
+                    )
+            }
+            Spacer(modifier = Modifier.weight(1f))
 
         }
     }
@@ -374,13 +410,13 @@ private fun SongInfo(
         Text(
             text = title,
             modifier = Modifier.padding(bottom = 4.dp),
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.titleLarge,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.labelMedium,
             maxLines = 1
         )
 

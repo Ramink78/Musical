@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -151,7 +152,14 @@ fun MusicalBottomBar(
                     )
                 },
                 label = {
-                    Text(text = stringResource(R.string.songs))
+                    Text(
+                        text = stringResource(R.string.songs),
+                        style =
+                        if (currentRoute == MusicalRoutes.Songs.name)
+                            MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
+                        else
+                            MaterialTheme.typography.bodyMedium
+                    )
                 }
             )
             NavigationBarItem(selected = currentRoute == MusicalRoutes.Albums.name,
@@ -163,7 +171,14 @@ fun MusicalBottomBar(
                     )
                 },
                 label = {
-                    Text(text = stringResource(R.string.albums))
+                    Text(
+                        text = stringResource(R.string.albums),
+                        style =
+                        if (currentRoute == MusicalRoutes.Albums.name)
+                            MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
+                        else
+                            MaterialTheme.typography.bodyMedium
+                    )
                 })
         }
     }
