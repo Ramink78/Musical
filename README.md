@@ -1,5 +1,7 @@
 <h1 align="center" id="title">Musical</h1>
 
+<p align="center"><img src="https://socialify.git.ci/Ramink78/Musical/image?description=1&amp;descriptionEditable=A%20beautiful%20music%20player&amp;font=KoHo&amp;language=1&amp;name=1&amp;owner=1&amp;pattern=Solid&amp;stargazers=1&amp;theme=Light" alt="project-image"></p>
+
 <p id="description">A music player for android platform</p>
 
   
