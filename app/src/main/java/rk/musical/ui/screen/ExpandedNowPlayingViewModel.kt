@@ -2,6 +2,7 @@ package rk.musical.ui.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,18 @@ class ExpandedNowPlayingViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiProgress = MutableStateFlow(0f)
     val uiProgress = _uiProgress.asStateFlow()
-
+    val repeatModeFlow = musicalRemote.repeatModeFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+    val shuffleModeFlow = musicalRemote.shuffleModeFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
     val nowPlayingUiStateFlow = musicalRemote.playbackStateFlow
         .distinctUntilChanged()
         .map {
@@ -47,10 +59,19 @@ class ExpandedNowPlayingViewModel @Inject constructor(
     fun skipToNext() = musicalRemote.seekNext()
     fun skipToPrevious() = musicalRemote.seekPrevious()
     fun togglePlay() = musicalRemote.togglePlay()
+    fun toggleShuffleMode() = musicalRemote.setShuffleMode(!shuffleModeFlow.value)
     fun seekToProgress(progress: Float) {
         val duration = nowPlayingUiStateFlow.value.currentSong.duration
         isSeeking = false
         musicalRemote.seekToPosition((progress * duration).roundToLong())
+    }
+
+    fun changeRepeatMode() {
+        when (repeatModeFlow.value) {
+            Player.REPEAT_MODE_OFF -> musicalRemote.setRepeatMode(Player.REPEAT_MODE_ALL)
+            Player.REPEAT_MODE_ALL -> musicalRemote.setRepeatMode(Player.REPEAT_MODE_ONE)
+            else -> musicalRemote.setRepeatMode(Player.REPEAT_MODE_OFF)
+        }
     }
 
     fun updateProgress(progress: Float) {

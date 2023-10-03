@@ -12,7 +12,6 @@ val openSans = FontFamily(
     Font(R.font.opensans_light, FontWeight.Light),
     Font(R.font.opensans_regular, FontWeight.Normal),
     Font(R.font.opensans_medium, FontWeight.Medium),
-    Font(R.font.opensans_medium, FontWeight.Medium),
     Font(R.font.opensans_semibold, FontWeight.SemiBold)
 )
 val Typography = Typography(
@@ -61,5 +60,20 @@ val Typography = Typography(
         fontWeight = FontWeight.SemiBold,
         fontSize = 12.sp
     ),
+    labelSmall = TextStyle(
+        fontFamily = openSans,
+        fontWeight = FontWeight.Light,
+        fontSize = 12.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = openSans,
+        fontWeight = FontWeight.Light,
+        fontSize = 16.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = openSans,
+        fontWeight = FontWeight.Light,
+        fontSize = 18.sp
+    )
 
 )

@@ -40,3 +40,25 @@ fun Player.currentPositionFlow() = flow {
         emit(currentPosition)
     }
 }.flowOn(Dispatchers.Main)
+
+fun Player.repeatModeFlow() = callbackFlow {
+    send(repeatMode)
+    val listener = object : Player.Listener {
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            trySendBlocking(repeatMode)
+        }
+    }
+    addListener(listener)
+    awaitClose { removeListener(listener) }
+}.flowOn(Dispatchers.Main)
+
+fun Player.shuffleModeFlow() = callbackFlow {
+    send(shuffleModeEnabled)
+    val listener = object : Player.Listener {
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            trySendBlocking(shuffleModeEnabled)
+        }
+    }
+    addListener(listener)
+    awaitClose { removeListener(listener) }
+}.flowOn(Dispatchers.Main)
