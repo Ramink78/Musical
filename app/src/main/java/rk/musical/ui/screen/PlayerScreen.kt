@@ -1,8 +1,10 @@
 package rk.musical.ui.screen
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -10,6 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
@@ -53,6 +58,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -62,6 +71,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
@@ -69,6 +79,7 @@ import com.galaxygoldfish.waveslider.CircleThumb
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
 import rk.musical.ui.component.WaveSlider
 import rk.musical.ui.theme.MusicalTheme
+import rk.musical.ui.theme.PurpleGrey40
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,6 +200,8 @@ private fun ExpandedPlayer(
 ) {
     val viewModel: ExpandedNowPlayingViewModel = hiltViewModel()
     val uiState by viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
+    val repeatMode by viewModel.repeatModeFlow.collectAsStateWithLifecycle()
+    val isShuffleMode by viewModel.shuffleModeFlow.collectAsStateWithLifecycle()
     val progress by viewModel.uiProgress.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
@@ -218,11 +231,15 @@ private fun ExpandedPlayer(
             remainingTime = uiState.currentTime,
             totalTime = uiState.totalTime,
             progress = progress,
+            repeatMode = repeatMode,
+            isShuffleOn = isShuffleMode,
             onSeekValueChange = viewModel::updateProgress,
             onSeekFinished = viewModel::seekToProgress,
             onSkipNext = viewModel::skipToNext,
             onSkipPrevious = viewModel::skipToPrevious,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp),
+            onRepeatClick = viewModel::changeRepeatMode,
+            onShuffleClick = viewModel::toggleShuffleMode
         )
 
 
@@ -245,6 +262,102 @@ private fun CoverImage(coverUri: String?, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun ShuffleModeButton(
+    icon: ImageVector,
+    enableColor: Color,
+    disableColor: Color,
+    onShuffleClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isEnable: Boolean = false,
+    enableShape: Shape = CircleShape
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue =
+        if (isEnable)
+            enableColor
+        else
+            disableColor,
+        label = "",
+    )
+    Box(
+        modifier = modifier
+            .size(42.dp)
+            .clip(enableShape)
+            .drawBehind {
+                drawRect(backgroundColor)
+            }
+            .clickable(indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                onShuffleClick()
+
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "",
+        )
+    }
+
+}
+
+@SuppressLint("SwitchIntDef")
+@Composable
+fun RepeatModeButton(
+    enableColor: Color,
+    disableColor: Color,
+    icon: ImageVector,
+    onRepeatClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enableShape: Shape = CircleShape,
+    @Player.RepeatMode repeatMode: Int = Player.REPEAT_MODE_OFF
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue =
+        if (repeatMode == Player.REPEAT_MODE_OFF)
+            disableColor
+        else
+            enableColor,
+        label = "",
+
+        )
+    Box(
+        modifier = modifier
+            .size(42.dp)
+            .clip(enableShape)
+            .drawBehind {
+                drawRect(backgroundColor)
+            }
+            .clickable(indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                onRepeatClick()
+
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "",
+        )
+    }
+
+}
+
+@Preview
+@Composable
+fun RepeatModeButtonPreview() {
+    MusicalTheme(darkTheme = true) {
+        RepeatModeButton(
+            enableColor = MaterialTheme.colorScheme.primary,
+            disableColor = Color.Transparent,
+            icon = Icons.Rounded.RepeatOne,
+            onRepeatClick = {},
+            repeatMode = Player.REPEAT_MODE_ALL
+        )
+    }
+}
+
+@Composable
 private fun PlayerControls(
     modifier: Modifier = Modifier,
     onSkipNext: () -> Unit = {},
@@ -254,6 +367,10 @@ private fun PlayerControls(
     remainingTime: String,
     totalTime: String,
     progress: Float,
+    isShuffleOn: Boolean = false,
+    onShuffleClick: () -> Unit,
+    repeatMode: Int = 0,
+    onRepeatClick: () -> Unit,
     onSeekValueChange: (Float) -> Unit,
     onSeekFinished: (Float) -> Unit
 ) {
@@ -263,11 +380,16 @@ private fun PlayerControls(
     val previousIcon = remember {
         Icons.Rounded.SkipPrevious
     }
-    val shuffleIcon = remember {
+
+    val shuffleIcon = remember() {
         Icons.Rounded.Shuffle
     }
-    val repeatIcon = remember {
-        Icons.Rounded.Repeat
+    val repeatIcon = remember(key1 = repeatMode) {
+        when (repeatMode) {
+            0 -> Icons.Rounded.Repeat
+            1 -> Icons.Rounded.RepeatOne
+            else -> Icons.Rounded.Repeat
+        }
     }
     Column(
         modifier = modifier,
@@ -310,17 +432,13 @@ private fun PlayerControls(
                 Icons.Rounded.Pause
             else Icons.Rounded.PlayArrow
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .size(30.dp)
-            ) {
-                Icon(
-                    imageVector = repeatIcon,
-                    contentDescription = "",
-
-                    )
-            }
+            RepeatModeButton(
+                enableColor = PurpleGrey40,
+                disableColor = Color.Transparent,
+                icon = repeatIcon,
+                repeatMode = repeatMode,
+                onRepeatClick = onRepeatClick
+            )
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = onSkipPrevious,
@@ -364,17 +482,13 @@ private fun PlayerControls(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .size(30.dp)
-            ) {
-                Icon(
-                    imageVector = shuffleIcon,
-                    contentDescription = "",
-
-                    )
-            }
+            ShuffleModeButton(
+                icon = shuffleIcon,
+                enableColor = PurpleGrey40,
+                disableColor = Color.Transparent,
+                onShuffleClick = onShuffleClick,
+                isEnable = isShuffleOn,
+            )
             Spacer(modifier = Modifier.weight(1f))
 
         }
@@ -393,7 +507,9 @@ fun PlayerControlsPreview() {
             totalTime = "12:22",
             progress = .3f,
             onSeekValueChange = {},
-            onSeekFinished = {}
+            onSeekFinished = {},
+            onRepeatClick = {},
+            onShuffleClick = {}
         )
     }
 }
@@ -468,4 +584,3 @@ fun SlideUpAnimatedText(
     }
 
 }
-
