@@ -62,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.size.Dimension
 import coil.size.Size
 import com.galaxygoldfish.waveslider.CircleThumb
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
@@ -228,7 +229,11 @@ private fun ExpandedPlayer(
 }
 
 @Composable
-private fun CoverImage(coverUri: String?, modifier: Modifier = Modifier) {
+fun CoverImage(
+    coverUri: String?,
+    modifier: Modifier = Modifier,
+
+) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(coverUri)

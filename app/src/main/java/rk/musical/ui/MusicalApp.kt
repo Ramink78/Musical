@@ -84,7 +84,6 @@ fun MusicalApp() {
             Surface {
                 PlayerScreen(
                     sheetState = sheetState,
-
                     behindContent = { sheetPadding ->
                         NavHost(
                             modifier = Modifier.background(MaterialTheme.colorScheme.background),
@@ -93,7 +92,6 @@ fun MusicalApp() {
                         ) {
                             composable(route = MusicalRoutes.Songs.name) {
                                 SongsScreen(
-                                    onSongClick = {},
                                     contentPadding = PaddingValues(
                                         top = WindowInsets.statusBars.asPaddingValues()
                                             .calculateTopPadding(),

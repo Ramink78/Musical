@@ -7,8 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import rk.musical.data.SongRepository
 import rk.musical.data.model.Song
@@ -25,6 +25,12 @@ class SongsScreenViewModel @Inject constructor(
 
     private var currentSongs = emptyList<Song>()
     private var hasCurrentPlaylist = false
+    val playingSongFlow = musicalRemote.playingSongFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = Song.Empty
+        )
 
     init {
         Log.i(SongsScreenViewModel::class.simpleName, "Created ViewModel")

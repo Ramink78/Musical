@@ -3,7 +3,6 @@ package rk.musical.ui.screen
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,6 +37,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.common.collect.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import rk.musical.R
 import rk.musical.data.model.Album
 import rk.musical.ui.RationaleWarning
@@ -80,7 +81,7 @@ fun AlbumsScreen(
                     }
                 }
 
-                is AlbumsScreenUiState.Loaded,AlbumsScreenUiState.NavigateBack -> {
+                is AlbumsScreenUiState.Loaded, AlbumsScreenUiState.NavigateBack -> {
                     AlbumsList(
                         albums = albums,
                         modifier = modifier,
@@ -93,8 +94,8 @@ fun AlbumsScreen(
 
                 is AlbumsScreenUiState.LoadedChildren -> {
                     SongsList(
-                        songs = albumChildren,
-                        onSongClick = { song, index ->
+                        songs = albumChildren.toImmutableList(),
+                        onSongClick = { index ->
                         },
                         modifier = modifier,
                         contentPadding = contentPadding
