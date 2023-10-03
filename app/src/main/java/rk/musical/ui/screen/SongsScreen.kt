@@ -3,9 +3,8 @@ package rk.musical.ui.screen
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.compose.foundation.background
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,44 +18,47 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.SubcomposeAsyncImage
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import rk.musical.R
 import rk.musical.data.model.Song
 import rk.musical.ui.RationaleWarning
 import rk.musical.ui.RequiredMediaPermission
 import rk.musical.ui.mediaPermission
 import rk.musical.ui.theme.MusicalTheme
-import rk.musical.utils.loadCover
 
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SongsScreen(
     modifier: Modifier = Modifier,
-    onSongClick: (Song) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
     val context = LocalContext.current
     val viewModel: SongsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
+    val playingSong by viewModel.playingSongFlow.collectAsStateWithLifecycle()
     val permissionState = rememberPermissionState(permission = mediaPermission)
 
     RequiredMediaPermission(
@@ -80,12 +82,10 @@ fun SongsScreen(
                 is SongsScreenUiState.Loaded -> {
                     SongsList(
                         modifier = modifier,
-                        songs = uiState.songs,
+                        songs = uiState.songs.toImmutableList(),
                         contentPadding = contentPadding,
-                        onSongClick = { song, index ->
-                            viewModel.playSong(index)
-                            onSongClick(song)
-                        }
+                        onSongClick = viewModel::playSong,
+                        playingSong = playingSong
                     )
                 }
 
@@ -136,24 +136,33 @@ fun SongsScreen(
 
 @Composable
 fun SongsList(
-    songs: List<Song>,
+    songs: ImmutableList<Song>,
     modifier: Modifier = Modifier,
-    onSongClick: (item: Song, index: Int) -> Unit,
+    playingSong: Song = Song.Empty,
+    onSongClick: (index: Int) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        contentPadding = contentPadding,
+    Surface(
         modifier = modifier
     ) {
-        items(
-            items = songs,
-            key = { it.id }
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = contentPadding,
         ) {
-            SongItem(song = it, onClick = { song ->
-                onSongClick(song, songs.indexOf(song))
-            })
+            items(
+                items = songs,
+                key = {
+                    it.id
+                }
+            ) {
+                SongItem(
+                    song = it,
+                    onClick = { onSongClick(songs.indexOf(it)) },
+                    isChecked = it.id == playingSong.id
+                )
+            }
         }
+
     }
 
 
@@ -163,14 +172,31 @@ fun SongsList(
 @Composable
 fun SongItem(
     song: Song,
-    onClick: (Song) -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isChecked: Boolean = false,
 ) {
+    val cardBackgroundColor by animateColorAsState(
+        targetValue =
+        if (isChecked)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.surfaceVariant, label = ""
+    )
+    val cardContentColor by animateColorAsState(
+        targetValue =
+        if (isChecked)
+            contentColorFor(
+                MaterialTheme.colorScheme.primary
+            )
+        else
+            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = ""
+    )
+
     Card(
         modifier = modifier,
-        onClick = {
-            onClick(song)
-        }
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -178,31 +204,37 @@ fun SongItem(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            SubcomposeAsyncImage(
-                model = song.loadCover(LocalContext.current),
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
+            CoverImage(
+                coverUri = song.coverUri,
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape),
-                error = {
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-
-                    ) {
-                        Text(
-                            text = "${song.title.first().uppercaseChar()}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = Color.DarkGray
-                        )
-
-                    }
-                }
-
             )
+//            SubcomposeAsyncImage(
+//                model = song.loadCover(LocalContext.current),
+//                contentDescription = "",
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .size(60.dp)
+//                    .clip(CircleShape),
+//                error = {
+//                    Box(
+//                        modifier = Modifier
+//                            .size(60.dp)
+//                            .background(Color.LightGray),
+//                        contentAlignment = Alignment.Center
+//
+//                    ) {
+//                        Text(
+//                            text = "${song.title.first().uppercaseChar()}",
+//                            style = MaterialTheme.typography.headlineSmall,
+//                            color = Color.DarkGray
+//                        )
+//
+//                    }
+//                }
+//
+//            )
 
             Column(
                 modifier = Modifier
@@ -215,13 +247,16 @@ fun SongItem(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 4.dp),
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = cardContentColor
                 )
                 Text(
                     text = song.artist,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = cardContentColor
+
                 )
             }
         }
