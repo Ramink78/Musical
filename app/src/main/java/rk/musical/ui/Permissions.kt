@@ -90,7 +90,7 @@ fun RationaleWarning(
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onRequest) {
-                Text(text = buttonText)
+                Text(text = buttonText, style = MaterialTheme.typography.bodyMedium)
             }
 
         }
