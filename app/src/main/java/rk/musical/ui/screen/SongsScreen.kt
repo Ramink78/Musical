@@ -45,6 +45,7 @@ import rk.musical.R
 import rk.musical.data.model.Song
 import rk.musical.ui.RationaleWarning
 import rk.musical.ui.RequiredMediaPermission
+import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.mediaPermission
 import rk.musical.ui.theme.MusicalTheme
 
@@ -209,6 +210,7 @@ fun SongItem(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape),
+                placeholder = { SongPlaceholder() }
             )
 //            SubcomposeAsyncImage(
 //                model = song.loadCover(LocalContext.current),
