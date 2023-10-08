@@ -72,12 +72,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import coil.size.Dimension
 import coil.size.Size
 import com.galaxygoldfish.waveslider.CircleThumb
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
+import rk.musical.ui.component.SongDetailPlaceholder
+import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.component.WaveSlider
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.PurpleGrey40
@@ -169,7 +170,8 @@ private fun CollapsedPlayer(
             coverUri = uiState.playingSong.coverUri,
             modifier = Modifier
                 .size(48.dp)
-                .clip(CircleShape)
+                .clip(CircleShape),
+            placeholder = { SongPlaceholder() }
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
@@ -214,7 +216,8 @@ private fun ExpandedPlayer(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .padding(horizontal = 8.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp)),
+            placeholder = { SongDetailPlaceholder() }
         )
         Spacer(modifier = Modifier.height(8.dp))
         SongInfo(
@@ -252,17 +255,19 @@ private fun ExpandedPlayer(
 fun CoverImage(
     coverUri: String?,
     modifier: Modifier = Modifier,
-
+    placeholder: @Composable () -> Unit
 ) {
-    AsyncImage(
+    SubcomposeAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(coverUri)
             .size(Size.ORIGINAL)
-            .crossfade(250)
             .build(),
         contentScale = ContentScale.Crop,
         modifier = modifier,
-        contentDescription = ""
+        contentDescription = "",
+        error = {
+            placeholder()
+        }
     )
 }
 
