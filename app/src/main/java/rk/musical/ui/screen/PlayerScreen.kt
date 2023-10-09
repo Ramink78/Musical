@@ -1,6 +1,7 @@
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
@@ -55,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,6 +79,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.galaxygoldfish.waveslider.CircleThumb
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
+import kotlinx.coroutines.launch
 import rk.musical.ui.component.SongDetailPlaceholder
 import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.component.WaveSlider
@@ -116,6 +119,7 @@ private fun PlayerScreen(
     sheetRadius: Dp = 16.dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val bottomNavigationHeight = 80.dp
     val collapsedHeight = if (WindowInsets.Companion.areNavigationBarsVisible) 90.dp else 60.dp
     val peekHeight = bottomNavigationHeight + collapsedHeight
@@ -123,6 +127,14 @@ private fun PlayerScreen(
         targetValue =
         if (isSheetVisible) peekHeight else 0.dp, label = ""
     )
+    BackHandler(
+        enabled =
+        sheetState.bottomSheetState.currentValue == SheetValue.Expanded
+    ) {
+        scope.launch {
+            sheetState.bottomSheetState.partialExpand()
+        }
+    }
     BottomSheetScaffold(
         sheetDragHandle = null,
         sheetShape = RoundedCornerShape(topStart = sheetRadius, topEnd = sheetRadius),
@@ -139,7 +151,11 @@ private fun PlayerScreen(
                                     modifier = Modifier
                                         .fillMaxSize()
                                 )
-                            else CollapsedPlayer()
+                            else CollapsedPlayer(Modifier.clickable {
+                                scope.launch {
+                                    sheetState.bottomSheetState.expand()
+                                }
+                            })
                         }
                     }
                 }
