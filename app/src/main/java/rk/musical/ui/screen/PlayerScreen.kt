@@ -1,7 +1,6 @@
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
@@ -83,6 +82,8 @@ import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.component.WaveSlider
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.PurpleGrey40
+import rk.musical.utils.NowPlayingDynamicTheme
+import rk.musical.utils.verticalGradientScrim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,7 +138,6 @@ private fun PlayerScreen(
                                 ExpandedPlayer(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .statusBarsPadding()
                                 )
                             else CollapsedPlayer()
                         }
@@ -207,48 +207,58 @@ private fun ExpandedPlayer(
     val repeatMode by viewModel.repeatModeFlow.collectAsStateWithLifecycle()
     val isShuffleMode by viewModel.shuffleModeFlow.collectAsStateWithLifecycle()
     val progress by viewModel.uiProgress.collectAsStateWithLifecycle()
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CoverImage(
-            coverUri = uiState.currentSong.coverUri,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .padding(horizontal = 8.dp)
-                .clip(RoundedCornerShape(10.dp)),
-            placeholder = { SongDetailPlaceholder() }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        SongInfo(
-            title = uiState.currentSong.title,
-            subtitle = uiState.currentSong.artist,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+    NowPlayingDynamicTheme(coverUri = uiState.currentSong.coverUri ?: "") {
+        Column(
+            modifier = modifier
+                .verticalGradientScrim(
+                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.50f),
+                    startYPercentage = 1f,
+                    endYPercentage = 0f
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CoverImage(
+                coverUri = uiState.currentSong.coverUri,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .padding(horizontal = 8.dp)
+                    .statusBarsPadding()
+                    .clip(RoundedCornerShape(10.dp)),
+                placeholder = { SongDetailPlaceholder() }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            SongInfo(
+                title = uiState.currentSong.title,
+                subtitle = uiState.currentSong.artist,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        PlayerControls(
-            onPlayPauseClicked = viewModel::togglePlay,
-            isPlaying = uiState.isPlaying,
-            remainingTime = uiState.currentTime,
-            totalTime = uiState.totalTime,
-            progress = progress,
-            repeatMode = repeatMode,
-            isShuffleOn = isShuffleMode,
-            onSeekValueChange = viewModel::updateProgress,
-            onSeekFinished = viewModel::seekToProgress,
-            onSkipNext = viewModel::skipToNext,
-            onSkipPrevious = viewModel::skipToPrevious,
-            modifier = Modifier.padding(horizontal = 12.dp),
-            onRepeatClick = viewModel::changeRepeatMode,
-            onShuffleClick = viewModel::toggleShuffleMode
-        )
+            PlayerControls(
+                onPlayPauseClicked = viewModel::togglePlay,
+                isPlaying = uiState.isPlaying,
+                remainingTime = uiState.currentTime,
+                totalTime = uiState.totalTime,
+                progress = progress,
+                repeatMode = repeatMode,
+                isShuffleOn = isShuffleMode,
+                onSeekValueChange = viewModel::updateProgress,
+                onSeekFinished = viewModel::seekToProgress,
+                onSkipNext = viewModel::skipToNext,
+                onSkipPrevious = viewModel::skipToPrevious,
+                modifier = Modifier.padding(horizontal = 12.dp),
+                onRepeatClick = viewModel::changeRepeatMode,
+                onShuffleClick = viewModel::toggleShuffleMode
+            )
 
+
+        }
 
     }
+
 
 }
 
@@ -259,8 +269,6 @@ fun CoverImage(
     placeholder: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    Log.i("CoverImageFunction", "uri: $coverUri")
-
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(context)
             .data(coverUri)
