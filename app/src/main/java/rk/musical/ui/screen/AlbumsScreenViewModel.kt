@@ -10,7 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import rk.musical.data.AlbumRepository
-import rk.musical.data.SongRepository
 import rk.musical.data.model.Album
 import rk.musical.data.model.Song
 import rk.musical.player.MusicalRemote
@@ -29,12 +28,12 @@ class AlbumsScreenViewModel @Inject constructor(
     private var hasCurrentPlaylist = false
 
     init {
-        Log.i(AlbumsScreenViewModel::class.simpleName, "Created ViewModel")
         viewModelScope.launch {
             uiState = AlbumsScreenUiState.Loading
             albumRepository.localAlbums
                 .stateIn(scope = viewModelScope)
                 .collect {
+                    albums = it
                     uiState = if (it.isEmpty())
                         AlbumsScreenUiState.Empty
                     else {

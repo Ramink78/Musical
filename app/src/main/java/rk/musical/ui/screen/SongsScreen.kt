@@ -212,32 +212,6 @@ fun SongItem(
                     .clip(CircleShape),
                 placeholder = { SongPlaceholder() }
             )
-//            SubcomposeAsyncImage(
-//                model = song.loadCover(LocalContext.current),
-//                contentDescription = "",
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .size(60.dp)
-//                    .clip(CircleShape),
-//                error = {
-//                    Box(
-//                        modifier = Modifier
-//                            .size(60.dp)
-//                            .background(Color.LightGray),
-//                        contentAlignment = Alignment.Center
-//
-//                    ) {
-//                        Text(
-//                            text = "${song.title.first().uppercaseChar()}",
-//                            style = MaterialTheme.typography.headlineSmall,
-//                            color = Color.DarkGray
-//                        )
-//
-//                    }
-//                }
-//
-//            )
-
             Column(
                 modifier = Modifier
                     .weight(1f)

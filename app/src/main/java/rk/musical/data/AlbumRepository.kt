@@ -2,8 +2,7 @@ package rk.musical.data
 
 import android.content.ContentUris
 import android.content.Context
-import android.os.Build
-import android.provider.MediaStore
+import android.net.Uri
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,6 +17,7 @@ import rk.musical.utils.albumNameColumnIndex
 import rk.musical.utils.albumSongsCountColumnIndex
 import rk.musical.utils.artistColumnIndex
 import rk.musical.utils.kuery
+
 
 class AlbumRepository(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -48,14 +48,18 @@ class AlbumRepository(
 
                 while (it.moveToNext()) {
                     val albumId = it.getLong(albumIdCol)
-                    val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        ContentUris.withAppendedId(
-                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                            albumId
-                        ).toString()
-                    } else {
-                        it.getString(albumArtCol)
-                    }
+                    val sArtworkUri = Uri
+                        .parse("content://media/external/audio/albumart")
+                    val albumArtUri = ContentUris.withAppendedId(sArtworkUri, albumId)
+
+//                    val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                        ContentUris.withAppendedId(
+//                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+//                            albumId
+//                        ).toString()
+//                    } else {
+//                        it.getString(albumArtCol)
+//                    }
 
                     tempList.add(
                         Album(
@@ -63,7 +67,7 @@ class AlbumRepository(
                             title = it.getString(albumNameCol),
                             artist = it.getString(artistCol),
                             songsCount = it.getInt(albumSongsCountCol),
-                            coverUri = coverUri
+                            coverUri = albumArtUri.toString()
                         )
                     )
 

@@ -27,33 +27,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.common.collect.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import rk.musical.R
 import rk.musical.data.model.Album
+import rk.musical.data.model.Song
 import rk.musical.ui.RationaleWarning
 import rk.musical.ui.RequiredMediaPermission
+import rk.musical.ui.component.AlbumPlaceholder
 import rk.musical.ui.mediaPermission
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.Purple40
 import rk.musical.ui.theme.PurpleGrey80
-import rk.musical.utils.loadCover
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues()
+    contentPadding: PaddingValues = PaddingValues(),
+    onItemClick: (Album) -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: AlbumsScreenViewModel = hiltViewModel()
@@ -85,9 +84,7 @@ fun AlbumsScreen(
                     AlbumsList(
                         albums = albums,
                         modifier = modifier,
-                        onAlbumClicked = { album ->
-                        },
-
+                        onAlbumClicked = onItemClick,
                         contentPadding = contentPadding
                     )
                 }
@@ -192,15 +189,15 @@ fun AlbumItem(
         modifier = modifier
     ) {
         Column {
-
-            AsyncImage(
-                model = album.loadCover(LocalContext.current),
-                contentDescription = "",
+            CoverImage(
+                coverUri = album.coverUri,
                 modifier = Modifier
                     .fillMaxSize()
                     .height(140.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(
+                        RoundedCornerShape(8.dp)
+                    ),
+                placeholder = { AlbumPlaceholder() }
             )
 
             Column(
