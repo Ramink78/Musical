@@ -1,6 +1,7 @@
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
@@ -257,8 +258,11 @@ fun CoverImage(
     modifier: Modifier = Modifier,
     placeholder: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    Log.i("CoverImageFunction", "uri: $coverUri")
+
     SubcomposeAsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
+        model = ImageRequest.Builder(context)
             .data(coverUri)
             .size(Size.ORIGINAL)
             .build(),

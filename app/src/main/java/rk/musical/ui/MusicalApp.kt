@@ -32,12 +32,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import rk.musical.R
 import rk.musical.navigation.MusicalRoutes
+import rk.musical.ui.screen.AlbumDetailScreen
 import rk.musical.ui.screen.AlbumsScreen
 import rk.musical.ui.screen.PlayerScreen
 import rk.musical.ui.screen.SongsScreen
@@ -81,46 +84,58 @@ fun MusicalApp() {
             )
 
         },
-        content = { paddingValues ->
-            Surface {
-                PlayerScreen(
-                    sheetState = sheetState,
-                    behindContent = { sheetPadding ->
-                        NavHost(
-                            modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                            navController = navController,
-                            startDestination = MusicalRoutes.Songs.name,
-                        ) {
-                            composable(route = MusicalRoutes.Songs.name) {
-                                SongsScreen(
-                                    contentPadding = PaddingValues(
-                                        top = WindowInsets.statusBars.asPaddingValues()
-                                            .calculateTopPadding(),
-                                        bottom = sheetPadding.calculateBottomPadding(),
-                                        end = 8.dp,
-                                        start = 8.dp
-                                    ),
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            composable(route = MusicalRoutes.Albums.name) {
-                                AlbumsScreen(
-                                    contentPadding =
-                                    PaddingValues(
-                                        bottom = sheetPadding.calculateBottomPadding(),
-                                        top = WindowInsets.statusBars.asPaddingValues()
-                                            .calculateTopPadding()
-                                    ),
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-
+    ) { paddingValues ->
+        Surface {
+            PlayerScreen(
+                sheetState = sheetState,
+                behindContent = { sheetPadding ->
+                    NavHost(
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                        navController = navController,
+                        startDestination = MusicalRoutes.Songs.name,
+                    ) {
+                        composable(route = MusicalRoutes.Songs.name) {
+                            SongsScreen(
+                                contentPadding = PaddingValues(
+                                    top = WindowInsets.statusBars.asPaddingValues()
+                                        .calculateTopPadding(),
+                                    bottom = sheetPadding.calculateBottomPadding(),
+                                    end = 8.dp,
+                                    start = 8.dp
+                                ),
+                                modifier = Modifier.fillMaxSize()
+                            )
                         }
-                    })
-            }
+                        composable(route = MusicalRoutes.Albums.name) {
+                            AlbumsScreen(
+                                contentPadding =
+                                PaddingValues(
+                                    bottom = sheetPadding.calculateBottomPadding(),
+                                    top = WindowInsets.statusBars.asPaddingValues()
+                                        .calculateTopPadding()
+                                ),
+                                modifier = Modifier.fillMaxSize(),
+                                onItemClick = {
+                                    navController.navigate("${MusicalRoutes.AlbumDetail.name}/${it.id}")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "${MusicalRoutes.AlbumDetail.name}/{albumId}",
+                            arguments = listOf(
+                                navArgument("albumId") { type = NavType.StringType }
+                            )
+                        ) {
+                            AlbumDetailScreen(
+                                it.arguments?.getString("albumId") ?: "",
+                            )
+                        }
 
-        },
-    )
+                    }
+                })
+        }
+
+    }
 
 }
 
