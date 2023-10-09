@@ -1,6 +1,10 @@
 package rk.musical.ui.screen
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -154,7 +159,9 @@ fun ChildItem(
         if (isChecked)
             MaterialTheme.colorScheme.primary
         else
-            Color.Transparent, label = ""
+            Color.Transparent, label = "",
+        animationSpec = tween(400)
+
     )
     val cardContentColor by animateColorAsState(
         targetValue =
@@ -163,7 +170,12 @@ fun ChildItem(
                 MaterialTheme.colorScheme.primary
             )
         else
-            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = ""
+            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = "",
+        animationSpec = tween(400)
+    )
+    val cardScale by animateFloatAsState(
+        targetValue = if (isChecked) .95f else 1f, label = "",
+        animationSpec = tween(400)
     )
 
     Row(
@@ -175,6 +187,10 @@ fun ChildItem(
             .clickable { onClick() }
             .drawBehind {
                 drawRect(cardBackgroundColor)
+            }
+            .graphicsLayer {
+                scaleY = cardScale
+                scaleX = cardScale
             },
     ) {
         Column(
