@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +32,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -182,7 +186,8 @@ fun SongItem(
         if (isChecked)
             MaterialTheme.colorScheme.primary
         else
-            MaterialTheme.colorScheme.surfaceVariant, label = ""
+            MaterialTheme.colorScheme.surfaceVariant, label = "",
+        animationSpec = tween(400)
     )
     val cardContentColor by animateColorAsState(
         targetValue =
@@ -191,11 +196,21 @@ fun SongItem(
                 MaterialTheme.colorScheme.primary
             )
         else
-            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = ""
+            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = "",
+        animationSpec = tween(400)
+
+    )
+    val cardScale by animateFloatAsState(
+        targetValue = if (isChecked) .95f else 1f, label = "",
+        animationSpec = tween(400)
     )
 
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .graphicsLayer {
+                scaleY = cardScale
+                scaleX = cardScale
+            },
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
     ) {
