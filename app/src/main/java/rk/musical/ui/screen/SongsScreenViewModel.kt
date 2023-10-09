@@ -24,7 +24,7 @@ class SongsScreenViewModel @Inject constructor(
         private set
 
     private var currentSongs = emptyList<Song>()
-    private var hasCurrentPlaylist = false
+    //private var hasCurrentPlaylist = false
     val playingSongFlow = musicalRemote.playingSongFlow
         .stateIn(
             scope = viewModelScope,
@@ -57,9 +57,9 @@ class SongsScreenViewModel @Inject constructor(
     }
 
     fun playSong(index: Int) {
-        if (!hasCurrentPlaylist) {
+        if (musicalRemote.currentPlaylist != currentSongs) {
             musicalRemote.setPlaylist(currentSongs)
-            hasCurrentPlaylist = true
+        //    hasCurrentPlaylist = true
         }
         musicalRemote.playSong(index)
     }

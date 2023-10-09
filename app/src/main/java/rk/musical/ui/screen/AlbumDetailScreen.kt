@@ -43,9 +43,7 @@ fun AlbumDetailScreen(
     val album = remember {
         viewModel.findAlbumById(albumId)!!
     }
-    val albumChildren = remember {
-        viewModel.getAlbumChildren(albumId)
-    }
+
     val playingSong by viewModel.playingSong.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -69,7 +67,7 @@ fun AlbumDetailScreen(
                 modifier = Modifier.padding(16.dp)
             )
         }
-        itemsIndexed(albumChildren) { index, item ->
+        itemsIndexed(viewModel.getAlbumChildren(albumId)) { index, item ->
             AlbumChildItem(
                 modifier = Modifier.padding(horizontal = 8.dp),
                 song = item,

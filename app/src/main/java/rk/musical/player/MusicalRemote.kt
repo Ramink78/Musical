@@ -15,6 +15,8 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
     val currentPositionFlow = exoPlayer.currentPositionFlow()
     val repeatModeFlow = exoPlayer.repeatModeFlow()
     val shuffleModeFlow = exoPlayer.shuffleModeFlow()
+    var currentPlaylist = emptyList<Song>()
+        private set
     val playbackStateFlow = combine(
         playingSongFlow,
         isPlayingFlow,
@@ -33,6 +35,7 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
     }
 
     fun setPlaylist(songList: List<Song>) {
+        currentPlaylist = songList
         exoPlayer.setMediaItems(songList.toMediaItems())
         exoPlayer.prepare()
     }
