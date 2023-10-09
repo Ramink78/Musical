@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import rk.musical.data.model.Song
 import rk.musical.ui.component.AlbumPlaceholder
 import rk.musical.ui.theme.MusicalTheme
@@ -37,7 +38,6 @@ import rk.musical.ui.theme.Purple80
 @Composable
 fun AlbumDetailScreen(
     albumId: String,
-    onItemClick: () -> Unit
 ) {
     val viewModel: AlbumDetailScreenViewModel = hiltViewModel()
     val album = remember {
@@ -46,6 +46,7 @@ fun AlbumDetailScreen(
     val albumChildren = remember {
         viewModel.getAlbumChildren(albumId)
     }
+    val playingSong by viewModel.playingSong.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -72,8 +73,9 @@ fun AlbumDetailScreen(
             AlbumChildItem(
                 modifier = Modifier.padding(horizontal = 8.dp),
                 song = item,
-                onItemClick = onItemClick,
-                ordinal = index + 1
+                onItemClick = { viewModel.playSong(index) },
+                ordinal = index + 1,
+                isChecked = playingSong == item
             )
         }
 
@@ -126,6 +128,7 @@ private fun AlbumChildItem(
     modifier: Modifier = Modifier,
     song: Song = Song.Empty,
     ordinal: Int = 1,
+    isChecked: Boolean = false,
     onItemClick: () -> Unit
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -136,7 +139,7 @@ private fun AlbumChildItem(
             modifier = Modifier.padding(start = 12.dp),
             color = Purple80
         )
-        ChildItem(song = song, onClick = onItemClick)
+        ChildItem(song = song, onClick = onItemClick, isChecked = isChecked)
     }
 
 }
@@ -208,6 +211,6 @@ fun ChildItem(
 @Composable
 fun AlbumDetailPreview() {
     MusicalTheme(darkTheme = true) {
-        AlbumDetailScreen("", onItemClick = {})
+        AlbumDetailScreen("")
     }
 }

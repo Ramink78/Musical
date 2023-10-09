@@ -128,7 +128,7 @@ fun MusicalApp() {
                         ) {
                             AlbumDetailScreen(
                                 it.arguments?.getString("albumId") ?: "",
-                                onItemClick = {})
+                            )
                         }
 
                     }
