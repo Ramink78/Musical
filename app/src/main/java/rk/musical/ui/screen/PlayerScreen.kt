@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -77,7 +78,7 @@ import androidx.media3.common.Player
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
-import com.galaxygoldfish.waveslider.CircleThumb
+import com.galaxygoldfish.waveslider.LocalThumbColor
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
 import kotlinx.coroutines.launch
 import rk.musical.ui.component.SongDetailPlaceholder
@@ -454,7 +455,14 @@ private fun PlayerControls(
                     animateWave = isPlaying
                 ),
                 modifier = Modifier.weight(1f),
-                thumb = { CircleThumb() },
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(LocalThumbColor.current)
+                    )
+                },
             )
             Text(text = totalTime, style = MaterialTheme.typography.labelMedium)
         }
