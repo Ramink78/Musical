@@ -10,7 +10,7 @@ class MusicalApplication : Application(), ImageLoaderFactory {
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
             .crossfade(true)
-            .allowHardware(true)
+            .allowHardware(false)
             .build()
     }
 }

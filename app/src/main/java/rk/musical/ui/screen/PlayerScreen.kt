@@ -1,7 +1,7 @@
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
-import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
@@ -13,7 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +57,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,14 +78,17 @@ import androidx.media3.common.Player
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
-import com.galaxygoldfish.waveslider.CircleThumb
+import com.galaxygoldfish.waveslider.LocalThumbColor
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
+import kotlinx.coroutines.launch
 import rk.musical.ui.component.PlaybackSpeedMenu
 import rk.musical.ui.component.SongDetailPlaceholder
 import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.component.WaveSlider
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.PurpleGrey40
+import rk.musical.utils.NowPlayingDynamicTheme
+import rk.musical.utils.verticalGradientScrim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,6 +121,7 @@ private fun PlayerScreen(
     sheetRadius: Dp = 16.dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val bottomNavigationHeight = 80.dp
     val collapsedHeight = if (WindowInsets.Companion.areNavigationBarsVisible) 90.dp else 60.dp
     val peekHeight = bottomNavigationHeight + collapsedHeight
@@ -124,6 +129,14 @@ private fun PlayerScreen(
         targetValue =
         if (isSheetVisible) peekHeight else 0.dp, label = ""
     )
+    BackHandler(
+        enabled =
+        sheetState.bottomSheetState.currentValue == SheetValue.Expanded
+    ) {
+        scope.launch {
+            sheetState.bottomSheetState.partialExpand()
+        }
+    }
     BottomSheetScaffold(
         sheetDragHandle = null,
         sheetShape = RoundedCornerShape(topStart = sheetRadius, topEnd = sheetRadius),
@@ -139,9 +152,12 @@ private fun PlayerScreen(
                                 ExpandedPlayer(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .statusBarsPadding()
                                 )
-                            else CollapsedPlayer()
+                            else CollapsedPlayer(Modifier.clickable {
+                                scope.launch {
+                                    sheetState.bottomSheetState.expand()
+                                }
+                            })
                         }
                     }
                 }
@@ -209,49 +225,59 @@ private fun ExpandedPlayer(
     val repeatMode by viewModel.repeatModeFlow.collectAsStateWithLifecycle()
     val isShuffleMode by viewModel.shuffleModeFlow.collectAsStateWithLifecycle()
     val progress by viewModel.uiProgress.collectAsStateWithLifecycle()
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CoverImage(
-            coverUri = uiState.currentSong.coverUri,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .padding(horizontal = 8.dp)
-                .clip(RoundedCornerShape(10.dp)),
-            placeholder = { SongDetailPlaceholder() }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        SongInfo(
-            title = uiState.currentSong.title,
-            subtitle = uiState.currentSong.artist,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            onItemSelected = viewModel::setPlaybackSpeed
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+    NowPlayingDynamicTheme(coverUri = uiState.currentSong.coverUri ?: "") {
+        Column(
+            modifier = modifier
+                .verticalGradientScrim(
+                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.50f),
+                    startYPercentage = 1f,
+                    endYPercentage = 0f
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CoverImage(
+                coverUri = uiState.currentSong.coverUri,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .padding(horizontal = 8.dp)
+                    .statusBarsPadding()
+                    .clip(RoundedCornerShape(10.dp)),
+                placeholder = { SongDetailPlaceholder() }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            SongInfo(
+                title = uiState.currentSong.title,
+                subtitle = uiState.currentSong.artist,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                onItemSelected = viewModel::setPlaybackSpeed
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        PlayerControls(
-            onPlayPauseClicked = viewModel::togglePlay,
-            isPlaying = uiState.isPlaying,
-            remainingTime = uiState.currentTime,
-            totalTime = uiState.totalTime,
-            progress = progress,
-            repeatMode = repeatMode,
-            isShuffleOn = isShuffleMode,
-            onSeekValueChange = viewModel::updateProgress,
-            onSeekFinished = viewModel::seekToProgress,
-            onSkipNext = viewModel::skipToNext,
-            onSkipPrevious = viewModel::skipToPrevious,
-            modifier = Modifier.padding(horizontal = 12.dp),
-            onRepeatClick = viewModel::changeRepeatMode,
-            onShuffleClick = viewModel::toggleShuffleMode
-        )
+            PlayerControls(
+                onPlayPauseClicked = viewModel::togglePlay,
+                isPlaying = uiState.isPlaying,
+                remainingTime = uiState.currentTime,
+                totalTime = uiState.totalTime,
+                progress = progress,
+                repeatMode = repeatMode,
+                isShuffleOn = isShuffleMode,
+                onSeekValueChange = viewModel::updateProgress,
+                onSeekFinished = viewModel::seekToProgress,
+                onSkipNext = viewModel::skipToNext,
+                onSkipPrevious = viewModel::skipToPrevious,
+                modifier = Modifier.padding(horizontal = 12.dp),
+                onRepeatClick = viewModel::changeRepeatMode,
+                onShuffleClick = viewModel::toggleShuffleMode
+            )
 
+
+        }
 
     }
+
 
 }
 
@@ -262,8 +288,6 @@ fun CoverImage(
     placeholder: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    Log.i("CoverImageFunction", "uri: $coverUri")
-
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(context)
             .data(coverUri)
@@ -374,7 +398,6 @@ fun RepeatModeButtonPreview() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlayerControls(
     modifier: Modifier = Modifier,
@@ -399,7 +422,7 @@ private fun PlayerControls(
         Icons.Rounded.SkipPrevious
     }
 
-    val shuffleIcon = remember() {
+    val shuffleIcon = remember {
         Icons.Rounded.Shuffle
     }
     val repeatIcon = remember(key1 = repeatMode) {
@@ -434,7 +457,14 @@ private fun PlayerControls(
                     animateWave = isPlaying
                 ),
                 modifier = Modifier.weight(1f),
-                thumb = { CircleThumb() },
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(LocalThumbColor.current)
+                    )
+                },
             )
             Text(text = totalTime, style = MaterialTheme.typography.labelMedium)
         }

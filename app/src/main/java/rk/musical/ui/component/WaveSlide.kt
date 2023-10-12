@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import com.galaxygoldfish.waveslider.LocalThumbColor
 import com.galaxygoldfish.waveslider.PillThumb
 import com.galaxygoldfish.waveslider.WaveAnimationOptions
@@ -146,7 +147,7 @@ fun WaveSlider(
                     } else {
                         colors.disabledActiveTrackColor
                     },
-                    style = Stroke(width = 8f, cap = StrokeCap.Round)
+                    style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
                 )
                 drawLine(
                     color = if (enabled) {
@@ -154,7 +155,7 @@ fun WaveSlider(
                     } else {
                         colors.disabledInactiveTrackColor
                     },
-                    strokeWidth = 8F,
+                    strokeWidth = 5.dp.toPx(),
                     cap = StrokeCap.Round,
                     start = Offset(endX + 1, centerY),
                     end = Offset(size.width, centerY)
