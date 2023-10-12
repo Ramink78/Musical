@@ -1,5 +1,8 @@
 package rk.musical.player
 
+import android.animation.ValueAnimator
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.core.animation.addListener
 import androidx.media3.common.Player.RepeatMode
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ActivityRetainedScoped
@@ -40,16 +43,55 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
         exoPlayer.prepare()
     }
 
-    fun pause() {
-        exoPlayer.playWhenReady = false
+    private fun pause() {
+        smoothFadeOut(onEnd = {
+            exoPlayer.playWhenReady = false
+            // change volume to default (max volume)
+            exoPlayer.volume = 1f
+        })
     }
 
-    fun play() {
-        exoPlayer.playWhenReady = true
+    private fun play() {
+        smoothFadeIn(onStart = {
+            exoPlayer.playWhenReady = true
+        })
+    }
+
+    private fun smoothFadeOut(
+        onEnd: () -> Unit
+    ) {
+        ValueAnimator.ofFloat(1f, 0f)
+            .apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                duration = 400
+                addListener(onEnd = { onEnd() })
+                addUpdateListener {
+                    exoPlayer.volume = it.animatedValue as Float
+                }
+                start()
+            }
+    }
+
+    private fun smoothFadeIn(
+        onStart: () -> Unit,
+    ) {
+        ValueAnimator.ofFloat(0f, 1f)
+            .apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                duration = 400
+                addListener(onStart = { onStart() })
+                addUpdateListener {
+                    exoPlayer.volume = it.animatedValue as Float
+                }
+                start()
+            }
     }
 
     fun togglePlay() {
-        exoPlayer.playWhenReady = !exoPlayer.isPlaying
+        if (exoPlayer.isPlaying)
+            pause()
+        else
+            play()
     }
 
     fun seekNext() = exoPlayer.seekToNext()
