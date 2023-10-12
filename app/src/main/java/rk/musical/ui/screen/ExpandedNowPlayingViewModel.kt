@@ -78,6 +78,15 @@ class ExpandedNowPlayingViewModel @Inject constructor(
         isSeeking = true
         _uiProgress.value = progress
     }
+
+    fun setPlaybackSpeed(index: Int) {
+        when (index) {
+            0 -> musicalRemote.setPlaybackSpeed(.5f)
+            1 -> musicalRemote.setPlaybackSpeed(1f)
+            2 -> musicalRemote.setPlaybackSpeed(1.5f)
+            else -> musicalRemote.setPlaybackSpeed(2f)
+        }
+    }
 }
 
 
@@ -87,4 +96,5 @@ data class ExpandedNowPlayingUiState(
     val currentTime: String = "00:00",
     val isPlaying: Boolean = false
 )
+
 
