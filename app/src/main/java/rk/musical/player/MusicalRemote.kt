@@ -63,6 +63,9 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
         exoPlayer.shuffleModeEnabled = isShuffleMode
     }
 
+    fun setPlaybackSpeed(speed: Float) = exoPlayer.setPlaybackSpeed(speed)
+
+
 }
 
 data class MusicalRemoteState(

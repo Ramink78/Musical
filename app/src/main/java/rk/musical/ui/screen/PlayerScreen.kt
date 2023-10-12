@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -78,6 +79,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.galaxygoldfish.waveslider.CircleThumb
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
+import rk.musical.ui.component.PlaybackSpeedMenu
 import rk.musical.ui.component.SongDetailPlaceholder
 import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.component.WaveSlider
@@ -200,7 +202,7 @@ private fun CollapsedPlayer(
 
 @Composable
 private fun ExpandedPlayer(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: ExpandedNowPlayingViewModel = hiltViewModel()
     val uiState by viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
@@ -226,7 +228,8 @@ private fun ExpandedPlayer(
             subtitle = uiState.currentSong.artist,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            onItemSelected = viewModel::setPlaybackSpeed
         )
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -371,6 +374,7 @@ fun RepeatModeButtonPreview() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlayerControls(
     modifier: Modifier = Modifier,
@@ -532,7 +536,8 @@ fun PlayerControlsPreview() {
 private fun SongInfo(
     title: String,
     subtitle: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemSelected: (index: Int) -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -544,11 +549,16 @@ private fun SongInfo(
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 1
-        )
+        Row {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1,
+                modifier = Modifier.weight(1f)
+            )
+            PlaybackSpeedMenu(onItemSelected = onItemSelected)
+        }
+
 
     }
 
