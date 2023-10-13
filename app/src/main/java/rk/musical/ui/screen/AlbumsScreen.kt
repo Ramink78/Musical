@@ -38,7 +38,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.collections.immutable.toImmutableList
 import rk.musical.R
 import rk.musical.data.model.Album
-import rk.musical.data.model.Song
 import rk.musical.ui.RationaleWarning
 import rk.musical.ui.RequiredMediaPermission
 import rk.musical.ui.component.AlbumPlaceholder
@@ -60,8 +59,6 @@ fun AlbumsScreen(
     val albums = viewModel.albums
     val albumChildren = viewModel.albumChildren
     val permissionState = rememberPermissionState(permission = mediaPermission)
-
-
 
     RequiredMediaPermission(
         permissionState = permissionState,
@@ -96,15 +93,11 @@ fun AlbumsScreen(
                         },
                         modifier = modifier,
                         contentPadding = contentPadding
-
                     )
                 }
 
                 else -> {}
-
-
             }
-
         },
         rationalContent = {
             Column(
@@ -140,12 +133,10 @@ fun AlbumsScreen(
                     icon = Icons.Rounded.Album,
                     rationaleText = stringResource(R.string.albums_permission_rationale),
                     rationaleTitle = stringResource(R.string.media_permission_title)
-
                 )
             }
-        })
-
-
+        }
+    )
 }
 
 @Composable
@@ -173,7 +164,6 @@ fun AlbumsList(
                 album = it
             )
         }
-
     }
 }
 
@@ -182,7 +172,7 @@ fun AlbumsList(
 fun AlbumItem(
     onClick: () -> Unit,
     album: Album,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     ElevatedCard(
         onClick = onClick,
@@ -191,7 +181,8 @@ fun AlbumItem(
         Column {
             CoverImage(
                 coverUri = album.coverUri,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxSize()
                     .height(140.dp)
                     .clip(
@@ -218,9 +209,7 @@ fun AlbumItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
         }
-
     }
 }
 
@@ -238,12 +227,13 @@ fun LoadingCircle() {
 @Preview
 @Composable
 fun AlbumItemPreview() {
-    val albumForPreview = Album(
-        id = "0",
-        title = "Album name",
-        artist = "Artist Name",
-        songsCount = 5
-    )
+    val albumForPreview =
+        Album(
+            id = "0",
+            title = "Album name",
+            artist = "Artist Name",
+            songsCount = 5
+        )
     MusicalTheme {
         AlbumItem(onClick = {}, album = albumForPreview)
     }

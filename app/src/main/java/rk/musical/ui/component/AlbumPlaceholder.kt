@@ -14,9 +14,7 @@ import androidx.compose.ui.unit.dp
 import rk.musical.ui.theme.SurfaceVariantColor
 
 @Composable
-fun AlbumPlaceholder(
-    modifier: Modifier = Modifier,
-) {
+fun AlbumPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         color = SurfaceVariantColor

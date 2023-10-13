@@ -6,13 +6,15 @@ import androidx.core.animation.addListener
 import androidx.media3.common.Player.RepeatMode
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ActivityRetainedScoped
+import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
 import rk.musical.data.model.Song
 import rk.musical.data.model.toMediaItems
-import javax.inject.Inject
 
 @ActivityRetainedScoped
-class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
+class MusicalRemote
+@Inject
+constructor(private val exoPlayer: ExoPlayer) {
     val playingSongFlow = exoPlayer.playingSongFlow()
     val isPlayingFlow = exoPlayer.isPlayingFlow()
     val currentPositionFlow = exoPlayer.currentPositionFlow()
@@ -20,17 +22,18 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
     val shuffleModeFlow = exoPlayer.shuffleModeFlow()
     var currentPlaylist = emptyList<Song>()
         private set
-    val playbackStateFlow = combine(
-        playingSongFlow,
-        isPlayingFlow,
-        currentPositionFlow
-    ) { playingSong, isPlaying, currentPosition ->
-        MusicalRemoteState(
-            isPlaying = isPlaying,
-            currentSong = playingSong,
-            currentPosition = currentPosition,
-        )
-    }
+    val playbackStateFlow =
+        combine(
+            playingSongFlow,
+            isPlayingFlow,
+            currentPositionFlow
+        ) { playingSong, isPlaying, currentPosition ->
+            MusicalRemoteState(
+                isPlaying = isPlaying,
+                currentSong = playingSong,
+                currentPosition = currentPosition
+            )
+        }
 
     fun playSong(index: Int) {
         exoPlayer.seekToDefaultPosition(index)
@@ -57,9 +60,7 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
         })
     }
 
-    private fun smoothFadeOut(
-        onEnd: () -> Unit
-    ) {
+    private fun smoothFadeOut(onEnd: () -> Unit) {
         ValueAnimator.ofFloat(1f, 0f)
             .apply {
                 interpolator = AccelerateDecelerateInterpolator()
@@ -72,9 +73,7 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
             }
     }
 
-    private fun smoothFadeIn(
-        onStart: () -> Unit,
-    ) {
+    private fun smoothFadeIn(onStart: () -> Unit) {
         ValueAnimator.ofFloat(0f, 1f)
             .apply {
                 interpolator = AccelerateDecelerateInterpolator()
@@ -88,16 +87,22 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
     }
 
     fun togglePlay() {
-        if (exoPlayer.isPlaying)
+        if (exoPlayer.isPlaying) {
             pause()
-        else
+        } else {
             play()
+        }
     }
 
     fun seekNext() = exoPlayer.seekToNext()
+
     fun seekPrevious() = exoPlayer.seekToPrevious()
+
     fun seekToPosition(pos: Long) = exoPlayer.seekTo(pos)
-    fun setRepeatMode(@RepeatMode repeatMode: Int) {
+
+    fun setRepeatMode(
+        @RepeatMode repeatMode: Int
+    ) {
         exoPlayer.repeatMode = repeatMode
     }
 
@@ -106,8 +111,6 @@ class MusicalRemote @Inject constructor(private val exoPlayer: ExoPlayer) {
     }
 
     fun setPlaybackSpeed(speed: Float) = exoPlayer.setPlaybackSpeed(speed)
-
-
 }
 
 data class MusicalRemoteState(

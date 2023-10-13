@@ -5,7 +5,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.CancellationSignal
 
-
 fun ContentResolver.kuery(
     uri: Uri,
     columns: Array<String>? = null,
@@ -22,5 +21,4 @@ fun ContentResolver.kuery(
         sortOrder,
         cancellationSignal
     )
-
 }

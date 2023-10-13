@@ -5,9 +5,7 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import rk.musical.data.model.Song
 import rk.musical.utils.IS_MUSIC_CLAUSE
@@ -31,15 +29,12 @@ class SongRepository(
     private val _localSongs = MutableSharedFlow<List<Song>>()
     val localSongs = _localSongs.asSharedFlow()
 
-
     override val isReady: Boolean
         get() {
             return state is DataSourceState.Success
         }
 
-    suspend fun loadSongs(
-        sortOrder: String = SortOrder.Descending.dateAdded,
-    ) {
+    suspend fun loadSongs(sortOrder: String = SortOrder.Descending.dateAdded) {
         withContext(dispatcher) {
             context.contentResolver.kuery(
                 uri = SONGS_URI,
@@ -65,16 +60,13 @@ class SongRepository(
                             albumName = cursor.getString(albumNameCol),
                             coverUri = buildCoverUri(songId),
                             duration = cursor.getLong(songDurationCol)
-                        ),
+                        )
                     )
                 }
                 chacedSongs = tempList
                 _localSongs.emit(tempList)
-
-
             }
         }
-
     }
 
     private fun buildCoverUri(id: Long): String {

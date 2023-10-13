@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,7 +22,6 @@ import rk.musical.data.AlbumRepository
 import rk.musical.data.MediaTree
 import rk.musical.data.ROOT
 import rk.musical.data.SongRepository
-import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
@@ -34,7 +34,6 @@ class MusicalPlaybackService : MediaLibraryService() {
 
     @Inject
     lateinit var songRepository: SongRepository
-
 
     private val mediaTree: MediaTree by lazy {
         MediaTree(songRepository, albumRepository)
@@ -50,7 +49,6 @@ class MusicalPlaybackService : MediaLibraryService() {
         get() =
             songRepository.isReady && albumRepository.isReady
 
-
     // onGetLibraryRoot immediate return this
     private val rootMediaItem by lazy {
         MediaItem.Builder()
@@ -63,7 +61,6 @@ class MusicalPlaybackService : MediaLibraryService() {
             )
             .build()
     }
-
 
     override fun onCreate() {
         super.onCreate()
@@ -80,7 +77,8 @@ class MusicalPlaybackService : MediaLibraryService() {
                         this@MusicalPlaybackService,
                         0,
                         it,
-                        FLAG_IMMUTABLE, null
+                        FLAG_IMMUTABLE,
+                        null
                     )
                 )
             }
@@ -105,8 +103,8 @@ class MusicalPlaybackService : MediaLibraryService() {
         destroySession()
     }
 
-
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
+
     private fun destroySession() {
         mediaSession?.run {
             release()
@@ -115,7 +113,6 @@ class MusicalPlaybackService : MediaLibraryService() {
         }
         serviceJob.cancel()
     }
-
 
     private inner class LibrarySessionCallback : MediaLibrarySession.Callback {
         override fun onSubscribe(
@@ -164,8 +161,5 @@ class MusicalPlaybackService : MediaLibraryService() {
                 LibraryResult.ofItem(mediaTree.getMediaItemById(mediaId) ?: MediaItem.EMPTY, null)
             }
         }
-
     }
-
-
 }

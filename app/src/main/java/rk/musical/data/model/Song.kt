@@ -14,30 +14,31 @@ data class Song(
     val songUri: String,
     val albumName: String,
     val duration: Long,
-    val coverUri: String? = null,
+    val coverUri: String? = null
 ) {
     companion object {
-        val Empty = Song(
-            id = "",
-            title = "",
-            artist = "",
-            songUri = "",
-            albumName = "",
-            duration = 0
-        )
+        val Empty =
+            Song(
+                id = "",
+                title = "",
+                artist = "",
+                songUri = "",
+                albumName = "",
+                duration = 0
+            )
     }
 }
 
-fun Song.toMediaItem() = buildSongMediaItem(
-    songId = id,
-    title = title,
-    artist = artist,
-    songUri = songUri.toUri(),
-    albumName = albumName,
-    coverUri = coverUri?.toUri(),
-    duration = duration
-)
-
+fun Song.toMediaItem() =
+    buildSongMediaItem(
+        songId = id,
+        title = title,
+        artist = artist,
+        songUri = songUri.toUri(),
+        albumName = albumName,
+        coverUri = coverUri?.toUri(),
+        duration = duration
+    )
 
 fun MediaItem.toSong() =
     Song(
@@ -51,5 +52,5 @@ fun MediaItem.toSong() =
     )
 
 fun List<MediaItem>.toSongs() = map { it.toSong() }
-fun List<Song>.toMediaItems() = map { it.toMediaItem() }
 
+fun List<Song>.toMediaItems() = map { it.toMediaItem() }

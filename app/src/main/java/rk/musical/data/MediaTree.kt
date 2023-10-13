@@ -69,12 +69,9 @@ class MediaTree(
             albumFolder.addAll(albumChildren)
             mediaIdToChildren[it.mediaMetadata.title.toString()] = albumFolder
         }
-
     }
 
-
     operator fun get(mediaId: String) = mediaIdToChildren[mediaId]
+
     fun getMediaItemById(mediaId: String) = mediaIdToMediaItem[mediaId]
-
-
 }

@@ -12,47 +12,44 @@ fun buildSongMediaItem(
     artist: String,
     albumName: String,
     coverUri: Uri?,
-    duration: Long,
-) =
-    MediaItem.Builder()
-        .setMediaId(songId)
-        .setUri(songUri)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setIsBrowsable(false)
-                .setIsPlayable(true)
-                .setArtworkUri(coverUri)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                .setTitle(title)
-                .setArtist(artist)
-                .setAlbumTitle(albumName)
-                .setExtras(
-                    bundleOf(
-                        SONG_DURATION to duration
-                    )
+    duration: Long
+) = MediaItem.Builder()
+    .setMediaId(songId)
+    .setUri(songUri)
+    .setMediaMetadata(
+        MediaMetadata.Builder()
+            .setIsBrowsable(false)
+            .setIsPlayable(true)
+            .setArtworkUri(coverUri)
+            .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+            .setTitle(title)
+            .setArtist(artist)
+            .setAlbumTitle(albumName)
+            .setExtras(
+                bundleOf(
+                    SONG_DURATION to duration
                 )
-                .build()
-        )
-        .build()
+            )
+            .build()
+    )
+    .build()
 
 fun buildAlbumMediaItem(
     title: String,
     artist: String,
     songsCount: Int,
     coverUri: Uri?
-) =
-    MediaItem.Builder()
-        .setMediaId(title)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setIsBrowsable(true)
-                .setIsPlayable(false)
-                .setTitle(title)
-                .setArtist(artist)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
-                .setTotalTrackCount(songsCount)
-                .setArtworkUri(coverUri)
-                .build()
-        )
-        .build()
-
+) = MediaItem.Builder()
+    .setMediaId(title)
+    .setMediaMetadata(
+        MediaMetadata.Builder()
+            .setIsBrowsable(true)
+            .setIsPlayable(false)
+            .setTitle(title)
+            .setArtist(artist)
+            .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
+            .setTotalTrackCount(songsCount)
+            .setArtworkUri(coverUri)
+            .build()
+    )
+    .build()

@@ -15,7 +15,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-
 /**
  * Draws a vertical gradient scrim in the foreground.
  *
@@ -45,24 +44,25 @@ private data class VerticalGradientElement(
     var numStops: Int = 16
 ) : ModifierNodeElement<VerticalGradientModifier>() {
     fun createOnDraw(): DrawScope.() -> Unit {
-        val colors = if (decay != 1f) {
-            // If we have a non-linear decay, we need to create the color gradient steps
-            // manually
-            val baseAlpha = color.alpha
-            List(numStops) { i ->
-                val x = i * 1f / (numStops - 1)
-                val opacity = x.pow(decay)
-                color.copy(alpha = baseAlpha * opacity)
+        val colors =
+            if (decay != 1f) {
+                // If we have a non-linear decay, we need to create the color gradient steps
+                // manually
+                val baseAlpha = color.alpha
+                List(numStops) { i ->
+                    val x = i * 1f / (numStops - 1)
+                    val opacity = x.pow(decay)
+                    color.copy(alpha = baseAlpha * opacity)
+                }
+            } else {
+                // If we have a linear decay, we just create a simple list of start + end colors
+                listOf(color.copy(alpha = 0f), color)
             }
-        } else {
-            // If we have a linear decay, we just create a simple list of start + end colors
-            listOf(color.copy(alpha = 0f), color)
-        }
 
         val brush =
             // Reverse the gradient if decaying downwards
             Brush.verticalGradient(
-                colors = if (startYPercentage < endYPercentage) colors else colors.reversed(),
+                colors = if (startYPercentage < endYPercentage) colors else colors.reversed()
             )
 
         return {
@@ -100,7 +100,6 @@ private data class VerticalGradientElement(
 private class VerticalGradientModifier(
     var onDraw: DrawScope.() -> Unit
 ) : Modifier.Node(), DrawModifierNode {
-
     override fun ContentDrawScope.draw() {
         onDraw()
         drawContent()

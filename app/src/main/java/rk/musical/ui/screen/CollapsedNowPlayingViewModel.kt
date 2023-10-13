@@ -3,15 +3,17 @@ package rk.musical.ui.screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import rk.musical.data.model.Song
 import rk.musical.player.MusicalRemote
-import javax.inject.Inject
 
 @HiltViewModel
-class CollapsedNowPlayingViewModel @Inject constructor(
+class CollapsedNowPlayingViewModel
+@Inject
+constructor(
     private val musicalRemote: MusicalRemote
 ) :
     ViewModel() {
@@ -23,9 +25,7 @@ class CollapsedNowPlayingViewModel @Inject constructor(
             CollapsedNowPlayingUiState(
                 isPlaying = isPlaying,
                 playingSong = playingSong
-
             )
-
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -33,7 +33,6 @@ class CollapsedNowPlayingViewModel @Inject constructor(
         )
 
     fun togglePlay() = musicalRemote.togglePlay()
-
 }
 
 data class CollapsedNowPlayingUiState(

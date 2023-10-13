@@ -12,15 +12,18 @@ data class Album(
     val coverUri: String? = null
 )
 
-fun Album.toMediaItem() = buildAlbumMediaItem(
-    title = title,
-    artist = artist,
-    coverUri = coverUri?.toUri(),
-    songsCount = songsCount
-)
+fun Album.toMediaItem() =
+    buildAlbumMediaItem(
+        title = title,
+        artist = artist,
+        coverUri = coverUri?.toUri(),
+        songsCount = songsCount
+    )
 
 fun List<Album>.toMediaItems() = map { it.toMediaItem() }
+
 fun List<MediaItem>.toAlbums() = map { it.toAlbum() }
+
 fun MediaItem.toAlbum() =
     Album(
         id = mediaId,
@@ -29,4 +32,3 @@ fun MediaItem.toAlbum() =
         songsCount = mediaMetadata.totalTrackCount ?: 0,
         coverUri = mediaMetadata.artworkUri.toString()
     )
-

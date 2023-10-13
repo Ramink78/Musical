@@ -17,20 +17,20 @@ const val ALBUM_ART = Albums.ALBUM_ART
 const val ALBUM_NAME = Media.ALBUM
 const val ALBUM_SONGS_COUNT = Albums.NUMBER_OF_SONGS
 
-val songColumns = arrayOf(
-    SONG_ID,
-    SONG_TITLE,
-    SONG_ARTIST,
-    SONG_DURATION,
-    ALBUM_NAME,
-
+val songColumns =
+    arrayOf(
+        SONG_ID,
+        SONG_TITLE,
+        SONG_ARTIST,
+        SONG_DURATION,
+        ALBUM_NAME
     )
-val albumColumns = arrayOf(
-    ALBUM_ID,
-    SONG_ARTIST,
-    ALBUM_NAME,
-    ALBUM_SONGS_COUNT,
-    ALBUM_ART
-)
+val albumColumns =
+    arrayOf(
+        ALBUM_ID,
+        SONG_ARTIST,
+        ALBUM_NAME,
+        ALBUM_SONGS_COUNT,
+        ALBUM_ART
+    )
 const val IS_MUSIC_CLAUSE = "${Media.IS_MUSIC}!=0"
-

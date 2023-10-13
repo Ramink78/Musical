@@ -48,36 +48,42 @@ fun PlaybackSpeedMenu(
     val normalSpeed = PlaybackSpeed(Icons.Rounded.Speed, 1f, "1.0x")
     val fastSpeed = PlaybackSpeed(Icons.Rounded.Speed, 1.5f, "1.5x")
     val fastestSpeed = PlaybackSpeed(Icons.Rounded.Speed, 2f, "2.0x")
-    val menuItems = remember {
-        mutableStateListOf(halfSpeed, normalSpeed, fastSpeed, fastestSpeed)
-    }
+    val menuItems =
+        remember {
+            mutableStateListOf(halfSpeed, normalSpeed, fastSpeed, fastestSpeed)
+        }
     Box(
-        modifier = modifier
-            .draggableMenuContainer(state),
+        modifier =
+        modifier
+            .draggableMenuContainer(state)
     ) {
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .align(Alignment.Center)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.playback_speed_icon),
                 contentDescription = null,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .draggableMenuAnchor(state)
                     .size(32.dp),
                 tint = speedIconColor
             )
 
             DraggableMenu(
-                state = state, onItemSelected = {
-                    speedIconColor = if (it == 1)
-                        Color.White
-                    else
-                        Purple80
+                state = state,
+                onItemSelected = {
+                    speedIconColor =
+                        if (it == 1) {
+                            Color.White
+                        } else {
+                            Purple80
+                        }
                     onItemSelected(it)
                 },
                 hoverBarBackgroundColor = MaterialTheme.colorScheme.primary
-
             ) {
                 itemsIndexed(menuItems) { index, item ->
                     PlaybackSpeedMenuItem(
@@ -95,7 +101,6 @@ fun PlaybackSpeedMenu(
 fun PlaybackSpeedMenuPreview() {
     MusicalTheme(darkTheme = true) {
         PlaybackSpeedMenu(onItemSelected = {})
-
     }
 }
 
@@ -105,28 +110,28 @@ fun PlaybackSpeedMenuItem(
     isHovered: Boolean = false
 ) {
     Row(
-        modifier = Modifier
+        modifier =
+        Modifier
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .widthIn(min = 100.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = playbackSpeed.title,
             color =
-            if (isHovered)
+            if (isHovered) {
                 contentColorFor(backgroundColor = MaterialTheme.colorScheme.primary)
-            else
-                Color.Unspecified,
+            } else {
+                Color.Unspecified
+            },
             style =
-            if (isHovered)
+            if (isHovered) {
                 MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp)
-            else
+            } else {
                 MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
-
+            }
         )
     }
-
 }
 
 data class PlaybackSpeed(

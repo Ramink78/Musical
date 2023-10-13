@@ -52,28 +52,30 @@ fun MusicalApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: MusicalRoutes.Songs.name
     val sheetState = rememberBottomSheetScaffoldState()
-    val navigateToAlbumsScreen = remember {
-        {
-            navController.navigate(MusicalRoutes.Albums.name) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+    val navigateToAlbumsScreen =
+        remember {
+            {
+                navController.navigate(MusicalRoutes.Albums.name) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
                 }
-                launchSingleTop = true
-                restoreState = true
             }
         }
-    }
-    val navigateToSongsScreen = remember {
-        {
-            navController.navigate(MusicalRoutes.Songs.name) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+    val navigateToSongsScreen =
+        remember {
+            {
+                navController.navigate(MusicalRoutes.Songs.name) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
                 }
-                launchSingleTop = true
-                restoreState = true
             }
         }
-    }
     Scaffold(
         bottomBar = {
             MusicalBottomBar(
@@ -82,8 +84,7 @@ fun MusicalApp() {
                 onSelectedSongs = navigateToSongsScreen,
                 isVisible = sheetState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
             )
-
-        },
+        }
     ) { paddingValues ->
         Surface {
             PlayerScreen(
@@ -92,12 +93,14 @@ fun MusicalApp() {
                     NavHost(
                         modifier = Modifier.background(MaterialTheme.colorScheme.background),
                         navController = navController,
-                        startDestination = MusicalRoutes.Songs.name,
+                        startDestination = MusicalRoutes.Songs.name
                     ) {
                         composable(route = MusicalRoutes.Songs.name) {
                             SongsScreen(
-                                contentPadding = PaddingValues(
-                                    top = WindowInsets.statusBars.asPaddingValues()
+                                contentPadding =
+                                PaddingValues(
+                                    top =
+                                    WindowInsets.statusBars.asPaddingValues()
                                         .calculateTopPadding(),
                                     bottom = sheetPadding.calculateBottomPadding(),
                                     end = 8.dp,
@@ -111,32 +114,34 @@ fun MusicalApp() {
                                 contentPadding =
                                 PaddingValues(
                                     bottom = sheetPadding.calculateBottomPadding(),
-                                    top = WindowInsets.statusBars.asPaddingValues()
+                                    top =
+                                    WindowInsets.statusBars.asPaddingValues()
                                         .calculateTopPadding()
                                 ),
                                 modifier = Modifier.fillMaxSize(),
                                 onItemClick = {
-                                    navController.navigate("${MusicalRoutes.AlbumDetail.name}/${it.id}")
+                                    navController.navigate(
+                                        "${MusicalRoutes.AlbumDetail.name}/${it.id}"
+                                    )
                                 }
                             )
                         }
                         composable(
                             route = "${MusicalRoutes.AlbumDetail.name}/{albumId}",
-                            arguments = listOf(
+                            arguments =
+                            listOf(
                                 navArgument("albumId") { type = NavType.StringType }
                             )
                         ) {
                             AlbumDetailScreen(
-                                it.arguments?.getString("albumId") ?: "",
+                                it.arguments?.getString("albumId") ?: ""
                             )
                         }
-
                     }
-                })
+                }
+            )
         }
-
     }
-
 }
 
 @Composable
@@ -150,7 +155,8 @@ fun MusicalBottomBar(
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn() + slideInVertically { it },
-        exit = fadeOut() + slideOutVertically { it }) {
+        exit = fadeOut() + slideOutVertically { it }
+    ) {
         NavigationBar(
             modifier = modifier,
             tonalElevation = 0.dp
@@ -168,14 +174,16 @@ fun MusicalBottomBar(
                     Text(
                         text = stringResource(R.string.songs),
                         style =
-                        if (currentRoute == MusicalRoutes.Songs.name)
+                        if (currentRoute == MusicalRoutes.Songs.name) {
                             MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
-                        else
+                        } else {
                             MaterialTheme.typography.bodyMedium
+                        }
                     )
                 }
             )
-            NavigationBarItem(selected = currentRoute == MusicalRoutes.Albums.name,
+            NavigationBarItem(
+                selected = currentRoute == MusicalRoutes.Albums.name,
                 onClick = onSelectedAlbums,
                 icon = {
                     Icon(
@@ -187,14 +195,14 @@ fun MusicalBottomBar(
                     Text(
                         text = stringResource(R.string.albums),
                         style =
-                        if (currentRoute == MusicalRoutes.Albums.name)
+                        if (currentRoute == MusicalRoutes.Albums.name) {
                             MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
-                        else
+                        } else {
                             MaterialTheme.typography.bodyMedium
+                        }
                     )
-                })
+                }
+            )
         }
     }
-
-
 }

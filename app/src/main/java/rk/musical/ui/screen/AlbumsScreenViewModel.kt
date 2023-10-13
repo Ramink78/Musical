@@ -1,22 +1,23 @@
 package rk.musical.ui.screen
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import rk.musical.data.AlbumRepository
 import rk.musical.data.model.Album
 import rk.musical.data.model.Song
 import rk.musical.player.MusicalRemote
-import javax.inject.Inject
 
 @HiltViewModel
-class AlbumsScreenViewModel @Inject constructor(
+class AlbumsScreenViewModel
+@Inject
+constructor(
     private val musicalRemote: MusicalRemote,
     private val albumRepository: AlbumRepository
 ) : ViewModel() {
@@ -34,12 +35,13 @@ class AlbumsScreenViewModel @Inject constructor(
                 .stateIn(scope = viewModelScope)
                 .collect {
                     albums = it
-                    uiState = if (it.isEmpty())
-                        AlbumsScreenUiState.Empty
-                    else {
-                        currentAlbums = it
-                        AlbumsScreenUiState.Loaded
-                    }
+                    uiState =
+                        if (it.isEmpty()) {
+                            AlbumsScreenUiState.Empty
+                        } else {
+                            currentAlbums = it
+                            AlbumsScreenUiState.Loaded
+                        }
                 }
         }
     }
@@ -48,12 +50,8 @@ class AlbumsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             albumRepository.loadAlbums()
         }
-
     }
-
-
 }
-
 
 sealed interface AlbumsScreenUiState {
     object Loaded : AlbumsScreenUiState

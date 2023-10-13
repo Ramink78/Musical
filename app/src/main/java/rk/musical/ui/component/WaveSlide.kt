@@ -38,8 +38,11 @@ import com.galaxygoldfish.waveslider.WaveSliderDefaults
 import kotlin.math.sin
 
 private fun stepsToTickFractions(steps: FloatArray): FloatArray {
-    return if (steps.isEmpty()) floatArrayOf() else FloatArray(steps.size + 2)
-    { it.toFloat() / (steps.size + 1) }
+    return if (steps.isEmpty()) {
+        floatArrayOf()
+    } else {
+        FloatArray(steps.size + 2) { it.toFloat() / (steps.size + 1) }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,17 +78,20 @@ fun WaveSlider(
         }
     }
     val infiniteTransition = rememberInfiniteTransition(label = "Wave infinite transition")
-    val phaseShiftFloat = infiniteTransition.animateFloat(
-        label = "Wave phase shift",
-        initialValue = 0F,
-        targetValue = 90f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 1000
-            },
-            repeatMode = RepeatMode.Restart
-        )
-    ).value
+    val phaseShiftFloat =
+        infiniteTransition.animateFloat(
+            label = "Wave phase shift",
+            initialValue = 0F,
+            targetValue = 90f,
+            animationSpec =
+            infiniteRepeatable(
+                animation =
+                keyframes {
+                    durationMillis = 1000
+                },
+                repeatMode = RepeatMode.Restart
+            )
+        ).value
     Slider(
         steps = steps,
         value = value,
@@ -98,31 +104,35 @@ fun WaveSlider(
         modifier = modifier,
         thumb = {
             CompositionLocalProvider(
-                LocalThumbColor provides animateColorAsState(
-                    targetValue = if (enabled) {
-                        colors.thumbColor
-                    } else {
-                        colors.disabledThumbColor
-                    },
-                    label = "Thumb color"
-                ).value
+                LocalThumbColor provides
+                    animateColorAsState(
+                        targetValue =
+                        if (enabled) {
+                            colors.thumbColor
+                        } else {
+                            colors.disabledThumbColor
+                        },
+                        label = "Thumb color"
+                    ).value
             ) {
                 thumb()
             }
         },
         track = { sliderState ->
-            val animatedAmplitude = animateFloatAsState(
-                targetValue = if (animationOptions.flatlineOnDrag) {
-                    if (animationOptions.reverseFlatline) {
-                        if (isDragging) amplitude else 0F
+            val animatedAmplitude =
+                animateFloatAsState(
+                    targetValue =
+                    if (animationOptions.flatlineOnDrag) {
+                        if (animationOptions.reverseFlatline) {
+                            if (isDragging) amplitude else 0F
+                        } else {
+                            if (isDragging) 0F else amplitude
+                        }
                     } else {
-                        if (isDragging) 0F else amplitude
-                    }
-                } else {
-                    amplitude
-                },
-                label = "Wave amplitude"
-            ).value
+                        amplitude
+                    },
+                    label = "Wave amplitude"
+                ).value
             Canvas(modifier = Modifier.fillMaxWidth()) {
                 val centerY = size.height / 2f
                 val startX = 0F
@@ -143,7 +153,8 @@ fun WaveSlider(
                 }
                 drawPath(
                     path = path,
-                    color = if (enabled) {
+                    color =
+                    if (enabled) {
                         colors.activeTrackColor
                     } else {
                         colors.disabledActiveTrackColor
@@ -151,7 +162,8 @@ fun WaveSlider(
                     style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
                 )
                 drawLine(
-                    color = if (enabled) {
+                    color =
+                    if (enabled) {
                         colors.inactiveTrackColor
                     } else {
                         colors.disabledInactiveTrackColor
@@ -163,12 +175,14 @@ fun WaveSlider(
                 )
                 stepsToTickFractions(sliderState.tickFractions).groupBy {
                     it > sliderState.activeRange.endInclusive ||
-                            it < sliderState.activeRange.start
+                        it < sliderState.activeRange.start
                 }.forEach { (outsideFraction, list) ->
                     drawPoints(
-                        points = list.map {
+                        points =
+                        list.map {
                             Offset(
-                                x = lerp(
+                                x =
+                                lerp(
                                     start = Offset(startX, centerY),
                                     stop = Offset(size.width, centerY),
                                     fraction = it
@@ -177,7 +191,8 @@ fun WaveSlider(
                             )
                         },
                         pointMode = PointMode.Points,
-                        color = if (outsideFraction) {
+                        color =
+                        if (outsideFraction) {
                             if (enabled) {
                                 colors.inactiveTickColor
                             } else {

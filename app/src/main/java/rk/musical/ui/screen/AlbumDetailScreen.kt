@@ -1,9 +1,7 @@
 package rk.musical.ui.screen
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,18 +39,18 @@ import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.Purple80
 
 @Composable
-fun AlbumDetailScreen(
-    albumId: String,
-) {
+fun AlbumDetailScreen(albumId: String) {
     val viewModel: AlbumDetailScreenViewModel = hiltViewModel()
-    val album = remember {
-        viewModel.findAlbumById(albumId)!!
-    }
+    val album =
+        remember {
+            viewModel.findAlbumById(albumId)!!
+        }
 
     val playingSong by viewModel.playingSong.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
+        contentPadding =
+        PaddingValues(
             bottom = 180.dp
         )
     ) {
@@ -81,7 +79,6 @@ fun AlbumDetailScreen(
                 isChecked = playingSong == item
             )
         }
-
     }
 }
 
@@ -93,7 +90,7 @@ private fun AlbumInfo(
 ) {
     Row {
         Column(
-            modifier = modifier,
+            modifier = modifier
         ) {
             Text(
                 text = title,
@@ -107,10 +104,8 @@ private fun AlbumInfo(
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1
             )
-
         }
     }
-
 }
 
 @Composable
@@ -123,7 +118,8 @@ private fun AlbumHeader(
         modifier = modifier,
         placeholder = {
             AlbumPlaceholder()
-        })
+        }
+    )
 }
 
 @Composable
@@ -144,7 +140,6 @@ private fun AlbumChildItem(
         )
         ChildItem(song = song, onClick = onItemClick, isChecked = isChecked)
     }
-
 }
 
 @Composable
@@ -152,35 +147,40 @@ fun ChildItem(
     song: Song,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isChecked: Boolean = false,
+    isChecked: Boolean = false
 ) {
     val cardBackgroundColor by animateColorAsState(
         targetValue =
-        if (isChecked)
+        if (isChecked) {
             MaterialTheme.colorScheme.primary
-        else
-            Color.Transparent, label = "",
+        } else {
+            Color.Transparent
+        },
+        label = "",
         animationSpec = tween(400)
-
     )
     val cardContentColor by animateColorAsState(
         targetValue =
-        if (isChecked)
+        if (isChecked) {
             contentColorFor(
                 MaterialTheme.colorScheme.primary
             )
-        else
-            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = "",
+        } else {
+            contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+        },
+        label = "",
         animationSpec = tween(400)
     )
     val cardScale by animateFloatAsState(
-        targetValue = if (isChecked) .95f else 1f, label = "",
+        targetValue = if (isChecked) .95f else 1f,
+        label = "",
         animationSpec = tween(400)
     )
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .padding(12.dp)
             .clip(RoundedCornerShape(12.dp))
@@ -191,10 +191,11 @@ fun ChildItem(
             .graphicsLayer {
                 scaleY = cardScale
                 scaleX = cardScale
-            },
+            }
     ) {
         Column(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .weight(1f)
                 .padding(12.dp),
             verticalArrangement = Arrangement.Center
@@ -213,12 +214,9 @@ fun ChildItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = cardContentColor
-
             )
         }
     }
-
-
 }
 
 @Preview

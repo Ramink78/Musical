@@ -32,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,12 +52,11 @@ import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.mediaPermission
 import rk.musical.ui.theme.MusicalTheme
 
-
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SongsScreen(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(),
+    contentPadding: PaddingValues = PaddingValues()
 ) {
     val context = LocalContext.current
     val viewModel: SongsScreenViewModel = hiltViewModel()
@@ -73,7 +71,6 @@ fun SongsScreen(
                 viewModel.refreshSongs()
             }
             when (uiState) {
-
                 SongsScreenUiState.Loading -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -95,7 +92,6 @@ fun SongsScreen(
                 }
 
                 else -> {}
-
             }
         },
         rationalContent = {
@@ -132,11 +128,10 @@ fun SongsScreen(
                     icon = Icons.Rounded.MusicNote,
                     rationaleText = stringResource(R.string.songs_permission_rationale),
                     rationaleTitle = stringResource(R.string.media_permission_title)
-
                 )
             }
-        })
-
+        }
+    )
 }
 
 @Composable
@@ -145,14 +140,14 @@ fun SongsList(
     modifier: Modifier = Modifier,
     playingSong: Song = Song.Empty,
     onSongClick: (index: Int) -> Unit,
-    contentPadding: PaddingValues = PaddingValues(),
+    contentPadding: PaddingValues = PaddingValues()
 ) {
     Surface(
         modifier = modifier
     ) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = contentPadding,
+            contentPadding = contentPadding
         ) {
             items(
                 items = songs,
@@ -167,10 +162,7 @@ fun SongsList(
                 )
             }
         }
-
     }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -179,34 +171,39 @@ fun SongItem(
     song: Song,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isChecked: Boolean = false,
+    isChecked: Boolean = false
 ) {
     val cardBackgroundColor by animateColorAsState(
         targetValue =
-        if (isChecked)
+        if (isChecked) {
             MaterialTheme.colorScheme.primary
-        else
-            MaterialTheme.colorScheme.surfaceVariant, label = "",
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
+        label = "",
         animationSpec = tween(400)
     )
     val cardContentColor by animateColorAsState(
         targetValue =
-        if (isChecked)
+        if (isChecked) {
             contentColorFor(
                 MaterialTheme.colorScheme.primary
             )
-        else
-            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = "",
+        } else {
+            contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+        },
+        label = "",
         animationSpec = tween(400)
-
     )
     val cardScale by animateFloatAsState(
-        targetValue = if (isChecked) .95f else 1f, label = "",
+        targetValue = if (isChecked) .95f else 1f,
+        label = "",
         animationSpec = tween(400)
     )
 
     Card(
-        modifier = modifier
+        modifier =
+        modifier
             .graphicsLayer {
                 scaleY = cardScale
                 scaleX = cardScale
@@ -216,19 +213,22 @@ fun SongItem(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
             CoverImage(
                 coverUri = song.coverUri,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .size(60.dp)
                     .clip(CircleShape),
                 placeholder = { SongPlaceholder() }
             )
             Column(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .weight(1f)
                     .padding(12.dp),
                 verticalArrangement = Arrangement.Center
@@ -247,31 +247,28 @@ fun SongItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = cardContentColor
-
                 )
             }
         }
-
     }
-
 }
 
 @Preview
 @Composable
 fun SongsScreenPreview() {
-    val songForPreview = Song(
-        id = "0",
-        title = "This is song title",
-        artist = "Artist name",
-        songUri = "",
-        albumName = "",
-        duration = 0
-    )
+    val songForPreview =
+        Song(
+            id = "0",
+            title = "This is song title",
+            artist = "Artist name",
+            songUri = "",
+            albumName = "",
+            duration = 0
+        )
     MusicalTheme(darkTheme = true) {
         SongItem(
             song = songForPreview,
             onClick = { }
         )
     }
-
 }

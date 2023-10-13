@@ -15,9 +15,7 @@ import rk.musical.ui.theme.PurpleGrey80
 import rk.musical.ui.theme.SurfaceVariantColor
 
 @Composable
-fun SongPlaceholder(
-    modifier: Modifier = Modifier,
-) {
+fun SongPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         color = PurpleGrey80
@@ -28,16 +26,14 @@ fun SongPlaceholder(
         ) {
             Icon(
                 imageVector = Icons.Rounded.MusicNote,
-                contentDescription = "",
+                contentDescription = ""
             )
         }
     }
 }
 
 @Composable
-fun SongDetailPlaceholder(
-    modifier: Modifier = Modifier,
-) {
+fun SongDetailPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         color = SurfaceVariantColor

@@ -7,16 +7,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import rk.musical.data.SongRepository
 import rk.musical.data.model.Song
 import rk.musical.player.MusicalRemote
-import javax.inject.Inject
 
 @HiltViewModel
-class SongsScreenViewModel @Inject constructor(
+class SongsScreenViewModel
+@Inject
+constructor(
     private val songRepository: SongRepository,
     private val musicalRemote: MusicalRemote
 ) : ViewModel() {
@@ -24,13 +26,15 @@ class SongsScreenViewModel @Inject constructor(
         private set
 
     private var currentSongs = emptyList<Song>()
-    //private var hasCurrentPlaylist = false
-    val playingSongFlow = musicalRemote.playingSongFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Song.Empty
-        )
+
+    // private var hasCurrentPlaylist = false
+    val playingSongFlow =
+        musicalRemote.playingSongFlow
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = Song.Empty
+            )
 
     init {
         Log.i(SongsScreenViewModel::class.simpleName, "Created ViewModel")
@@ -39,12 +43,13 @@ class SongsScreenViewModel @Inject constructor(
             songRepository.localSongs
                 .stateIn(scope = viewModelScope)
                 .collect {
-                    uiState = if (it.isEmpty())
-                        SongsScreenUiState.Empty
-                    else {
-                        currentSongs = it
-                        SongsScreenUiState.Loaded(it)
-                    }
+                    uiState =
+                        if (it.isEmpty()) {
+                            SongsScreenUiState.Empty
+                        } else {
+                            currentSongs = it
+                            SongsScreenUiState.Loaded(it)
+                        }
                 }
         }
     }
@@ -53,18 +58,15 @@ class SongsScreenViewModel @Inject constructor(
         viewModelScope.launch {
             songRepository.loadSongs()
         }
-
     }
 
     fun playSong(index: Int) {
         if (musicalRemote.currentPlaylist != currentSongs) {
             musicalRemote.setPlaylist(currentSongs)
-        //    hasCurrentPlaylist = true
+            //    hasCurrentPlaylist = true
         }
         musicalRemote.playSong(index)
     }
-
-
 }
 
 sealed interface SongsScreenUiState {

@@ -33,9 +33,10 @@ fun rememberDominantColorState(
     defaultColor: Color = MaterialTheme.colorScheme.background,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true }
-): DominantColorState = remember {
-    DominantColorState(context, defaultColor, cacheSize, isColorValid)
-}
+): DominantColorState =
+    remember {
+        DominantColorState(context, defaultColor, cacheSize, isColorValid)
+    }
 
 /**
  * A composable which allows dynamic theming of the [androidx.compose.material.Colors.primary]
@@ -46,12 +47,14 @@ fun DynamicThemePrimaryColorsFromImage(
     dominantColorState: DominantColorState = rememberDominantColorState(),
     content: @Composable () -> Unit
 ) {
-    val colors = MaterialTheme.colorScheme.copy(
-        background = animateColorAsState(
-            dominantColorState.color,
-            spring(stiffness = Spring.StiffnessLow), label = ""
-        ).value,
-
+    val colors =
+        MaterialTheme.colorScheme.copy(
+            background =
+            animateColorAsState(
+                dominantColorState.color,
+                spring(stiffness = Spring.StiffnessLow),
+                label = ""
+            ).value
         )
     MaterialTheme(colorScheme = colors, content = content)
 }
@@ -77,11 +80,11 @@ class DominantColorState(
     var color by mutableStateOf(defaultColor)
         private set
 
-
-    private val cache = when {
-        cacheSize > 0 -> LruCache<String, DominantColors>(cacheSize)
-        else -> null
-    }
+    private val cache =
+        when {
+            cacheSize > 0 -> LruCache<String, DominantColors>(cacheSize)
+            else -> null
+        }
 
     suspend fun updateColorsFromImageUri(uri: String) {
         val result = calculateDominantColor(uri)
@@ -104,7 +107,7 @@ class DominantColorState(
             // If we found a valid swatch, wrap it in a [DominantColors]
             ?.let { swatch ->
                 DominantColors(
-                    color = Color(swatch.rgb),
+                    color = Color(swatch.rgb)
                 )
             }
             // Cache the resulting [DominantColors]
@@ -126,32 +129,35 @@ private suspend fun calculateSwatchesInCoverImage(
     context: Context,
     coverUri: String
 ): List<Palette.Swatch> {
-    val request = ImageRequest.Builder(context)
-        .data(coverUri)
-        // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
-        .size(128).scale(Scale.FILL)
-        // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
-        .allowHardware(false)
-        // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-        .memoryCacheKey("$coverUri.palette")
-        .build()
+    val request =
+        ImageRequest.Builder(context)
+            .data(coverUri)
+            // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
+            .size(128).scale(Scale.FILL)
+            // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
+            .allowHardware(false)
+            // Set a custom memory cache key to avoid overwriting the displayed image in the cache
+            .memoryCacheKey("$coverUri.palette")
+            .build()
 
-    val bitmap = when (val result = context.imageLoader.execute(request)) {
-        is SuccessResult -> result.drawable.toBitmap()
-        else -> null
-    }
+    val bitmap =
+        when (val result = context.imageLoader.execute(request)) {
+            is SuccessResult -> result.drawable.toBitmap()
+            else -> null
+        }
 
     return bitmap?.let {
         withContext(Dispatchers.Default) {
-            val palette = Palette.Builder(bitmap)
-                // Disable any bitmap resizing in Palette. We've already loaded an appropriately
-                // sized bitmap through Coil
-                .resizeBitmapArea(0)
-                // Clear any built-in filters. We want the unfiltered dominant color
-                .clearFilters()
-                // We reduce the maximum color count down to 8
-                .maximumColorCount(8)
-                .generate()
+            val palette =
+                Palette.Builder(bitmap)
+                    // Disable any bitmap resizing in Palette. We've already loaded an appropriately
+                    // sized bitmap through Coil
+                    .resizeBitmapArea(0)
+                    // Clear any built-in filters. We want the unfiltered dominant color
+                    .clearFilters()
+                    // We reduce the maximum color count down to 8
+                    .maximumColorCount(8)
+                    .generate()
 
             palette.swatches
         }
@@ -164,12 +170,13 @@ fun NowPlayingDynamicTheme(
     content: @Composable () -> Unit
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
-    val dominantColorState = rememberDominantColorState(
-        defaultColor = MaterialTheme.colorScheme.surface
-    ) { color ->
-        // We want a color which has sufficient contrast against the surface color
-        color.contrastAgainst(surfaceColor) >= MinContrastOfPrimaryVsSurface
-    }
+    val dominantColorState =
+        rememberDominantColorState(
+            defaultColor = MaterialTheme.colorScheme.surface
+        ) { color ->
+            // We want a color which has sufficient contrast against the surface color
+            color.contrastAgainst(surfaceColor) >= MinContrastOfPrimaryVsSurface
+        }
     DynamicThemePrimaryColorsFromImage(dominantColorState) {
         // Update the dominantColorState with colors coming from the podcast image URL
         LaunchedEffect(coverUri) {

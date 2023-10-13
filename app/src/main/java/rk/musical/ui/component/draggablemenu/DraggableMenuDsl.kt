@@ -5,10 +5,20 @@ import androidx.compose.runtime.Composable
 interface DraggableMenuScope {
     fun item(content: @Composable () -> Unit)
 
-    fun items(count: Int, itemContent: @Composable (Int) -> Unit)
+    fun items(
+        count: Int,
+        itemContent: @Composable (Int) -> Unit
+    )
 
-    fun <T> items(items: Iterable<T>, itemContent: @Composable (T) -> Unit)
-    fun <T> itemsIndexed(items: Iterable<T>, itemContent: @Composable (Int, T) -> Unit)
+    fun <T> items(
+        items: Iterable<T>,
+        itemContent: @Composable (T) -> Unit
+    )
+
+    fun <T> itemsIndexed(
+        items: Iterable<T>,
+        itemContent: @Composable (Int, T) -> Unit
+    )
 }
 
 internal class DraggableMenuItemProvider : DraggableMenuScope {
@@ -19,7 +29,10 @@ internal class DraggableMenuItemProvider : DraggableMenuScope {
         _itemContents.add(content)
     }
 
-    override fun items(count: Int, itemContent: @Composable (Int) -> Unit) {
+    override fun items(
+        count: Int,
+        itemContent: @Composable (Int) -> Unit
+    ) {
         for (i in 0 until count) {
             _itemContents.add {
                 itemContent(i)
@@ -27,7 +40,10 @@ internal class DraggableMenuItemProvider : DraggableMenuScope {
         }
     }
 
-    override fun <T> items(items: Iterable<T>, itemContent: @Composable (T) -> Unit) {
+    override fun <T> items(
+        items: Iterable<T>,
+        itemContent: @Composable (T) -> Unit
+    ) {
         for (item in items) {
             _itemContents.add {
                 itemContent(item)
@@ -35,7 +51,10 @@ internal class DraggableMenuItemProvider : DraggableMenuScope {
         }
     }
 
-    override fun <T> itemsIndexed(items: Iterable<T>, itemContent: @Composable (Int, T) -> Unit) {
+    override fun <T> itemsIndexed(
+        items: Iterable<T>,
+        itemContent: @Composable (Int, T) -> Unit
+    ) {
         items.forEachIndexed { index, t ->
             _itemContents.add {
                 itemContent(index, t)
