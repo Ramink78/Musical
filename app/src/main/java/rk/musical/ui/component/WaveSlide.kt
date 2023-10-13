@@ -37,8 +37,9 @@ import com.galaxygoldfish.waveslider.WaveSliderColors
 import com.galaxygoldfish.waveslider.WaveSliderDefaults
 import kotlin.math.sin
 
-private fun stepsToTickFractions(steps: Int): FloatArray {
-    return if (steps == 0) floatArrayOf() else FloatArray(steps + 2) { it.toFloat() / (steps + 1) }
+private fun stepsToTickFractions(steps: FloatArray): FloatArray {
+    return if (steps.isEmpty()) floatArrayOf() else FloatArray(steps.size + 2)
+    { it.toFloat() / (steps.size + 1) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -160,9 +161,9 @@ fun WaveSlider(
                     start = Offset(endX + 1, centerY),
                     end = Offset(size.width, centerY)
                 )
-                stepsToTickFractions(sliderState.steps).groupBy {
-                    it > sliderState.valueRange.endInclusive ||
-                            it < sliderState.valueRange.start
+                stepsToTickFractions(sliderState.tickFractions).groupBy {
+                    it > sliderState.activeRange.endInclusive ||
+                            it < sliderState.activeRange.start
                 }.forEach { (outsideFraction, list) ->
                     drawPoints(
                         points = list.map {
