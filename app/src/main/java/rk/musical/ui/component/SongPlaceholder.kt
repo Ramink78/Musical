@@ -15,16 +15,14 @@ import rk.musical.ui.theme.PurpleGrey80
 import rk.musical.ui.theme.SurfaceVariantColor
 
 @Composable
-fun SongPlaceholder(
-    modifier: Modifier = Modifier,
-) {
+fun SongPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = PurpleGrey80
+        color = PurpleGrey80,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Rounded.MusicNote,
@@ -35,20 +33,18 @@ fun SongPlaceholder(
 }
 
 @Composable
-fun SongDetailPlaceholder(
-    modifier: Modifier = Modifier,
-) {
+fun SongDetailPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = SurfaceVariantColor
+        color = SurfaceVariantColor,
     ) {
         Box(
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Rounded.MusicNote,
                 contentDescription = "",
-                modifier = Modifier.size(42.dp)
+                modifier = Modifier.size(42.dp),
             )
         }
     }

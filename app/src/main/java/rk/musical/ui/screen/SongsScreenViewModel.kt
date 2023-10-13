@@ -16,56 +16,58 @@ import rk.musical.player.MusicalRemote
 import javax.inject.Inject
 
 @HiltViewModel
-class SongsScreenViewModel @Inject constructor(
-    private val songRepository: SongRepository,
-    private val musicalRemote: MusicalRemote
-) : ViewModel() {
-    var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Empty)
-        private set
+class SongsScreenViewModel
+    @Inject
+    constructor(
+        private val songRepository: SongRepository,
+        private val musicalRemote: MusicalRemote,
+    ) : ViewModel() {
+        var uiState: SongsScreenUiState by mutableStateOf(SongsScreenUiState.Empty)
+            private set
 
-    private var currentSongs = emptyList<Song>()
-    //private var hasCurrentPlaylist = false
-    val playingSongFlow = musicalRemote.playingSongFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Song.Empty
-        )
+        private var currentSongs = emptyList<Song>()
 
-    init {
-        Log.i(SongsScreenViewModel::class.simpleName, "Created ViewModel")
-        viewModelScope.launch {
-            uiState = SongsScreenUiState.Loading
-            songRepository.localSongs
-                .stateIn(scope = viewModelScope)
-                .collect {
-                    uiState = if (it.isEmpty())
-                        SongsScreenUiState.Empty
-                    else {
-                        currentSongs = it
-                        SongsScreenUiState.Loaded(it)
+        // private var hasCurrentPlaylist = false
+        val playingSongFlow =
+            musicalRemote.playingSongFlow
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = Song.Empty,
+                )
+
+        init {
+            Log.i(SongsScreenViewModel::class.simpleName, "Created ViewModel")
+            viewModelScope.launch {
+                uiState = SongsScreenUiState.Loading
+                songRepository.localSongs
+                    .stateIn(scope = viewModelScope)
+                    .collect {
+                        uiState =
+                            if (it.isEmpty()) {
+                                SongsScreenUiState.Empty
+                            } else {
+                                currentSongs = it
+                                SongsScreenUiState.Loaded(it)
+                            }
                     }
-                }
-        }
-    }
-
-    fun refreshSongs() {
-        viewModelScope.launch {
-            songRepository.loadSongs()
+            }
         }
 
-    }
-
-    fun playSong(index: Int) {
-        if (musicalRemote.currentPlaylist != currentSongs) {
-            musicalRemote.setPlaylist(currentSongs)
-        //    hasCurrentPlaylist = true
+        fun refreshSongs() {
+            viewModelScope.launch {
+                songRepository.loadSongs()
+            }
         }
-        musicalRemote.playSong(index)
+
+        fun playSong(index: Int) {
+            if (musicalRemote.currentPlaylist != currentSongs) {
+                musicalRemote.setPlaylist(currentSongs)
+                //    hasCurrentPlaylist = true
+            }
+            musicalRemote.playSong(index)
+        }
     }
-
-
-}
 
 sealed interface SongsScreenUiState {
     data class Loaded(val songs: List<Song>) : SongsScreenUiState

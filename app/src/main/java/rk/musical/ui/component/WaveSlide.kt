@@ -38,8 +38,7 @@ import com.galaxygoldfish.waveslider.WaveSliderDefaults
 import kotlin.math.sin
 
 private fun stepsToTickFractions(steps: FloatArray): FloatArray {
-    return if (steps.isEmpty()) floatArrayOf() else FloatArray(steps.size + 2)
-    { it.toFloat() / (steps.size + 1) }
+    return if (steps.isEmpty()) floatArrayOf() else FloatArray(steps.size + 2) { it.toFloat() / (steps.size + 1) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +53,7 @@ fun WaveSlider(
     waveOptions: WaveOptions = WaveSliderDefaults.waveOptions(),
     enabled: Boolean = true,
     thumb: @Composable () -> Unit = { PillThumb() },
-    steps: Int = 0
+    steps: Int = 0,
 ) {
     val amplitude = waveOptions.amplitude
     val frequency = waveOptions.frequency
@@ -75,17 +74,20 @@ fun WaveSlider(
         }
     }
     val infiniteTransition = rememberInfiniteTransition(label = "Wave infinite transition")
-    val phaseShiftFloat = infiniteTransition.animateFloat(
-        label = "Wave phase shift",
-        initialValue = 0F,
-        targetValue = 90f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 1000
-            },
-            repeatMode = RepeatMode.Restart
-        )
-    ).value
+    val phaseShiftFloat =
+        infiniteTransition.animateFloat(
+            label = "Wave phase shift",
+            initialValue = 0F,
+            targetValue = 90f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation =
+                        keyframes {
+                            durationMillis = 1000
+                        },
+                    repeatMode = RepeatMode.Restart,
+                ),
+        ).value
     Slider(
         steps = steps,
         value = value,
@@ -98,31 +100,35 @@ fun WaveSlider(
         modifier = modifier,
         thumb = {
             CompositionLocalProvider(
-                LocalThumbColor provides animateColorAsState(
-                    targetValue = if (enabled) {
-                        colors.thumbColor
-                    } else {
-                        colors.disabledThumbColor
-                    },
-                    label = "Thumb color"
-                ).value
+                LocalThumbColor provides
+                    animateColorAsState(
+                        targetValue =
+                            if (enabled) {
+                                colors.thumbColor
+                            } else {
+                                colors.disabledThumbColor
+                            },
+                        label = "Thumb color",
+                    ).value,
             ) {
                 thumb()
             }
         },
         track = { sliderState ->
-            val animatedAmplitude = animateFloatAsState(
-                targetValue = if (animationOptions.flatlineOnDrag) {
-                    if (animationOptions.reverseFlatline) {
-                        if (isDragging) amplitude else 0F
-                    } else {
-                        if (isDragging) 0F else amplitude
-                    }
-                } else {
-                    amplitude
-                },
-                label = "Wave amplitude"
-            ).value
+            val animatedAmplitude =
+                animateFloatAsState(
+                    targetValue =
+                        if (animationOptions.flatlineOnDrag) {
+                            if (animationOptions.reverseFlatline) {
+                                if (isDragging) amplitude else 0F
+                            } else {
+                                if (isDragging) 0F else amplitude
+                            }
+                        } else {
+                            amplitude
+                        },
+                    label = "Wave amplitude",
+                ).value
             Canvas(modifier = Modifier.fillMaxWidth()) {
                 val centerY = size.height / 2f
                 val startX = 0F
@@ -143,62 +149,67 @@ fun WaveSlider(
                 }
                 drawPath(
                     path = path,
-                    color = if (enabled) {
-                        colors.activeTrackColor
-                    } else {
-                        colors.disabledActiveTrackColor
-                    },
-                    style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
+                    color =
+                        if (enabled) {
+                            colors.activeTrackColor
+                        } else {
+                            colors.disabledActiveTrackColor
+                        },
+                    style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round),
                 )
                 drawLine(
-                    color = if (enabled) {
-                        colors.inactiveTrackColor
-                    } else {
-                        colors.disabledInactiveTrackColor
-                    },
+                    color =
+                        if (enabled) {
+                            colors.inactiveTrackColor
+                        } else {
+                            colors.disabledInactiveTrackColor
+                        },
                     strokeWidth = 5.dp.toPx(),
                     cap = StrokeCap.Round,
                     start = Offset(endX + 1, centerY),
-                    end = Offset(size.width, centerY)
+                    end = Offset(size.width, centerY),
                 )
                 stepsToTickFractions(sliderState.tickFractions).groupBy {
                     it > sliderState.activeRange.endInclusive ||
-                            it < sliderState.activeRange.start
+                        it < sliderState.activeRange.start
                 }.forEach { (outsideFraction, list) ->
                     drawPoints(
-                        points = list.map {
-                            Offset(
-                                x = lerp(
-                                    start = Offset(startX, centerY),
-                                    stop = Offset(size.width, centerY),
-                                    fraction = it
-                                ).x,
-                                y = center.y
-                            )
-                        },
+                        points =
+                            list.map {
+                                Offset(
+                                    x =
+                                        lerp(
+                                            start = Offset(startX, centerY),
+                                            stop = Offset(size.width, centerY),
+                                            fraction = it,
+                                        ).x,
+                                    y = center.y,
+                                )
+                            },
                         pointMode = PointMode.Points,
-                        color = if (outsideFraction) {
-                            if (enabled) {
-                                colors.inactiveTickColor
-                            } else {
-                                colors.disabledInactiveTickColor
-                            }
-                        } else {
-                            if (animatedAmplitude == 0F) {
+                        color =
+                            if (outsideFraction) {
                                 if (enabled) {
-                                    colors.activeTickColor
+                                    colors.inactiveTickColor
                                 } else {
-                                    colors.disabledActiveTickColor
+                                    colors.disabledInactiveTickColor
                                 }
                             } else {
-                                Color.Transparent
-                            }
-                        },
+                                if (animatedAmplitude == 0F) {
+                                    if (enabled) {
+                                        colors.activeTickColor
+                                    } else {
+                                        colors.disabledActiveTickColor
+                                    }
+                                } else {
+                                    Color.Transparent
+                                }
+                            },
                         strokeWidth = 10F,
-                        cap = StrokeCap.Round
+                        cap = StrokeCap.Round,
                     )
                 }
             }
-        }
+        },
     )
 }

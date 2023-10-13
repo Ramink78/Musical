@@ -13,9 +13,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.withTransform
 
 @Composable
-internal fun rememberScaleIndication(
-    pressedScale: Float = 0.85f,
-): ScaleIndication {
+internal fun rememberScaleIndication(pressedScale: Float = 0.85f): ScaleIndication {
     return remember(pressedScale) { ScaleIndication(pressedScale) }
 }
 
@@ -26,9 +24,11 @@ internal class ScaleIndication(
     override fun rememberUpdatedInstance(interactionSource: InteractionSource): IndicationInstance {
         val isPressed by interactionSource.collectIsPressedAsState()
 
-        val scale = animateFloatAsState(targetValue = if (isPressed) pressedScale else 1f,
-            label = ""
-        )
+        val scale =
+            animateFloatAsState(
+                targetValue = if (isPressed) pressedScale else 1f,
+                label = "",
+            )
 
         return remember(scale) {
             ScaleIndicationInstance { scale.value }
@@ -47,7 +47,7 @@ private class ScaleIndicationInstance(
             },
             drawBlock = {
                 contentScope.drawContent()
-            }
+            },
         )
     }
 }

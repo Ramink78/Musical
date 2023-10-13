@@ -1,6 +1,5 @@
 package rk.musical.ui.component.draggablemenu
 
-
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -74,14 +73,16 @@ fun DraggableMenu(
 
     val visibleState = remember { MutableTransitionState(false) }
 
-    val popupOffset = with(density) {
-        IntOffset(offset.x.roundToPx(), offset.y.roundToPx())
-    }
+    val popupOffset =
+        with(density) {
+            IntOffset(offset.x.roundToPx(), offset.y.roundToPx())
+        }
 
-    val contentPadding = PaddingValues(
-        horizontal = 24.dp,
-        vertical = 16.dp,
-    )
+    val contentPadding =
+        PaddingValues(
+            horizontal = 24.dp,
+            vertical = 16.dp,
+        )
 
     SideEffect {
         state.menuContentPadding = contentPadding
@@ -121,20 +122,21 @@ fun DraggableMenu(
 
             DraggableMenuContent(
                 state = state,
-                modifier = modifier
-                    .onGloballyPositioned {
-                        state.menuCoordinates = it
-                        state.menuSize = it.size
-                        val viewPos = intArrayOf(0, 0)
-                        view.getLocationOnScreen(viewPos)
-                        state.menuPosOnScreen = IntOffset(viewPos[0], viewPos[1]).toOffset()
-                    }
-                    .handleMenuTapAndDragGestures(state)
-                    .stretchEffect(state)
-                    .animateMenuEnterExit(
-                        menuState = state,
-                        visibleState = visibleState,
-                    ),
+                modifier =
+                    modifier
+                        .onGloballyPositioned {
+                            state.menuCoordinates = it
+                            state.menuSize = it.size
+                            val viewPos = intArrayOf(0, 0)
+                            view.getLocationOnScreen(viewPos)
+                            state.menuPosOnScreen = IntOffset(viewPos[0], viewPos[1]).toOffset()
+                        }
+                        .handleMenuTapAndDragGestures(state)
+                        .stretchEffect(state)
+                        .animateMenuEnterExit(
+                            menuState = state,
+                            visibleState = visibleState,
+                        ),
                 shape = shape,
                 hoverBarShape = hoverBarShape,
                 backgroundColor = backgroundColor,
@@ -174,17 +176,19 @@ private fun DraggableMenuContent(
     }
 
     Box(
-        modifier = modifier
-            .width(IntrinsicSize.Min)
-            .height(IntrinsicSize.Min),
+        modifier =
+            modifier
+                .width(IntrinsicSize.Min)
+                .height(IntrinsicSize.Min),
     ) {
         ClippedShadowSurface(
             shape = shape,
             elevation = elevation,
             backgroundColor = backgroundColor,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding),
         )
 
         val showHoverBar by remember(state) {
@@ -193,10 +197,11 @@ private fun DraggableMenuContent(
 
         val hoverBarAnimValue by animateFloatAsState(
             targetValue = if (showHoverBar) 1f else 0f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-            ),
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
             label = "HoverBar",
         )
 
@@ -214,24 +219,26 @@ private fun DraggableMenuContent(
             ambientColor = hoverBarShadowColor,
             spotColor = hoverBarShadowColor,
             backgroundColor = hoverBarBackgroundColor,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(hoverHeight)
-                .padding(horizontal = 8.dp)
-                .graphicsLayer {
-                    transformOrigin = TransformOrigin.Center
-                    translationY = state.hoverBarOffset.value
-                    scaleX = hoverBarAnimValue
-                    scaleY = hoverBarAnimValue
-                    alpha = hoverBarAnimValue.coerceIn(0f, 1f)
-                },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(hoverHeight)
+                    .padding(horizontal = 8.dp)
+                    .graphicsLayer {
+                        transformOrigin = TransformOrigin.Center
+                        translationY = state.hoverBarOffset.value
+                        scaleX = hoverBarAnimValue
+                        scaleY = hoverBarAnimValue
+                        alpha = hoverBarAnimValue.coerceIn(0f, 1f)
+                    },
         )
 
         Column(
-            modifier = Modifier
-                .width(IntrinsicSize.Max)
-                .padding(contentPadding)
-                .clip(shape),
+            modifier =
+                Modifier
+                    .width(IntrinsicSize.Max)
+                    .padding(contentPadding)
+                    .clip(shape),
         ) {
             for ((index, itemContent) in itemProvider.itemsContents.withIndex()) {
                 val isHovered = index == state.hoveredItem.index
@@ -250,30 +257,33 @@ private fun DraggableMenuContent(
                         .collect {
                             if (it.height <= 0) return@collect
                             val halfHeight = it.height / 2f
-                            val fraction = if (it.pointerYToTop <= halfHeight) {
-                                (it.pointerYToTop - halfHeight) / halfHeight / 4f
-                            } else {
-                                (it.pointerYToTop - halfHeight) / halfHeight
-                            }
+                            val fraction =
+                                if (it.pointerYToTop <= halfHeight) {
+                                    (it.pointerYToTop - halfHeight) / halfHeight / 4f
+                                } else {
+                                    (it.pointerYToTop - halfHeight) / halfHeight
+                                }
                             offsetY.snapTo(fraction.coerceIn(-1f, 1f) * it.height / 10f)
                         }
                 }
 
-                val interactionSource = remember(state, index) {
-                    MutableInteractionSource().also {
-                        state.updateItemInteractionSource(index, it)
+                val interactionSource =
+                    remember(state, index) {
+                        MutableInteractionSource().also {
+                            state.updateItemInteractionSource(index, it)
+                        }
                     }
-                }
 
                 DraggableMenuItemWrapper(
                     isHovered = isHovered,
-                    modifier = Modifier
-                        .onGloballyPositioned { state.updateItemCoordinates(index, it) }
-                        .graphicsLayer { translationY = offsetY.value }
-                        .indication(
-                            interactionSource = interactionSource,
-                            indication = itemIndication,
-                        ),
+                    modifier =
+                        Modifier
+                            .onGloballyPositioned { state.updateItemCoordinates(index, it) }
+                            .graphicsLayer { translationY = offsetY.value }
+                            .indication(
+                                interactionSource = interactionSource,
+                                indication = itemIndication,
+                            ),
                     content = { itemContent() },
                 )
             }
@@ -287,24 +297,27 @@ private fun DraggableMenuItemWrapper(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val scale = animateFloatAsState(
-        targetValue = if (isHovered) 1.1f else 1f,
-        animationSpec = if (isHovered) {
-            spring()
-        } else {
-            spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessLow,
-            )
-        },
-        label = "Scale",
-    )
+    val scale =
+        animateFloatAsState(
+            targetValue = if (isHovered) 1.1f else 1f,
+            animationSpec =
+                if (isHovered) {
+                    spring()
+                } else {
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    )
+                },
+            label = "Scale",
+        )
     Box(
-        modifier = modifier.graphicsLayer {
-            scaleX = scale.value
-            scaleY = scale.value
-            transformOrigin = TransformOrigin.Center
-        },
+        modifier =
+            modifier.graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+                transformOrigin = TransformOrigin.Center
+            },
         content = content,
     )
 }

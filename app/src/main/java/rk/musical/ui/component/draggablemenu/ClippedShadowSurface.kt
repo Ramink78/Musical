@@ -52,29 +52,31 @@ fun ClippedShadowSurface(
     Layout(
         content = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(shape = shape, color = backgroundColor)
-                    .drawWithCache {
-                        val path = Path()
-                        val outline = shape.createOutline(
-                            size = size,
-                            layoutDirection = layoutDirection,
-                            density = this
-                        )
-                        path.addOutline(outline)
-                        onDrawWithContent {
-                            clipPath(path = path, clipOp = ClipOp.Difference) {
-                                this@onDrawWithContent.drawContent()
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(shape = shape, color = backgroundColor)
+                        .drawWithCache {
+                            val path = Path()
+                            val outline =
+                                shape.createOutline(
+                                    size = size,
+                                    layoutDirection = layoutDirection,
+                                    density = this,
+                                )
+                            path.addOutline(outline)
+                            onDrawWithContent {
+                                clipPath(path = path, clipOp = ClipOp.Difference) {
+                                    this@onDrawWithContent.drawContent()
+                                }
                             }
                         }
-                    }
-                    .shadow(
-                        elevation = elevation,
-                        shape = shape,
-                        ambientColor = ambientColor,
-                        spotColor = spotColor
-                    ),
+                        .shadow(
+                            elevation = elevation,
+                            shape = shape,
+                            ambientColor = ambientColor,
+                            spotColor = spotColor,
+                        ),
             )
 
             content()
@@ -88,9 +90,10 @@ fun ClippedShadowSurface(
             }
         }
 
-        val placeables = List(measurables.size - 1) {
-            measurables[it + 1].measure(constraints)
-        }
+        val placeables =
+            List(measurables.size - 1) {
+                measurables[it + 1].measure(constraints)
+            }
 
         var width = placeables.first().width
         var height = placeables.first().height
@@ -99,8 +102,9 @@ fun ClippedShadowSurface(
             height = max(width, placeables[i].height)
         }
 
-        val shadowBoxPlaceable = measurables.first()
-            .measure(constraints.copy(maxWidth = width, maxHeight = height))
+        val shadowBoxPlaceable =
+            measurables.first()
+                .measure(constraints.copy(maxWidth = width, maxHeight = height))
 
         layout(width, height) {
             shadowBoxPlaceable.place(0, 0)

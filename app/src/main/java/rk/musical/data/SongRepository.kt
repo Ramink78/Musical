@@ -5,9 +5,7 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import rk.musical.data.model.Song
 import rk.musical.utils.IS_MUSIC_CLAUSE
@@ -23,7 +21,7 @@ import rk.musical.utils.songNameColumnIndex
 
 class SongRepository(
     private val context: Context,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : LocalSongsDataSource {
     var chacedSongs: List<Song> = emptyList()
         private set
@@ -31,21 +29,18 @@ class SongRepository(
     private val _localSongs = MutableSharedFlow<List<Song>>()
     val localSongs = _localSongs.asSharedFlow()
 
-
     override val isReady: Boolean
         get() {
             return state is DataSourceState.Success
         }
 
-    suspend fun loadSongs(
-        sortOrder: String = SortOrder.Descending.dateAdded,
-    ) {
+    suspend fun loadSongs(sortOrder: String = SortOrder.Descending.dateAdded) {
         withContext(dispatcher) {
             context.contentResolver.kuery(
                 uri = SONGS_URI,
                 columns = songColumns,
                 sortOrder = sortOrder,
-                selection = IS_MUSIC_CLAUSE
+                selection = IS_MUSIC_CLAUSE,
             )?.use { cursor ->
                 val idCol = cursor.songIdColumnIndex
                 val titleCol = cursor.songNameColumnIndex
@@ -64,17 +59,14 @@ class SongRepository(
                             songUri = songUri.toString(),
                             albumName = cursor.getString(albumNameCol),
                             coverUri = buildCoverUri(songId),
-                            duration = cursor.getLong(songDurationCol)
+                            duration = cursor.getLong(songDurationCol),
                         ),
                     )
                 }
                 chacedSongs = tempList
                 _localSongs.emit(tempList)
-
-
             }
         }
-
     }
 
     private fun buildCoverUri(id: Long): String {

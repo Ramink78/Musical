@@ -12,16 +12,19 @@ import rk.musical.player.MusicalRemote
 import javax.inject.Inject
 
 @HiltViewModel
-class PlayerScreenViewModel @Inject constructor
+class PlayerScreenViewModel
+    @Inject
+    constructor
     (private val musicalRemote: MusicalRemote) : ViewModel() {
-    val isVisibleSheetFlow = musicalRemote.playingSongFlow
-        .distinctUntilChanged()
-        .map {
-            it != Song.Empty
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
-        )
-}
+        val isVisibleSheetFlow =
+            musicalRemote.playingSongFlow
+                .distinctUntilChanged()
+                .map {
+                    it != Song.Empty
+                }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = false,
+                )
+    }

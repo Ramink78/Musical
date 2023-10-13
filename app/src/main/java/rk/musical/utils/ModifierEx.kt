@@ -15,7 +15,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-
 /**
  * Draws a vertical gradient scrim in the foreground.
  *
@@ -34,7 +33,7 @@ fun Modifier.verticalGradientScrim(
     @FloatRange(from = 0.0, to = 1.0) startYPercentage: Float = 0f,
     @FloatRange(from = 0.0, to = 1.0) endYPercentage: Float = 1f,
     decay: Float = 1.0f,
-    numStops: Int = 16
+    numStops: Int = 16,
 ) = this then VerticalGradientElement(color, startYPercentage, endYPercentage, decay, numStops)
 
 private data class VerticalGradientElement(
@@ -42,22 +41,23 @@ private data class VerticalGradientElement(
     var startYPercentage: Float = 0f,
     var endYPercentage: Float = 1f,
     var decay: Float = 1.0f,
-    var numStops: Int = 16
+    var numStops: Int = 16,
 ) : ModifierNodeElement<VerticalGradientModifier>() {
     fun createOnDraw(): DrawScope.() -> Unit {
-        val colors = if (decay != 1f) {
-            // If we have a non-linear decay, we need to create the color gradient steps
-            // manually
-            val baseAlpha = color.alpha
-            List(numStops) { i ->
-                val x = i * 1f / (numStops - 1)
-                val opacity = x.pow(decay)
-                color.copy(alpha = baseAlpha * opacity)
+        val colors =
+            if (decay != 1f) {
+                // If we have a non-linear decay, we need to create the color gradient steps
+                // manually
+                val baseAlpha = color.alpha
+                List(numStops) { i ->
+                    val x = i * 1f / (numStops - 1)
+                    val opacity = x.pow(decay)
+                    color.copy(alpha = baseAlpha * opacity)
+                }
+            } else {
+                // If we have a linear decay, we just create a simple list of start + end colors
+                listOf(color.copy(alpha = 0f), color)
             }
-        } else {
-            // If we have a linear decay, we just create a simple list of start + end colors
-            listOf(color.copy(alpha = 0f), color)
-        }
 
         val brush =
             // Reverse the gradient if decaying downwards
@@ -73,7 +73,7 @@ private data class VerticalGradientElement(
             drawRect(
                 topLeft = topLeft,
                 size = Rect(topLeft, bottomRight).size,
-                brush = brush
+                brush = brush,
             )
         }
     }
@@ -98,9 +98,8 @@ private data class VerticalGradientElement(
 }
 
 private class VerticalGradientModifier(
-    var onDraw: DrawScope.() -> Unit
+    var onDraw: DrawScope.() -> Unit,
 ) : Modifier.Node(), DrawModifierNode {
-
     override fun ContentDrawScope.draw() {
         onDraw()
         drawContent()

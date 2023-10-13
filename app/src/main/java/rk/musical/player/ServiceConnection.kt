@@ -14,44 +14,48 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 @ActivityRetainedScoped
-class ServiceConnection @Inject constructor
-    (@ApplicationContext private val context: Context) {
+class ServiceConnection
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) {
+        private val _connectionEvent =
+            MutableSharedFlow<ServiceConnectionEvent>(replay = 1)
+        val connectionEvent: SharedFlow<ServiceConnectionEvent>
+            get() = _connectionEvent.asSharedFlow()
+        val sessionToken =
+            SessionToken(
+                context,
+                ComponentName(context, MusicalPlaybackService::class.java),
+            )
+        private val futureBrowser: ListenableFuture<MediaBrowser> =
+            MediaBrowser.Builder(context, sessionToken).buildAsync().also {
+                it.addListener({
+                    _connectionEvent.tryEmit(ServiceConnectionEvent.Connected(it.get()))
+                }, ContextCompat.getMainExecutor(context))
+            }
 
-    private val _connectionEvent =
-        MutableSharedFlow<ServiceConnectionEvent>(replay = 1)
-    val connectionEvent: SharedFlow<ServiceConnectionEvent>
-        get() = _connectionEvent.asSharedFlow()
-    val sessionToken =
-        SessionToken(
-            context,
-            ComponentName(context, MusicalPlaybackService::class.java)
-        )
-    private val futureBrowser: ListenableFuture<MediaBrowser> =
-        MediaBrowser.Builder(context, sessionToken).buildAsync().also {
-            it.addListener({
-                _connectionEvent.tryEmit(ServiceConnectionEvent.Connected(it.get()))
-            }, ContextCompat.getMainExecutor(context))
+        fun sendConnectedEvent() {
+            if (futureBrowser.isDone) {
+                _connectionEvent.tryEmit(ServiceConnectionEvent.Connected(futureBrowser.get()))
+            } else {
+                futureBrowser.addListener({
+                    _connectionEvent.tryEmit(ServiceConnectionEvent.Connected(futureBrowser.get()))
+                }, ContextCompat.getMainExecutor(context))
+            }
         }
 
-    fun sendConnectedEvent() {
-        if (futureBrowser.isDone)
-            _connectionEvent.tryEmit(ServiceConnectionEvent.Connected(futureBrowser.get()))
-        else
-            futureBrowser.addListener({
-                _connectionEvent.tryEmit(ServiceConnectionEvent.Connected(futureBrowser.get()))
-            }, ContextCompat.getMainExecutor(context))
-    }
+        fun sendDisconnectedEvent() {
+            _connectionEvent.tryEmit(ServiceConnectionEvent.Disconnected)
+        }
 
-    fun sendDisconnectedEvent() {
-        _connectionEvent.tryEmit(ServiceConnectionEvent.Disconnected)
+        fun destroyConnection() {
+            MediaBrowser.releaseFuture(futureBrowser)
+        }
     }
-
-    fun destroyConnection() {
-        MediaBrowser.releaseFuture(futureBrowser)
-    }
-}
 
 sealed interface ServiceConnectionEvent {
     object Disconnected : ServiceConnectionEvent
+
     data class Connected(val mediaBrowser: MediaBrowser) : ServiceConnectionEvent
 }

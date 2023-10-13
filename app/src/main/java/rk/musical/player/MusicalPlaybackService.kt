@@ -35,7 +35,6 @@ class MusicalPlaybackService : MediaLibraryService() {
     @Inject
     lateinit var songRepository: SongRepository
 
-
     private val mediaTree: MediaTree by lazy {
         MediaTree(songRepository, albumRepository)
     }
@@ -50,7 +49,6 @@ class MusicalPlaybackService : MediaLibraryService() {
         get() =
             songRepository.isReady && albumRepository.isReady
 
-
     // onGetLibraryRoot immediate return this
     private val rootMediaItem by lazy {
         MediaItem.Builder()
@@ -59,11 +57,10 @@ class MusicalPlaybackService : MediaLibraryService() {
                 MediaMetadata.Builder()
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
-                    .build()
+                    .build(),
             )
             .build()
     }
-
 
     override fun onCreate() {
         super.onCreate()
@@ -80,8 +77,9 @@ class MusicalPlaybackService : MediaLibraryService() {
                         this@MusicalPlaybackService,
                         0,
                         it,
-                        FLAG_IMMUTABLE, null
-                    )
+                        FLAG_IMMUTABLE,
+                        null,
+                    ),
                 )
             }
             build()
@@ -105,8 +103,8 @@ class MusicalPlaybackService : MediaLibraryService() {
         destroySession()
     }
 
-
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
+
     private fun destroySession() {
         mediaSession?.run {
             release()
@@ -116,18 +114,17 @@ class MusicalPlaybackService : MediaLibraryService() {
         serviceJob.cancel()
     }
 
-
     private inner class LibrarySessionCallback : MediaLibrarySession.Callback {
         override fun onSubscribe(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
             parentId: String,
-            params: LibraryParams?
+            params: LibraryParams?,
         ): ListenableFuture<LibraryResult<Void>> {
             val children =
                 mediaTree[parentId]
                     ?: return Futures.immediateFuture(
-                        LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
+                        LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE),
                     )
             session.notifyChildrenChanged(browser, parentId, children.size, params)
             return Futures.immediateFuture(LibraryResult.ofVoid())
@@ -136,7 +133,7 @@ class MusicalPlaybackService : MediaLibraryService() {
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
-            params: LibraryParams?
+            params: LibraryParams?,
         ): ListenableFuture<LibraryResult<MediaItem>> {
             return Futures.immediateFuture(LibraryResult.ofItem(rootMediaItem, null))
         }
@@ -147,7 +144,7 @@ class MusicalPlaybackService : MediaLibraryService() {
             parentId: String,
             page: Int,
             pageSize: Int,
-            params: LibraryParams?
+            params: LibraryParams?,
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             return whenReadyTree {
                 val children = mediaTree[parentId]
@@ -158,14 +155,11 @@ class MusicalPlaybackService : MediaLibraryService() {
         override fun onGetItem(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
-            mediaId: String
+            mediaId: String,
         ): ListenableFuture<LibraryResult<MediaItem>> {
             return whenReadyTree {
                 LibraryResult.ofItem(mediaTree.getMediaItemById(mediaId) ?: MediaItem.EMPTY, null)
             }
         }
-
     }
-
-
 }

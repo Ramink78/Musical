@@ -18,10 +18,9 @@ import rk.musical.utils.albumSongsCountColumnIndex
 import rk.musical.utils.artistColumnIndex
 import rk.musical.utils.kuery
 
-
 class AlbumRepository(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val context: Context
+    private val context: Context,
 ) : AlbumDataSource {
     private var state: DataSourceState = DataSourceState.Created
     override val isReady: Boolean
@@ -48,8 +47,9 @@ class AlbumRepository(
 
                 while (it.moveToNext()) {
                     val albumId = it.getLong(albumIdCol)
-                    val sArtworkUri = Uri
-                        .parse("content://media/external/audio/albumart")
+                    val sArtworkUri =
+                        Uri
+                            .parse("content://media/external/audio/albumart")
                     val albumArtUri = ContentUris.withAppendedId(sArtworkUri, albumId)
 
 //                    val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -67,14 +67,12 @@ class AlbumRepository(
                             title = it.getString(albumNameCol),
                             artist = it.getString(artistCol),
                             songsCount = it.getInt(albumSongsCountCol),
-                            coverUri = albumArtUri.toString()
-                        )
+                            coverUri = albumArtUri.toString(),
+                        ),
                     )
-
                 }
                 cachedAlbums = tempList
                 _localAlbums.emit(tempList)
-
             }
         }
     }

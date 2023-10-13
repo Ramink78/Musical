@@ -13,7 +13,7 @@ private const val ALBUMS_NODE_TITLE = "Albums"
 
 class MediaTree(
     private val songsDataSource: LocalSongsDataSource,
-    private val albumDataSource: AlbumDataSource
+    private val albumDataSource: AlbumDataSource,
 ) {
     private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaItem>>()
     private val mediaIdToMediaItem = mutableMapOf<String, MediaItem>()
@@ -26,7 +26,7 @@ class MediaTree(
                     .setTitle(ALBUMS_NODE_TITLE)
                     .setIsPlayable(false)
                     .setIsBrowsable(true)
-                    .build()
+                    .build(),
             )
             .build()
     }
@@ -38,7 +38,7 @@ class MediaTree(
                     .setTitle(SONGS_NODE_TITLE)
                     .setIsPlayable(false)
                     .setIsBrowsable(true)
-                    .build()
+                    .build(),
             )
             .build()
     }
@@ -69,12 +69,9 @@ class MediaTree(
             albumFolder.addAll(albumChildren)
             mediaIdToChildren[it.mediaMetadata.title.toString()] = albumFolder
         }
-
     }
 
-
     operator fun get(mediaId: String) = mediaIdToChildren[mediaId]
+
     fun getMediaItemById(mediaId: String) = mediaIdToMediaItem[mediaId]
-
-
 }

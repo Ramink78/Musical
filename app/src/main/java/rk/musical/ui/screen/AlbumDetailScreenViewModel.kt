@@ -12,32 +12,35 @@ import rk.musical.player.MusicalRemote
 import javax.inject.Inject
 
 @HiltViewModel
-class AlbumDetailScreenViewModel @Inject constructor(
-    private val albumRepository: AlbumRepository,
-    private val songRepository: SongRepository,
-    private val musicalRemote: MusicalRemote
-) : ViewModel() {
-    private var currentSongs = emptyList<Song>()
-    val playingSong = musicalRemote.playingSongFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Song.Empty
-        )
+class AlbumDetailScreenViewModel
+    @Inject
+    constructor(
+        private val albumRepository: AlbumRepository,
+        private val songRepository: SongRepository,
+        private val musicalRemote: MusicalRemote,
+    ) : ViewModel() {
+        private var currentSongs = emptyList<Song>()
+        val playingSong =
+            musicalRemote.playingSongFlow
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = Song.Empty,
+                )
 
-    fun findAlbumById(id: String) = albumRepository.cachedAlbums.find { it.id == id }
-    fun getAlbumChildren(albumId: String): List<Song> {
-        val album = findAlbumById(albumId) ?: return emptyList()
-        currentSongs = songRepository.getAlbumSongs(album.title)
-        return currentSongs
-    }
+        fun findAlbumById(id: String) = albumRepository.cachedAlbums.find { it.id == id }
 
-    fun playSong(index: Int) {
-        if (musicalRemote.currentPlaylist != currentSongs) {
-            musicalRemote.setPlaylist(currentSongs)
-            // hasCurrentPlaylist = true
+        fun getAlbumChildren(albumId: String): List<Song> {
+            val album = findAlbumById(albumId) ?: return emptyList()
+            currentSongs = songRepository.getAlbumSongs(album.title)
+            return currentSongs
         }
-        musicalRemote.playSong(index)
-    }
 
-}
+        fun playSong(index: Int) {
+            if (musicalRemote.currentPlaylist != currentSongs) {
+                musicalRemote.setPlaylist(currentSongs)
+                // hasCurrentPlaylist = true
+            }
+            musicalRemote.playSong(index)
+        }
+    }

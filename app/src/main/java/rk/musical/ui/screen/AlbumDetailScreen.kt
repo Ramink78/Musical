@@ -1,9 +1,7 @@
 package rk.musical.ui.screen
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,20 +39,20 @@ import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.Purple80
 
 @Composable
-fun AlbumDetailScreen(
-    albumId: String,
-) {
+fun AlbumDetailScreen(albumId: String) {
     val viewModel: AlbumDetailScreenViewModel = hiltViewModel()
-    val album = remember {
-        viewModel.findAlbumById(albumId)!!
-    }
+    val album =
+        remember {
+            viewModel.findAlbumById(albumId)!!
+        }
 
     val playingSong by viewModel.playingSong.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            bottom = 180.dp
-        )
+        contentPadding =
+            PaddingValues(
+                bottom = 180.dp,
+            ),
     ) {
         item {
             AlbumHeader(
@@ -62,14 +60,14 @@ fun AlbumDetailScreen(
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp)),
-                coverUri = album.coverUri
+                coverUri = album.coverUri,
             )
         }
         item {
             AlbumInfo(
                 title = album.title,
                 subtitle = album.artist,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp),
             )
         }
         itemsIndexed(viewModel.getAlbumChildren(albumId)) { index, item ->
@@ -78,10 +76,9 @@ fun AlbumDetailScreen(
                 song = item,
                 onItemClick = { viewModel.playSong(index) },
                 ordinal = index + 1,
-                isChecked = playingSong == item
+                isChecked = playingSong == item,
             )
         }
-
     }
 }
 
@@ -89,7 +86,7 @@ fun AlbumDetailScreen(
 private fun AlbumInfo(
     modifier: Modifier = Modifier,
     title: String,
-    subtitle: String
+    subtitle: String,
 ) {
     Row {
         Column(
@@ -100,30 +97,29 @@ private fun AlbumInfo(
                 modifier = Modifier.padding(bottom = 4.dp),
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelMedium,
-                maxLines = 1
+                maxLines = 1,
             )
-
         }
     }
-
 }
 
 @Composable
 private fun AlbumHeader(
     modifier: Modifier = Modifier,
-    coverUri: String?
+    coverUri: String?,
 ) {
     CoverImage(
         coverUri = coverUri,
         modifier = modifier,
         placeholder = {
             AlbumPlaceholder()
-        })
+        },
+    )
 }
 
 @Composable
@@ -132,7 +128,7 @@ private fun AlbumChildItem(
     song: Song = Song.Empty,
     ordinal: Int = 1,
     isChecked: Boolean = false,
-    onItemClick: () -> Unit
+    onItemClick: () -> Unit,
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -140,11 +136,10 @@ private fun AlbumChildItem(
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
             modifier = Modifier.padding(start = 12.dp),
-            color = Purple80
+            color = Purple80,
         )
         ChildItem(song = song, onClick = onItemClick, isChecked = isChecked)
     }
-
 }
 
 @Composable
@@ -156,48 +151,54 @@ fun ChildItem(
 ) {
     val cardBackgroundColor by animateColorAsState(
         targetValue =
-        if (isChecked)
-            MaterialTheme.colorScheme.primary
-        else
-            Color.Transparent, label = "",
-        animationSpec = tween(400)
-
+            if (isChecked) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                Color.Transparent
+            },
+        label = "",
+        animationSpec = tween(400),
     )
     val cardContentColor by animateColorAsState(
         targetValue =
-        if (isChecked)
-            contentColorFor(
-                MaterialTheme.colorScheme.primary
-            )
-        else
-            contentColorFor(MaterialTheme.colorScheme.surfaceVariant), label = "",
-        animationSpec = tween(400)
+            if (isChecked) {
+                contentColorFor(
+                    MaterialTheme.colorScheme.primary,
+                )
+            } else {
+                contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+            },
+        label = "",
+        animationSpec = tween(400),
     )
     val cardScale by animateFloatAsState(
-        targetValue = if (isChecked) .95f else 1f, label = "",
-        animationSpec = tween(400)
+        targetValue = if (isChecked) .95f else 1f,
+        label = "",
+        animationSpec = tween(400),
     )
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(12.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { onClick() }
-            .drawBehind {
-                drawRect(cardBackgroundColor)
-            }
-            .graphicsLayer {
-                scaleY = cardScale
-                scaleX = cardScale
-            },
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { onClick() }
+                .drawBehind {
+                    drawRect(cardBackgroundColor)
+                }
+                .graphicsLayer {
+                    scaleY = cardScale
+                    scaleX = cardScale
+                },
     ) {
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(12.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = song.title,
@@ -205,20 +206,17 @@ fun ChildItem(
                 modifier = Modifier.padding(bottom = 4.dp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = cardContentColor
+                color = cardContentColor,
             )
             Text(
                 text = song.artist,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = cardContentColor
-
+                color = cardContentColor,
             )
         }
     }
-
-
 }
 
 @Preview

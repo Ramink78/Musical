@@ -52,9 +52,10 @@ fun Modifier.draggableMenuContainer(state: DraggableMenuState): Modifier {
                         if (!change.position.isSpecifiedAndValid()) {
                             continue
                         }
-                        val offset = state.containerCoordinates?.positionInWindow()
-                            ?.let { if (it.isSpecifiedAndValid()) it else Offset.Zero }
-                            ?: Offset.Zero
+                        val offset =
+                            state.containerCoordinates?.positionInWindow()
+                                ?.let { if (it.isSpecifiedAndValid()) it else Offset.Zero }
+                                ?: Offset.Zero
                         val position = change.position + offset
                         state.updatePointerPosition(position)
                         if (state.isOutOfMenuBounds(position) ||
@@ -73,87 +74,89 @@ fun Modifier.draggableMenuContainer(state: DraggableMenuState): Modifier {
 fun Modifier.draggableMenuAnchor(
     state: DraggableMenuState,
     onClick: (() -> Unit)? = { state.showMenu() },
-): Modifier = composed {
-    val scope = rememberCoroutineScope()
+): Modifier =
+    composed {
+        val scope = rememberCoroutineScope()
 
-    val scale = remember { Animatable(1f) }
+        val scale = remember { Animatable(1f) }
 
-    val interactionSource = remember { MutableInteractionSource() }
+        val interactionSource = remember { MutableInteractionSource() }
 
-    val indication = rememberScaleIndication()
+        val indication = rememberScaleIndication()
 
-    fun shouldHideAnchor(
-        isStretchingDown: Boolean,
-        isStretchingUp: Boolean,
-    ): Boolean {
-        val menuCoordinates = state.menuCoordinates ?: return false
-        val anchorCoordinates = state.anchorCoordinates ?: return false
+        fun shouldHideAnchor(
+            isStretchingDown: Boolean,
+            isStretchingUp: Boolean,
+        ): Boolean {
+            val menuCoordinates = state.menuCoordinates ?: return false
+            val anchorCoordinates = state.anchorCoordinates ?: return false
 
-        val menuPos = state.menuPosOnScreen
-        if (!menuPos.isSpecifiedAndValid()) return false
+            val menuPos = state.menuPosOnScreen
+            if (!menuPos.isSpecifiedAndValid()) return false
 
-        val anchorPos = anchorCoordinates.positionInWindow()
+            val anchorPos = anchorCoordinates.positionInWindow()
 
-        val isShowAboveAnchor = menuPos.y + menuCoordinates.size.height <= anchorPos.y
-        if (isShowAboveAnchor && isStretchingDown && calcStretchDownFactor(state) > 0.1f) {
-            return true
-        }
-
-        val isShowBelowAnchor = menuPos.y >= anchorPos.y + anchorCoordinates.size.height
-        if (isShowBelowAnchor && isStretchingUp && calcStretchUpFactor(state) > 0.1f) {
-            return true
-        }
-
-        return false
-    }
-
-    LaunchedEffect(state) {
-        snapshotFlow { Triple(state.isStretchingDown, state.isStretchingUp, state.hoveredItem) }
-            .filter { it.first || it.second || it.third.isNone() }
-            .map { shouldHideAnchor(it.first, it.second) }
-            .distinctUntilChanged()
-            .collect { shouldHideAnchor ->
-                launch {
-                    scale.stop()
-                    scale.animateTo(
-                        targetValue = if (shouldHideAnchor) 0f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMediumLow,
-                        ),
-                    )
-                }
+            val isShowAboveAnchor = menuPos.y + menuCoordinates.size.height <= anchorPos.y
+            if (isShowAboveAnchor && isStretchingDown && calcStretchDownFactor(state) > 0.1f) {
+                return true
             }
-    }
 
-    onGloballyPositioned { state.anchorCoordinates = it }
-        .indication(interactionSource, indication)
-        .graphicsLayer {
-            scaleX = scale.value
-            scaleY = scale.value
-            transformOrigin = TransformOrigin.Center
+            val isShowBelowAnchor = menuPos.y >= anchorPos.y + anchorCoordinates.size.height
+            if (isShowBelowAnchor && isStretchingUp && calcStretchUpFactor(state) > 0.1f) {
+                return true
+            }
+
+            return false
         }
-        .pointerInput(state) {
-            coroutineScope {
-                awaitPointerEventScope {
-                    while (isActive) {
-                        val down = awaitFirstDown()
-                        val press = PressInteraction.Press(down.position)
-                        scope.launch { interactionSource.emit(press) }
-                        try {
-                            withTimeout(timeMillis = viewConfiguration.longPressTimeoutMillis) {
-                                waitForUpOrCancellation()
+
+        LaunchedEffect(state) {
+            snapshotFlow { Triple(state.isStretchingDown, state.isStretchingUp, state.hoveredItem) }
+                .filter { it.first || it.second || it.third.isNone() }
+                .map { shouldHideAnchor(it.first, it.second) }
+                .distinctUntilChanged()
+                .collect { shouldHideAnchor ->
+                    launch {
+                        scale.stop()
+                        scale.animateTo(
+                            targetValue = if (shouldHideAnchor) 0f else 1f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                ),
+                        )
+                    }
+                }
+        }
+
+        onGloballyPositioned { state.anchorCoordinates = it }
+            .indication(interactionSource, indication)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+                transformOrigin = TransformOrigin.Center
+            }
+            .pointerInput(state) {
+                coroutineScope {
+                    awaitPointerEventScope {
+                        while (isActive) {
+                            val down = awaitFirstDown()
+                            val press = PressInteraction.Press(down.position)
+                            scope.launch { interactionSource.emit(press) }
+                            try {
+                                withTimeout(timeMillis = viewConfiguration.longPressTimeoutMillis) {
+                                    waitForUpOrCancellation()
+                                }
+                            } catch (e: PointerEventTimeoutCancellationException) {
+                                state.showMenu()
                             }
-                        } catch (e: PointerEventTimeoutCancellationException) {
-                            state.showMenu()
+                            scope.launch { interactionSource.emit(PressInteraction.Release(press)) }
+                            onClick?.invoke()
                         }
-                        scope.launch { interactionSource.emit(PressInteraction.Release(press)) }
-                        onClick?.invoke()
                     }
                 }
             }
-        }
-}
+    }
 
 internal fun Modifier.handleMenuTapAndDragGestures(state: DraggableMenuState): Modifier {
     fun onPointerPositionChanged(position: Offset): Boolean {
@@ -186,11 +189,12 @@ internal fun Modifier.handleMenuTapAndDragGestures(state: DraggableMenuState): M
                 var change: PointerInputChange? = null
 
                 try {
-                    change = withTimeout(
-                        timeMillis = viewConfiguration.longPressTimeoutMillis
-                    ) {
-                        waitForUpOrCancellation()
-                    }
+                    change =
+                        withTimeout(
+                            timeMillis = viewConfiguration.longPressTimeoutMillis,
+                        ) {
+                            waitForUpOrCancellation()
+                        }
                     // Tap
                     val pos = change?.position ?: down.position
                     val item = state.calcHoveredItemUsingPosInMenu(pos)
@@ -233,70 +237,74 @@ internal fun Modifier.handleMenuTapAndDragGestures(state: DraggableMenuState): M
 internal fun Modifier.animateMenuEnterExit(
     menuState: DraggableMenuState,
     visibleState: MutableTransitionState<Boolean>,
-): Modifier = composed {
-    val transition = updateTransition(
-        transitionState = visibleState,
-        label = "DraggableMenuTransition",
-    )
+): Modifier =
+    composed {
+        val transition =
+            updateTransition(
+                transitionState = visibleState,
+                label = "DraggableMenuTransition",
+            )
 
-    val transitionValue by transition.animateFloat(
-        transitionSpec = {
-            if (false isTransitioningTo true) {
-                spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy - 0.05f,
-                    stiffness = Spring.StiffnessMediumLow - 50f,
-                )
-            } else {
-                spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                )
+        val transitionValue by transition.animateFloat(
+            transitionSpec = {
+                if (false isTransitioningTo true) {
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy - 0.05f,
+                        stiffness = Spring.StiffnessMediumLow - 50f,
+                    )
+                } else {
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                    )
+                }
+            },
+            label = "transitionValue",
+        ) { visible ->
+            if (visible) 1f else 0f
+        }
+
+        graphicsLayer {
+            val menuCoordinates = menuState.menuCoordinates
+            val menuPos = menuState.menuPosOnScreen
+            val anchorCoordinates = menuState.anchorCoordinates
+
+            if (menuCoordinates == null ||
+                !menuCoordinates.isAttached ||
+                menuPos.isUnspecified ||
+                anchorCoordinates == null ||
+                !anchorCoordinates.isAttached
+            ) {
+                return@graphicsLayer
             }
-        },
-        label = "transitionValue",
-    ) { visible ->
-        if (visible) 1f else 0f
-    }
 
-    graphicsLayer {
-        val menuCoordinates = menuState.menuCoordinates
-        val menuPos = menuState.menuPosOnScreen
-        val anchorCoordinates = menuState.anchorCoordinates
+            val menuPosition = menuPos + menuCoordinates.positionInWindow()
+            val menuSize = menuCoordinates.size
+            if (menuSize.width == 0 || menuSize.height == 0) {
+                return@graphicsLayer
+            }
 
-        if (menuCoordinates == null ||
-            !menuCoordinates.isAttached ||
-            menuPos.isUnspecified ||
-            anchorCoordinates == null ||
-            !anchorCoordinates.isAttached
-        ) {
-            return@graphicsLayer
+            val anchorPosition = anchorCoordinates.positionInWindow()
+            val anchorSize = anchorCoordinates.size
+            val anchorCenter =
+                Offset(
+                    x = anchorPosition.x + anchorSize.width / 2,
+                    y = anchorPosition.y + anchorSize.height / 2,
+                )
+
+            val pivotX = (anchorCenter.x - menuPosition.x) / menuSize.width
+            val pivotY = (anchorCenter.y - menuPosition.y) / menuSize.height
+            transformOrigin =
+                TransformOrigin(
+                    pivotX.coerceIn(0f, 1f),
+                    pivotY.coerceIn(0f, 1f),
+                )
+            scaleX = transitionValue
+            scaleY = transitionValue
+
+            alpha = transitionValue.coerceIn(0f, 1f)
         }
-
-        val menuPosition = menuPos + menuCoordinates.positionInWindow()
-        val menuSize = menuCoordinates.size
-        if (menuSize.width == 0 || menuSize.height == 0) {
-            return@graphicsLayer
-        }
-
-        val anchorPosition = anchorCoordinates.positionInWindow()
-        val anchorSize = anchorCoordinates.size
-        val anchorCenter = Offset(
-            x = anchorPosition.x + anchorSize.width / 2,
-            y = anchorPosition.y + anchorSize.height / 2
-        )
-
-        val pivotX = (anchorCenter.x - menuPosition.x) / menuSize.width
-        val pivotY = (anchorCenter.y - menuPosition.y) / menuSize.height
-        transformOrigin = TransformOrigin(
-            pivotX.coerceIn(0f, 1f),
-            pivotY.coerceIn(0f, 1f)
-        )
-        scaleX = transitionValue
-        scaleY = transitionValue
-
-        alpha = transitionValue.coerceIn(0f, 1f)
     }
-}
 
 internal fun Modifier.stretchEffect(state: DraggableMenuState): Modifier {
     return graphicsLayer {

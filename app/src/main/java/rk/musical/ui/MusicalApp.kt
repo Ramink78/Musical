@@ -52,37 +52,38 @@ fun MusicalApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: MusicalRoutes.Songs.name
     val sheetState = rememberBottomSheetScaffoldState()
-    val navigateToAlbumsScreen = remember {
-        {
-            navController.navigate(MusicalRoutes.Albums.name) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+    val navigateToAlbumsScreen =
+        remember {
+            {
+                navController.navigate(MusicalRoutes.Albums.name) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
                 }
-                launchSingleTop = true
-                restoreState = true
             }
         }
-    }
-    val navigateToSongsScreen = remember {
-        {
-            navController.navigate(MusicalRoutes.Songs.name) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+    val navigateToSongsScreen =
+        remember {
+            {
+                navController.navigate(MusicalRoutes.Songs.name) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
                 }
-                launchSingleTop = true
-                restoreState = true
             }
         }
-    }
     Scaffold(
         bottomBar = {
             MusicalBottomBar(
                 currentRoute = currentRoute,
                 onSelectedAlbums = navigateToAlbumsScreen,
                 onSelectedSongs = navigateToSongsScreen,
-                isVisible = sheetState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
+                isVisible = sheetState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded,
             )
-
         },
     ) { paddingValues ->
         Surface {
@@ -96,47 +97,49 @@ fun MusicalApp() {
                     ) {
                         composable(route = MusicalRoutes.Songs.name) {
                             SongsScreen(
-                                contentPadding = PaddingValues(
-                                    top = WindowInsets.statusBars.asPaddingValues()
-                                        .calculateTopPadding(),
-                                    bottom = sheetPadding.calculateBottomPadding(),
-                                    end = 8.dp,
-                                    start = 8.dp
-                                ),
-                                modifier = Modifier.fillMaxSize()
+                                contentPadding =
+                                    PaddingValues(
+                                        top =
+                                            WindowInsets.statusBars.asPaddingValues()
+                                                .calculateTopPadding(),
+                                        bottom = sheetPadding.calculateBottomPadding(),
+                                        end = 8.dp,
+                                        start = 8.dp,
+                                    ),
+                                modifier = Modifier.fillMaxSize(),
                             )
                         }
                         composable(route = MusicalRoutes.Albums.name) {
                             AlbumsScreen(
                                 contentPadding =
-                                PaddingValues(
-                                    bottom = sheetPadding.calculateBottomPadding(),
-                                    top = WindowInsets.statusBars.asPaddingValues()
-                                        .calculateTopPadding()
-                                ),
+                                    PaddingValues(
+                                        bottom = sheetPadding.calculateBottomPadding(),
+                                        top =
+                                            WindowInsets.statusBars.asPaddingValues()
+                                                .calculateTopPadding(),
+                                    ),
                                 modifier = Modifier.fillMaxSize(),
                                 onItemClick = {
                                     navController.navigate("${MusicalRoutes.AlbumDetail.name}/${it.id}")
-                                }
+                                },
                             )
                         }
                         composable(
                             route = "${MusicalRoutes.AlbumDetail.name}/{albumId}",
-                            arguments = listOf(
-                                navArgument("albumId") { type = NavType.StringType }
-                            )
+                            arguments =
+                                listOf(
+                                    navArgument("albumId") { type = NavType.StringType },
+                                ),
                         ) {
                             AlbumDetailScreen(
                                 it.arguments?.getString("albumId") ?: "",
                             )
                         }
-
                     }
-                })
+                },
+            )
         }
-
     }
-
 }
 
 @Composable
@@ -145,15 +148,16 @@ fun MusicalBottomBar(
     currentRoute: String,
     onSelectedAlbums: () -> Unit,
     onSelectedSongs: () -> Unit,
-    isVisible: Boolean = true
+    isVisible: Boolean = true,
 ) {
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn() + slideInVertically { it },
-        exit = fadeOut() + slideOutVertically { it }) {
+        exit = fadeOut() + slideOutVertically { it },
+    ) {
         NavigationBar(
             modifier = modifier,
-            tonalElevation = 0.dp
+            tonalElevation = 0.dp,
         ) {
             NavigationBarItem(
                 selected = currentRoute == MusicalRoutes.Songs.name,
@@ -161,40 +165,42 @@ fun MusicalBottomBar(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.MusicNote,
-                        contentDescription = stringResource(R.string.songs_tab_cd)
+                        contentDescription = stringResource(R.string.songs_tab_cd),
                     )
                 },
                 label = {
                     Text(
                         text = stringResource(R.string.songs),
                         style =
-                        if (currentRoute == MusicalRoutes.Songs.name)
-                            MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
-                        else
-                            MaterialTheme.typography.bodyMedium
+                            if (currentRoute == MusicalRoutes.Songs.name) {
+                                MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
+                            } else {
+                                MaterialTheme.typography.bodyMedium
+                            },
                     )
-                }
+                },
             )
-            NavigationBarItem(selected = currentRoute == MusicalRoutes.Albums.name,
+            NavigationBarItem(
+                selected = currentRoute == MusicalRoutes.Albums.name,
                 onClick = onSelectedAlbums,
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Album,
-                        contentDescription = stringResource(R.string.albums_tab_cd)
+                        contentDescription = stringResource(R.string.albums_tab_cd),
                     )
                 },
                 label = {
                     Text(
                         text = stringResource(R.string.albums),
                         style =
-                        if (currentRoute == MusicalRoutes.Albums.name)
-                            MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
-                        else
-                            MaterialTheme.typography.bodyMedium
+                            if (currentRoute == MusicalRoutes.Albums.name) {
+                                MaterialTheme.typography.headlineMedium.copy(fontSize = 14.sp)
+                            } else {
+                                MaterialTheme.typography.bodyMedium
+                            },
                     )
-                })
+                },
+            )
         }
     }
-
-
 }

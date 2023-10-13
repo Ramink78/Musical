@@ -11,32 +11,31 @@ import rk.musical.player.MusicalRemote
 import javax.inject.Inject
 
 @HiltViewModel
-class CollapsedNowPlayingViewModel @Inject constructor(
-    private val musicalRemote: MusicalRemote
-) :
+class CollapsedNowPlayingViewModel
+    @Inject
+    constructor(
+        private val musicalRemote: MusicalRemote,
+    ) :
     ViewModel() {
-    val uiState =
-        combine(
-            musicalRemote.isPlayingFlow,
-            musicalRemote.playingSongFlow
-        ) { isPlaying, playingSong ->
-            CollapsedNowPlayingUiState(
-                isPlaying = isPlaying,
-                playingSong = playingSong
-
+        val uiState =
+            combine(
+                musicalRemote.isPlayingFlow,
+                musicalRemote.playingSongFlow,
+            ) { isPlaying, playingSong ->
+                CollapsedNowPlayingUiState(
+                    isPlaying = isPlaying,
+                    playingSong = playingSong,
+                )
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = CollapsedNowPlayingUiState(),
             )
 
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = CollapsedNowPlayingUiState()
-        )
-
-    fun togglePlay() = musicalRemote.togglePlay()
-
-}
+        fun togglePlay() = musicalRemote.togglePlay()
+    }
 
 data class CollapsedNowPlayingUiState(
     val isPlaying: Boolean = false,
-    val playingSong: Song = Song.Empty
+    val playingSong: Song = Song.Empty,
 )

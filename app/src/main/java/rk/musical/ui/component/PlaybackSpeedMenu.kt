@@ -36,11 +36,11 @@ import rk.musical.ui.theme.Purple80
 @Composable
 fun PlaybackSpeedMenu(
     modifier: Modifier = Modifier,
-    onItemSelected: (index: Int) -> Unit
+    onItemSelected: (index: Int) -> Unit,
 ) {
     var speedIconColor by remember {
         mutableStateOf(
-            Color.White
+            Color.White,
         )
     }
     val state = rememberDraggableMenuState()
@@ -48,41 +48,47 @@ fun PlaybackSpeedMenu(
     val normalSpeed = PlaybackSpeed(Icons.Rounded.Speed, 1f, "1.0x")
     val fastSpeed = PlaybackSpeed(Icons.Rounded.Speed, 1.5f, "1.5x")
     val fastestSpeed = PlaybackSpeed(Icons.Rounded.Speed, 2f, "2.0x")
-    val menuItems = remember {
-        mutableStateListOf(halfSpeed, normalSpeed, fastSpeed, fastestSpeed)
-    }
+    val menuItems =
+        remember {
+            mutableStateListOf(halfSpeed, normalSpeed, fastSpeed, fastestSpeed)
+        }
     Box(
-        modifier = modifier
-            .draggableMenuContainer(state),
+        modifier =
+            modifier
+                .draggableMenuContainer(state),
     ) {
         Box(
-            modifier = Modifier
-                .align(Alignment.Center)
+            modifier =
+                Modifier
+                    .align(Alignment.Center),
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.playback_speed_icon),
                 contentDescription = null,
-                modifier = Modifier
-                    .draggableMenuAnchor(state)
-                    .size(32.dp),
-                tint = speedIconColor
+                modifier =
+                    Modifier
+                        .draggableMenuAnchor(state)
+                        .size(32.dp),
+                tint = speedIconColor,
             )
 
             DraggableMenu(
-                state = state, onItemSelected = {
-                    speedIconColor = if (it == 1)
-                        Color.White
-                    else
-                        Purple80
+                state = state,
+                onItemSelected = {
+                    speedIconColor =
+                        if (it == 1) {
+                            Color.White
+                        } else {
+                            Purple80
+                        }
                     onItemSelected(it)
                 },
-                hoverBarBackgroundColor = MaterialTheme.colorScheme.primary
-
+                hoverBarBackgroundColor = MaterialTheme.colorScheme.primary,
             ) {
                 itemsIndexed(menuItems) { index, item ->
                     PlaybackSpeedMenuItem(
                         playbackSpeed = item,
-                        isHovered = state.hoveredItemIndex == index
+                        isHovered = state.hoveredItemIndex == index,
                     )
                 }
             }
@@ -95,42 +101,41 @@ fun PlaybackSpeedMenu(
 fun PlaybackSpeedMenuPreview() {
     MusicalTheme(darkTheme = true) {
         PlaybackSpeedMenu(onItemSelected = {})
-
     }
 }
 
 @Composable
 fun PlaybackSpeedMenuItem(
     playbackSpeed: PlaybackSpeed,
-    isHovered: Boolean = false
+    isHovered: Boolean = false,
 ) {
     Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .widthIn(min = 100.dp),
+        modifier =
+            Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .widthIn(min = 100.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-
         Text(
             text = playbackSpeed.title,
             color =
-            if (isHovered)
-                contentColorFor(backgroundColor = MaterialTheme.colorScheme.primary)
-            else
-                Color.Unspecified,
+                if (isHovered) {
+                    contentColorFor(backgroundColor = MaterialTheme.colorScheme.primary)
+                } else {
+                    Color.Unspecified
+                },
             style =
-            if (isHovered)
-                MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp)
-            else
-                MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
-
+                if (isHovered) {
+                    MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp)
+                } else {
+                    MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
+                },
         )
     }
-
 }
 
 data class PlaybackSpeed(
     val icon: ImageVector,
     val speed: Float,
-    val title: String
+    val title: String,
 )

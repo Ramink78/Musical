@@ -38,7 +38,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.collections.immutable.toImmutableList
 import rk.musical.R
 import rk.musical.data.model.Album
-import rk.musical.data.model.Song
 import rk.musical.ui.RationaleWarning
 import rk.musical.ui.RequiredMediaPermission
 import rk.musical.ui.component.AlbumPlaceholder
@@ -52,7 +51,7 @@ import rk.musical.ui.theme.PurpleGrey80
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
-    onItemClick: (Album) -> Unit
+    onItemClick: (Album) -> Unit,
 ) {
     val context = LocalContext.current
     val viewModel: AlbumsScreenViewModel = hiltViewModel()
@@ -60,8 +59,6 @@ fun AlbumsScreen(
     val albums = viewModel.albums
     val albumChildren = viewModel.albumChildren
     val permissionState = rememberPermissionState(permission = mediaPermission)
-
-
 
     RequiredMediaPermission(
         permissionState = permissionState,
@@ -74,7 +71,7 @@ fun AlbumsScreen(
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         LoadingCircle()
                     }
@@ -85,7 +82,7 @@ fun AlbumsScreen(
                         albums = albums,
                         modifier = modifier,
                         onAlbumClicked = onItemClick,
-                        contentPadding = contentPadding
+                        contentPadding = contentPadding,
                     )
                 }
 
@@ -95,29 +92,25 @@ fun AlbumsScreen(
                         onSongClick = { index ->
                         },
                         modifier = modifier,
-                        contentPadding = contentPadding
-
+                        contentPadding = contentPadding,
                     )
                 }
 
                 else -> {}
-
-
             }
-
         },
         rationalContent = {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 RationaleWarning(
                     onRequest = { permissionState.launchPermissionRequest() },
                     buttonText = "Request",
                     rationaleText = stringResource(R.string.albums_permission_rationale),
                     icon = Icons.Rounded.Album,
-                    rationaleTitle = stringResource(R.string.media_permission_title)
+                    rationaleTitle = stringResource(R.string.media_permission_title),
                 )
             }
         },
@@ -125,27 +118,25 @@ fun AlbumsScreen(
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 RationaleWarning(
                     onRequest = {
                         context.startActivity(
                             Intent(
                                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", context.packageName, null)
-                            )
+                                Uri.fromParts("package", context.packageName, null),
+                            ),
                         )
                     },
                     buttonText = "Grant in setting",
                     icon = Icons.Rounded.Album,
                     rationaleText = stringResource(R.string.albums_permission_rationale),
-                    rationaleTitle = stringResource(R.string.media_permission_title)
-
+                    rationaleTitle = stringResource(R.string.media_permission_title),
                 )
             }
-        })
-
-
+        },
+    )
 }
 
 @Composable
@@ -153,27 +144,26 @@ fun AlbumsList(
     albums: List<Album>,
     contentPadding: PaddingValues = PaddingValues(),
     onAlbumClicked: (Album) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = contentPadding
+        contentPadding = contentPadding,
     ) {
         items(
             items = albums,
-            key = { it.id }
+            key = { it.id },
         ) {
             AlbumItem(
                 onClick = {
                     onAlbumClicked(it)
                 },
-                album = it
+                album = it,
             )
         }
-
     }
 }
 
@@ -186,41 +176,40 @@ fun AlbumItem(
 ) {
     ElevatedCard(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column {
             CoverImage(
                 coverUri = album.coverUri,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .height(140.dp)
-                    .clip(
-                        RoundedCornerShape(8.dp)
-                    ),
-                placeholder = { AlbumPlaceholder() }
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .height(140.dp)
+                        .clip(
+                            RoundedCornerShape(8.dp),
+                        ),
+                placeholder = { AlbumPlaceholder() },
             )
 
             Column(
                 modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = album.title,
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = 4.dp),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = album.artist,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
-
         }
-
     }
 }
 
@@ -231,19 +220,20 @@ fun LoadingCircle() {
         trackColor = PurpleGrey80,
         color = Purple40,
         strokeWidth = 6.dp,
-        modifier = Modifier.size(60.dp)
+        modifier = Modifier.size(60.dp),
     )
 }
 
 @Preview
 @Composable
 fun AlbumItemPreview() {
-    val albumForPreview = Album(
-        id = "0",
-        title = "Album name",
-        artist = "Artist Name",
-        songsCount = 5
-    )
+    val albumForPreview =
+        Album(
+            id = "0",
+            title = "Album name",
+            artist = "Artist Name",
+            songsCount = 5,
+        )
     MusicalTheme {
         AlbumItem(onClick = {}, album = albumForPreview)
     }

@@ -16,7 +16,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
     @Singleton
     @Provides
     fun provideAudioAttributes(): AudioAttributes {
@@ -31,7 +30,7 @@ object AppModule {
     @Provides
     fun provideExoPlayer(
         @ApplicationContext context: Context,
-        audioAttributes: AudioAttributes
+        audioAttributes: AudioAttributes,
     ): ExoPlayer {
         return ExoPlayer.Builder(context)
             .setHandleAudioBecomingNoisy(true)
@@ -41,12 +40,13 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideSongRepository(@ApplicationContext context: Context) =
-        SongRepository(context = context)
+    fun provideSongRepository(
+        @ApplicationContext context: Context,
+    ) = SongRepository(context = context)
 
     @Singleton
     @Provides
-    fun provideAlbumRepository(@ApplicationContext context: Context) =
-        AlbumRepository(context = context)
-
+    fun provideAlbumRepository(
+        @ApplicationContext context: Context,
+    ) = AlbumRepository(context = context)
 }
