@@ -36,11 +36,11 @@ import rk.musical.ui.theme.Purple80
 @Composable
 fun PlaybackSpeedMenu(
     modifier: Modifier = Modifier,
-    onItemSelected: (index: Int) -> Unit,
+    onItemSelected: (index: Int) -> Unit
 ) {
     var speedIconColor by remember {
         mutableStateOf(
-            Color.White,
+            Color.White
         )
     }
     val state = rememberDraggableMenuState()
@@ -54,22 +54,22 @@ fun PlaybackSpeedMenu(
         }
     Box(
         modifier =
-            modifier
-                .draggableMenuContainer(state),
+        modifier
+            .draggableMenuContainer(state)
     ) {
         Box(
             modifier =
-                Modifier
-                    .align(Alignment.Center),
+            Modifier
+                .align(Alignment.Center)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.playback_speed_icon),
                 contentDescription = null,
                 modifier =
-                    Modifier
-                        .draggableMenuAnchor(state)
-                        .size(32.dp),
-                tint = speedIconColor,
+                Modifier
+                    .draggableMenuAnchor(state)
+                    .size(32.dp),
+                tint = speedIconColor
             )
 
             DraggableMenu(
@@ -83,12 +83,12 @@ fun PlaybackSpeedMenu(
                         }
                     onItemSelected(it)
                 },
-                hoverBarBackgroundColor = MaterialTheme.colorScheme.primary,
+                hoverBarBackgroundColor = MaterialTheme.colorScheme.primary
             ) {
                 itemsIndexed(menuItems) { index, item ->
                     PlaybackSpeedMenuItem(
                         playbackSpeed = item,
-                        isHovered = state.hoveredItemIndex == index,
+                        isHovered = state.hoveredItemIndex == index
                     )
                 }
             }
@@ -107,29 +107,29 @@ fun PlaybackSpeedMenuPreview() {
 @Composable
 fun PlaybackSpeedMenuItem(
     playbackSpeed: PlaybackSpeed,
-    isHovered: Boolean = false,
+    isHovered: Boolean = false
 ) {
     Row(
         modifier =
-            Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .widthIn(min = 100.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        Modifier
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .widthIn(min = 100.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = playbackSpeed.title,
             color =
-                if (isHovered) {
-                    contentColorFor(backgroundColor = MaterialTheme.colorScheme.primary)
-                } else {
-                    Color.Unspecified
-                },
+            if (isHovered) {
+                contentColorFor(backgroundColor = MaterialTheme.colorScheme.primary)
+            } else {
+                Color.Unspecified
+            },
             style =
-                if (isHovered) {
-                    MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp)
-                } else {
-                    MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
-                },
+            if (isHovered) {
+                MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp)
+            } else {
+                MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
+            }
         )
     }
 }
@@ -137,5 +137,5 @@ fun PlaybackSpeedMenuItem(
 data class PlaybackSpeed(
     val icon: ImageVector,
     val speed: Float,
-    val title: String,
+    val title: String
 )

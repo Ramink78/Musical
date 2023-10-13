@@ -12,7 +12,7 @@ fun buildSongMediaItem(
     artist: String,
     albumName: String,
     coverUri: Uri?,
-    duration: Long,
+    duration: Long
 ) = MediaItem.Builder()
     .setMediaId(songId)
     .setUri(songUri)
@@ -27,10 +27,10 @@ fun buildSongMediaItem(
             .setAlbumTitle(albumName)
             .setExtras(
                 bundleOf(
-                    SONG_DURATION to duration,
-                ),
+                    SONG_DURATION to duration
+                )
             )
-            .build(),
+            .build()
     )
     .build()
 
@@ -38,7 +38,7 @@ fun buildAlbumMediaItem(
     title: String,
     artist: String,
     songsCount: Int,
-    coverUri: Uri?,
+    coverUri: Uri?
 ) = MediaItem.Builder()
     .setMediaId(title)
     .setMediaMetadata(
@@ -50,6 +50,6 @@ fun buildAlbumMediaItem(
             .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)
             .setTotalTrackCount(songsCount)
             .setArtworkUri(coverUri)
-            .build(),
+            .build()
     )
     .build()

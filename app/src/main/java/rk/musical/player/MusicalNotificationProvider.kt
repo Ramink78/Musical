@@ -11,20 +11,20 @@ import rk.musical.R
 
 @UnstableApi
 class MusicalNotificationProvider(
-    context: Context,
+    context: Context
 ) : DefaultMediaNotificationProvider(context) {
     override fun getMediaButtons(
         session: MediaSession,
         playerCommands: Player.Commands,
         customLayout: ImmutableList<CommandButton>,
-        showPauseButton: Boolean,
+        showPauseButton: Boolean
     ): ImmutableList<CommandButton> {
         return getCommands(showPauseButton, playerCommands)
     }
 
     private fun getCommands(
         showPauseButton: Boolean,
-        playerCommands: Player.Commands,
+        playerCommands: Player.Commands
     ): ImmutableList<CommandButton> {
         val commands = mutableListOf<CommandButton>()
         val play =
@@ -35,12 +35,12 @@ class MusicalNotificationProvider(
                         R.drawable.round_pause_circle_24
                     } else {
                         R.drawable.round_play_circle_filled_24
-                    },
+                    }
                 )
                 .build()
         if (playerCommands.containsAny(
                 Player.COMMAND_SEEK_TO_NEXT,
-                Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
             )
         ) {
             val next =
@@ -53,7 +53,7 @@ class MusicalNotificationProvider(
 
         if (playerCommands.containsAny(
                 Player.COMMAND_SEEK_TO_PREVIOUS,
-                Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+                Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
             )
         ) {
             val previous =

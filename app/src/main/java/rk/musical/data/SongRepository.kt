@@ -21,7 +21,7 @@ import rk.musical.utils.songNameColumnIndex
 
 class SongRepository(
     private val context: Context,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : LocalSongsDataSource {
     var chacedSongs: List<Song> = emptyList()
         private set
@@ -40,7 +40,7 @@ class SongRepository(
                 uri = SONGS_URI,
                 columns = songColumns,
                 sortOrder = sortOrder,
-                selection = IS_MUSIC_CLAUSE,
+                selection = IS_MUSIC_CLAUSE
             )?.use { cursor ->
                 val idCol = cursor.songIdColumnIndex
                 val titleCol = cursor.songNameColumnIndex
@@ -59,8 +59,8 @@ class SongRepository(
                             songUri = songUri.toString(),
                             albumName = cursor.getString(albumNameCol),
                             coverUri = buildCoverUri(songId),
-                            duration = cursor.getLong(songDurationCol),
-                        ),
+                            duration = cursor.getLong(songDurationCol)
+                        )
                     )
                 }
                 chacedSongs = tempList

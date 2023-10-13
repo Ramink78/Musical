@@ -17,16 +17,16 @@ import rk.musical.ui.theme.SurfaceVariantColor
 fun AlbumPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = SurfaceVariantColor,
+        color = SurfaceVariantColor
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Rounded.Album,
                 contentDescription = "",
-                modifier = Modifier.size(42.dp),
+                modifier = Modifier.size(42.dp)
             )
         }
     }

@@ -20,7 +20,7 @@ import rk.musical.utils.kuery
 
 class AlbumRepository(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val context: Context,
+    private val context: Context
 ) : AlbumDataSource {
     private var state: DataSourceState = DataSourceState.Created
     override val isReady: Boolean
@@ -36,7 +36,7 @@ class AlbumRepository(
         withContext(dispatcher) {
             context.contentResolver.kuery(
                 uri = ALBUMS_URI,
-                columns = albumColumns,
+                columns = albumColumns
             )?.use {
                 val albumNameCol = it.albumNameColumnIndex
                 val albumIdCol = it.albumIdColumnIndex
@@ -67,8 +67,8 @@ class AlbumRepository(
                             title = it.getString(albumNameCol),
                             artist = it.getString(artistCol),
                             songsCount = it.getInt(albumSongsCountCol),
-                            coverUri = albumArtUri.toString(),
-                        ),
+                            coverUri = albumArtUri.toString()
+                        )
                     )
                 }
                 cachedAlbums = tempList

@@ -56,7 +56,7 @@ import rk.musical.ui.theme.MusicalTheme
 @Composable
 fun SongsScreen(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(),
+    contentPadding: PaddingValues = PaddingValues()
 ) {
     val context = LocalContext.current
     val viewModel: SongsScreenViewModel = hiltViewModel()
@@ -75,7 +75,7 @@ fun SongsScreen(
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         LoadingCircle()
                     }
@@ -87,7 +87,7 @@ fun SongsScreen(
                         songs = uiState.songs.toImmutableList(),
                         contentPadding = contentPadding,
                         onSongClick = viewModel::playSong,
-                        playingSong = playingSong,
+                        playingSong = playingSong
                     )
                 }
 
@@ -98,14 +98,14 @@ fun SongsScreen(
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 RationaleWarning(
                     onRequest = { permissionState.launchPermissionRequest() },
                     buttonText = "Request",
                     rationaleText = stringResource(R.string.songs_permission_rationale),
                     icon = Icons.Rounded.MusicNote,
-                    rationaleTitle = stringResource(R.string.media_permission_title),
+                    rationaleTitle = stringResource(R.string.media_permission_title)
                 )
             }
         },
@@ -113,24 +113,24 @@ fun SongsScreen(
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 RationaleWarning(
                     onRequest = {
                         context.startActivity(
                             Intent(
                                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", context.packageName, null),
-                            ),
+                                Uri.fromParts("package", context.packageName, null)
+                            )
                         )
                     },
                     buttonText = "Grant in setting",
                     icon = Icons.Rounded.MusicNote,
                     rationaleText = stringResource(R.string.songs_permission_rationale),
-                    rationaleTitle = stringResource(R.string.media_permission_title),
+                    rationaleTitle = stringResource(R.string.media_permission_title)
                 )
             }
-        },
+        }
     )
 }
 
@@ -140,25 +140,25 @@ fun SongsList(
     modifier: Modifier = Modifier,
     playingSong: Song = Song.Empty,
     onSongClick: (index: Int) -> Unit,
-    contentPadding: PaddingValues = PaddingValues(),
+    contentPadding: PaddingValues = PaddingValues()
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier
     ) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = contentPadding,
+            contentPadding = contentPadding
         ) {
             items(
                 items = songs,
                 key = {
                     it.id
-                },
+                }
             ) {
                 SongItem(
                     song = it,
                     onClick = { onSongClick(songs.indexOf(it)) },
-                    isChecked = it.id == playingSong.id,
+                    isChecked = it.id == playingSong.id
                 )
             }
         }
@@ -171,67 +171,67 @@ fun SongItem(
     song: Song,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isChecked: Boolean = false,
+    isChecked: Boolean = false
 ) {
     val cardBackgroundColor by animateColorAsState(
         targetValue =
-            if (isChecked) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
+        if (isChecked) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
         label = "",
-        animationSpec = tween(400),
+        animationSpec = tween(400)
     )
     val cardContentColor by animateColorAsState(
         targetValue =
-            if (isChecked) {
-                contentColorFor(
-                    MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
-            },
+        if (isChecked) {
+            contentColorFor(
+                MaterialTheme.colorScheme.primary
+            )
+        } else {
+            contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+        },
         label = "",
-        animationSpec = tween(400),
+        animationSpec = tween(400)
     )
     val cardScale by animateFloatAsState(
         targetValue = if (isChecked) .95f else 1f,
         label = "",
-        animationSpec = tween(400),
+        animationSpec = tween(400)
     )
 
     Card(
         modifier =
-            modifier
-                .graphicsLayer {
-                    scaleY = cardScale
-                    scaleX = cardScale
-                },
+        modifier
+            .graphicsLayer {
+                scaleY = cardScale
+                scaleX = cardScale
+            },
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
         ) {
             CoverImage(
                 coverUri = song.coverUri,
                 modifier =
-                    Modifier
-                        .size(60.dp)
-                        .clip(CircleShape),
-                placeholder = { SongPlaceholder() },
+                Modifier
+                    .size(60.dp)
+                    .clip(CircleShape),
+                placeholder = { SongPlaceholder() }
             )
             Column(
                 modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(12.dp),
-                verticalArrangement = Arrangement.Center,
+                Modifier
+                    .weight(1f)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = song.title,
@@ -239,14 +239,14 @@ fun SongItem(
                     modifier = Modifier.padding(bottom = 4.dp),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = cardContentColor,
+                    color = cardContentColor
                 )
                 Text(
                     text = song.artist,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = cardContentColor,
+                    color = cardContentColor
                 )
             }
         }
@@ -263,12 +263,12 @@ fun SongsScreenPreview() {
             artist = "Artist name",
             songUri = "",
             albumName = "",
-            duration = 0,
+            duration = 0
         )
     MusicalTheme(darkTheme = true) {
         SongItem(
             song = songForPreview,
-            onClick = { },
+            onClick = { }
         )
     }
 }

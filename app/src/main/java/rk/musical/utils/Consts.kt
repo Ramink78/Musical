@@ -23,7 +23,7 @@ val songColumns =
         SONG_TITLE,
         SONG_ARTIST,
         SONG_DURATION,
-        ALBUM_NAME,
+        ALBUM_NAME
     )
 val albumColumns =
     arrayOf(
@@ -31,6 +31,6 @@ val albumColumns =
         SONG_ARTIST,
         ALBUM_NAME,
         ALBUM_SONGS_COUNT,
-        ALBUM_ART,
+        ALBUM_ART
     )
 const val IS_MUSIC_CLAUSE = "${Media.IS_MUSIC}!=0"

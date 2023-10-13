@@ -94,20 +94,20 @@ import rk.musical.utils.verticalGradientScrim
 @Composable
 fun PlayerScreen(
     behindContent: @Composable (PaddingValues) -> Unit,
-    sheetState: BottomSheetScaffoldState,
+    sheetState: BottomSheetScaffoldState
 ) {
     val viewModel: PlayerScreenViewModel = hiltViewModel()
     val isVisibleState by viewModel.isVisibleSheetFlow.collectAsStateWithLifecycle()
     val sheetRadius by animateDpAsState(
         targetValue =
-            if (sheetState.bottomSheetState.targetValue == SheetValue.Expanded) 0.dp else 16.dp,
-        label = "",
+        if (sheetState.bottomSheetState.targetValue == SheetValue.Expanded) 0.dp else 16.dp,
+        label = ""
     )
     PlayerScreen(
         sheetState = sheetState,
         isSheetVisible = isVisibleState,
         sheetRadius = sheetRadius,
-        behindContent = behindContent,
+        behindContent = behindContent
     )
 }
 
@@ -117,7 +117,7 @@ private fun PlayerScreen(
     sheetState: BottomSheetScaffoldState,
     isSheetVisible: Boolean,
     sheetRadius: Dp = 16.dp,
-    behindContent: @Composable (PaddingValues) -> Unit,
+    behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val bottomNavigationHeight = 80.dp
@@ -125,12 +125,12 @@ private fun PlayerScreen(
     val peekHeight = bottomNavigationHeight + collapsedHeight
     val sheetPeekHeight by animateDpAsState(
         targetValue =
-            if (isSheetVisible) peekHeight else 0.dp,
-        label = "",
+        if (isSheetVisible) peekHeight else 0.dp,
+        label = ""
     )
     BackHandler(
         enabled =
-            sheetState.bottomSheetState.currentValue == SheetValue.Expanded,
+        sheetState.bottomSheetState.currentValue == SheetValue.Expanded
     ) {
         scope.launch {
             sheetState.bottomSheetState.partialExpand()
@@ -145,13 +145,13 @@ private fun PlayerScreen(
                     Box {
                         Crossfade(
                             targetState = sheetState.bottomSheetState.targetValue,
-                            label = "",
+                            label = ""
                         ) {
                             if (it == SheetValue.Expanded) {
                                 ExpandedPlayer(
                                     modifier =
-                                        Modifier
-                                            .fillMaxSize(),
+                                    Modifier
+                                        .fillMaxSize()
                                 )
                             } else {
                                 CollapsedPlayer(
@@ -159,7 +159,7 @@ private fun PlayerScreen(
                                         scope.launch {
                                             sheetState.bottomSheetState.expand()
                                         }
-                                    },
+                                    }
                                 )
                             }
                         }
@@ -169,7 +169,7 @@ private fun PlayerScreen(
         },
         sheetTonalElevation = 0.dp,
         sheetPeekHeight = sheetPeekHeight,
-        scaffoldState = sheetState,
+        scaffoldState = sheetState
     ) {
         behindContent(it)
     }
@@ -182,19 +182,19 @@ private fun CollapsedPlayer(modifier: Modifier = Modifier) {
 
     Row(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-                .height(64.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .height(64.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         CoverImage(
             coverUri = uiState.playingSong.coverUri,
             modifier =
-                Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-            placeholder = { SongPlaceholder() },
+            Modifier
+                .size(48.dp)
+                .clip(CircleShape),
+            placeholder = { SongPlaceholder() }
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
@@ -202,18 +202,18 @@ private fun CollapsedPlayer(modifier: Modifier = Modifier) {
             text = uiState.playingSong.title,
             style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
         IconButton(onClick = viewModel::togglePlay) {
             Icon(
                 imageVector =
-                    if (uiState.isPlaying) {
-                        Icons.Rounded.Pause
-                    } else {
-                        Icons.Rounded.PlayArrow
-                    },
+                if (uiState.isPlaying) {
+                    Icons.Rounded.Pause
+                } else {
+                    Icons.Rounded.PlayArrow
+                },
                 contentDescription = "",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -229,34 +229,34 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
     NowPlayingDynamicTheme(coverUri = uiState.currentSong.coverUri ?: "") {
         Column(
             modifier =
-                modifier
-                    .verticalGradientScrim(
-                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.50f),
-                        startYPercentage = 1f,
-                        endYPercentage = 0f,
-                    ),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier
+                .verticalGradientScrim(
+                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.50f),
+                    startYPercentage = 1f,
+                    endYPercentage = 0f
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CoverImage(
                 coverUri = uiState.currentSong.coverUri,
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .padding(horizontal = 8.dp)
-                        .statusBarsPadding()
-                        .clip(RoundedCornerShape(10.dp)),
-                placeholder = { SongDetailPlaceholder() },
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .padding(horizontal = 8.dp)
+                    .statusBarsPadding()
+                    .clip(RoundedCornerShape(10.dp)),
+                placeholder = { SongDetailPlaceholder() }
             )
             Spacer(modifier = Modifier.height(8.dp))
             SongInfo(
                 title = uiState.currentSong.title,
                 subtitle = uiState.currentSong.artist,
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                onItemSelected = viewModel::setPlaybackSpeed,
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                onItemSelected = viewModel::setPlaybackSpeed
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -274,7 +274,7 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                 onSkipPrevious = viewModel::skipToPrevious,
                 modifier = Modifier.padding(horizontal = 12.dp),
                 onRepeatClick = viewModel::changeRepeatMode,
-                onShuffleClick = viewModel::toggleShuffleMode,
+                onShuffleClick = viewModel::toggleShuffleMode
             )
         }
     }
@@ -284,21 +284,21 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
 fun CoverImage(
     coverUri: String?,
     modifier: Modifier = Modifier,
-    placeholder: @Composable () -> Unit,
+    placeholder: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     SubcomposeAsyncImage(
         model =
-            ImageRequest.Builder(context)
-                .data(coverUri)
-                .size(Size.ORIGINAL)
-                .build(),
+        ImageRequest.Builder(context)
+            .data(coverUri)
+            .size(Size.ORIGINAL)
+            .build(),
         contentScale = ContentScale.Crop,
         modifier = modifier,
         contentDescription = "",
         error = {
             placeholder()
-        },
+        }
     )
 }
 
@@ -310,36 +310,36 @@ fun ShuffleModeButton(
     onShuffleClick: () -> Unit,
     modifier: Modifier = Modifier,
     isEnable: Boolean = false,
-    enableShape: Shape = CircleShape,
+    enableShape: Shape = CircleShape
 ) {
     val backgroundColor by animateColorAsState(
         targetValue =
-            if (isEnable) {
-                enableColor
-            } else {
-                disableColor
-            },
-        label = "",
+        if (isEnable) {
+            enableColor
+        } else {
+            disableColor
+        },
+        label = ""
     )
     Box(
         modifier =
-            modifier
-                .size(42.dp)
-                .clip(enableShape)
-                .drawBehind {
-                    drawRect(backgroundColor)
-                }
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() },
-                ) {
-                    onShuffleClick()
-                },
-        contentAlignment = Alignment.Center,
+        modifier
+            .size(42.dp)
+            .clip(enableShape)
+            .drawBehind {
+                drawRect(backgroundColor)
+            }
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                onShuffleClick()
+            },
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = "",
+            contentDescription = ""
         )
     }
 }
@@ -353,36 +353,36 @@ fun RepeatModeButton(
     onRepeatClick: () -> Unit,
     modifier: Modifier = Modifier,
     enableShape: Shape = CircleShape,
-    @Player.RepeatMode repeatMode: Int = Player.REPEAT_MODE_OFF,
+    @Player.RepeatMode repeatMode: Int = Player.REPEAT_MODE_OFF
 ) {
     val backgroundColor by animateColorAsState(
         targetValue =
-            if (repeatMode == Player.REPEAT_MODE_OFF) {
-                disableColor
-            } else {
-                enableColor
-            },
-        label = "",
+        if (repeatMode == Player.REPEAT_MODE_OFF) {
+            disableColor
+        } else {
+            enableColor
+        },
+        label = ""
     )
     Box(
         modifier =
-            modifier
-                .size(42.dp)
-                .clip(enableShape)
-                .drawBehind {
-                    drawRect(backgroundColor)
-                }
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() },
-                ) {
-                    onRepeatClick()
-                },
-        contentAlignment = Alignment.Center,
+        modifier
+            .size(42.dp)
+            .clip(enableShape)
+            .drawBehind {
+                drawRect(backgroundColor)
+            }
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                onRepeatClick()
+            },
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = "",
+            contentDescription = ""
         )
     }
 }
@@ -396,7 +396,7 @@ fun RepeatModeButtonPreview() {
             disableColor = Color.Transparent,
             icon = Icons.Rounded.RepeatOne,
             onRepeatClick = {},
-            repeatMode = Player.REPEAT_MODE_ALL,
+            repeatMode = Player.REPEAT_MODE_ALL
         )
     }
 }
@@ -416,7 +416,7 @@ private fun PlayerControls(
     repeatMode: Int = 0,
     onRepeatClick: () -> Unit,
     onSeekValueChange: (Float) -> Unit,
-    onSeekFinished: (Float) -> Unit,
+    onSeekFinished: (Float) -> Unit
 ) {
     val nextIcon =
         remember {
@@ -441,39 +441,39 @@ private fun PlayerControls(
         }
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth(),
+            Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val seconds = remainingTime.substring(3..4)
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime.substring(0..1),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium
             )
             WaveSlider(
                 value = progress,
                 onValueChange = onSeekValueChange,
                 onValueChangeFinished = onSeekFinished,
                 animationOptions =
-                    WaveSliderDefaults.animationOptions(
-                        animateWave = isPlaying,
-                    ),
+                WaveSliderDefaults.animationOptions(
+                    animateWave = isPlaying
+                ),
                 modifier = Modifier.weight(1f),
                 thumb = {
                     Box(
                         modifier =
-                            Modifier
-                                .size(24.dp)
-                                .clip(CircleShape)
-                                .background(LocalThumbColor.current),
+                        Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(LocalThumbColor.current)
                     )
-                },
+                }
             )
             Text(text = totalTime, style = MaterialTheme.typography.labelMedium)
         }
@@ -482,7 +482,7 @@ private fun PlayerControls(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             val playImageVector =
                 if (isPlaying) {
@@ -496,19 +496,19 @@ private fun PlayerControls(
                 disableColor = Color.Transparent,
                 icon = repeatIcon,
                 repeatMode = repeatMode,
-                onRepeatClick = onRepeatClick,
+                onRepeatClick = onRepeatClick
             )
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = onSkipPrevious,
                 modifier =
-                    Modifier
-                        .size(40.dp),
+                Modifier
+                    .size(40.dp)
             ) {
                 Icon(
                     imageVector = previousIcon,
                     contentDescription = "",
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -518,14 +518,14 @@ private fun PlayerControls(
                     onPlayPauseClicked()
                 },
                 modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .size(60.dp),
+                Modifier
+                    .padding(horizontal = 8.dp)
+                    .size(60.dp)
             ) {
                 Icon(
                     imageVector = playImageVector,
                     contentDescription = "",
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(36.dp)
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -533,13 +533,13 @@ private fun PlayerControls(
             IconButton(
                 onClick = onSkipNext,
                 modifier =
-                    Modifier
-                        .size(40.dp),
+                Modifier
+                    .size(40.dp)
             ) {
                 Icon(
                     imageVector = nextIcon,
                     contentDescription = "",
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -548,7 +548,7 @@ private fun PlayerControls(
                 enableColor = PurpleGrey40,
                 disableColor = Color.Transparent,
                 onShuffleClick = onShuffleClick,
-                isEnable = isShuffleOn,
+                isEnable = isShuffleOn
             )
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -568,7 +568,7 @@ fun PlayerControlsPreview() {
             onSeekValueChange = {},
             onSeekFinished = {},
             onRepeatClick = {},
-            onShuffleClick = {},
+            onShuffleClick = {}
         )
     }
 }
@@ -578,24 +578,24 @@ private fun SongInfo(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    onItemSelected: (index: Int) -> Unit,
+    onItemSelected: (index: Int) -> Unit
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier
     ) {
         Text(
             text = title,
             modifier = Modifier.padding(bottom = 4.dp),
             style = MaterialTheme.typography.titleLarge,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
         Row {
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             PlaybackSpeedMenu(onItemSelected = onItemSelected)
         }
@@ -606,7 +606,7 @@ private fun SongInfo(
 fun ElapsedTimeText(
     second: String,
     minuet: String,
-    style: TextStyle = LocalTextStyle.current,
+    style: TextStyle = LocalTextStyle.current
 ) {
     Row {
         // first digit of minuet
@@ -624,24 +624,28 @@ fun ElapsedTimeText(
 @Composable
 fun SlideUpAnimatedText(
     value: Int,
-    textStyle: TextStyle = LocalTextStyle.current,
+    textStyle: TextStyle = LocalTextStyle.current
 ) {
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
-            (slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(animationSpec = spring())).togetherWith(
-                slideOutVertically { height -> -height } + fadeOut(),
+            (
+                slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
+                    animationSpec = spring()
+                )
+                ).togetherWith(
+                slideOutVertically { height -> -height } + fadeOut()
             )
         } else {
             (
                 slideInVertically(animationSpec = spring()) { height -> -height } +
                     fadeIn(
-                        animationSpec = spring(),
+                        animationSpec = spring()
                     )
-            ).togetherWith(
-                slideOutVertically { height -> height } + fadeOut(),
+                ).togetherWith(
+                slideOutVertically { height -> height } + fadeOut()
             )
         }.using(
-            SizeTransform(clip = false),
+            SizeTransform(clip = false)
         )
     }) {
         Text(text = it.toString(), style = textStyle)

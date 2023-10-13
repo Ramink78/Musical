@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,7 +22,6 @@ import rk.musical.data.AlbumRepository
 import rk.musical.data.MediaTree
 import rk.musical.data.ROOT
 import rk.musical.data.SongRepository
-import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
@@ -57,7 +57,7 @@ class MusicalPlaybackService : MediaLibraryService() {
                 MediaMetadata.Builder()
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
-                    .build(),
+                    .build()
             )
             .build()
     }
@@ -78,8 +78,8 @@ class MusicalPlaybackService : MediaLibraryService() {
                         0,
                         it,
                         FLAG_IMMUTABLE,
-                        null,
-                    ),
+                        null
+                    )
                 )
             }
             build()
@@ -119,12 +119,12 @@ class MusicalPlaybackService : MediaLibraryService() {
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
             parentId: String,
-            params: LibraryParams?,
+            params: LibraryParams?
         ): ListenableFuture<LibraryResult<Void>> {
             val children =
                 mediaTree[parentId]
                     ?: return Futures.immediateFuture(
-                        LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE),
+                        LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
                     )
             session.notifyChildrenChanged(browser, parentId, children.size, params)
             return Futures.immediateFuture(LibraryResult.ofVoid())
@@ -133,7 +133,7 @@ class MusicalPlaybackService : MediaLibraryService() {
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
-            params: LibraryParams?,
+            params: LibraryParams?
         ): ListenableFuture<LibraryResult<MediaItem>> {
             return Futures.immediateFuture(LibraryResult.ofItem(rootMediaItem, null))
         }
@@ -144,7 +144,7 @@ class MusicalPlaybackService : MediaLibraryService() {
             parentId: String,
             page: Int,
             pageSize: Int,
-            params: LibraryParams?,
+            params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             return whenReadyTree {
                 val children = mediaTree[parentId]
@@ -155,7 +155,7 @@ class MusicalPlaybackService : MediaLibraryService() {
         override fun onGetItem(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
-            mediaId: String,
+            mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
             return whenReadyTree {
                 LibraryResult.ofItem(mediaTree.getMediaItemById(mediaId) ?: MediaItem.EMPTY, null)

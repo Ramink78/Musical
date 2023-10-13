@@ -47,47 +47,47 @@ fun RationaleWarning(
     buttonText: String,
     icon: ImageVector,
     rationaleTitle: String,
-    rationaleText: String,
+    rationaleText: String
 ) {
     Surface(
         color = AlertDialogDefaults.containerColor,
         tonalElevation = AlertDialogDefaults.TonalElevation,
         shape = AlertDialogDefaults.shape,
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier =
-                Modifier
-                    .padding(24.dp),
+            Modifier
+                .padding(24.dp)
         ) {
             Box(
                 modifier =
-                    Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center,
+                Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = rationaleTitle,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = rationaleText,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onRequest) {
@@ -103,7 +103,7 @@ fun RequiredMediaPermission(
     permissionState: PermissionState,
     rationalContent: @Composable () -> Unit,
     grantedContent: @Composable () -> Unit,
-    deniedContent: @Composable () -> Unit,
+    deniedContent: @Composable () -> Unit
 ) {
     when {
         permissionState.status.isGranted -> grantedContent()
@@ -124,9 +124,9 @@ fun RationaleWarningPreview() {
         RationaleWarning(
             onRequest = {},
             buttonText = "Grant Access",
-            rationaleText = "Musical needs to access your media, after that you granted you will see all songs",
+            rationaleText = "Rationale text",
             icon = Icons.Rounded.MusicNote,
-            rationaleTitle = "Media Access",
+            rationaleTitle = "Media Access"
         )
     }
 }

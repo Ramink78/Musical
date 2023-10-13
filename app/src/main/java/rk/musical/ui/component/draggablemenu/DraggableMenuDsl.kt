@@ -7,17 +7,17 @@ interface DraggableMenuScope {
 
     fun items(
         count: Int,
-        itemContent: @Composable (Int) -> Unit,
+        itemContent: @Composable (Int) -> Unit
     )
 
     fun <T> items(
         items: Iterable<T>,
-        itemContent: @Composable (T) -> Unit,
+        itemContent: @Composable (T) -> Unit
     )
 
     fun <T> itemsIndexed(
         items: Iterable<T>,
-        itemContent: @Composable (Int, T) -> Unit,
+        itemContent: @Composable (Int, T) -> Unit
     )
 }
 
@@ -31,7 +31,7 @@ internal class DraggableMenuItemProvider : DraggableMenuScope {
 
     override fun items(
         count: Int,
-        itemContent: @Composable (Int) -> Unit,
+        itemContent: @Composable (Int) -> Unit
     ) {
         for (i in 0 until count) {
             _itemContents.add {
@@ -42,7 +42,7 @@ internal class DraggableMenuItemProvider : DraggableMenuScope {
 
     override fun <T> items(
         items: Iterable<T>,
-        itemContent: @Composable (T) -> Unit,
+        itemContent: @Composable (T) -> Unit
     ) {
         for (item in items) {
             _itemContents.add {
@@ -53,7 +53,7 @@ internal class DraggableMenuItemProvider : DraggableMenuScope {
 
     override fun <T> itemsIndexed(
         items: Iterable<T>,
-        itemContent: @Composable (Int, T) -> Unit,
+        itemContent: @Composable (Int, T) -> Unit
     ) {
         items.forEachIndexed { index, t ->
             _itemContents.add {

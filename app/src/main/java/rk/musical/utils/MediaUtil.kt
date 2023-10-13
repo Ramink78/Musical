@@ -5,10 +5,10 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import coil.request.ImageRequest
 import coil.size.Size
+import java.util.concurrent.TimeUnit
 import okio.IOException
 import rk.musical.data.model.Album
 import rk.musical.data.model.Song
-import java.util.concurrent.TimeUnit
 
 fun Song.loadCover(context: Context): ImageRequest? {
     return try {

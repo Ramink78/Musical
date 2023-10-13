@@ -31,7 +31,7 @@ fun Player.playingSongFlow() =
             object : Player.Listener {
                 override fun onMediaItemTransition(
                     mediaItem: MediaItem?,
-                    reason: Int,
+                    reason: Int
                 ) {
                     if (mediaItem == null) return
                     trySendBlocking(mediaItem.toSong())

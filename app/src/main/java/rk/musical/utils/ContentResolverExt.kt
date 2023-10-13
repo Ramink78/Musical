@@ -11,7 +11,7 @@ fun ContentResolver.kuery(
     selection: String? = null,
     selectionArgs: Array<String>? = null,
     sortOrder: String? = null,
-    cancellationSignal: CancellationSignal? = null,
+    cancellationSignal: CancellationSignal? = null
 ): Cursor? {
     return query(
         uri,
@@ -19,6 +19,6 @@ fun ContentResolver.kuery(
         selection,
         selectionArgs,
         sortOrder,
-        cancellationSignal,
+        cancellationSignal
     )
 }

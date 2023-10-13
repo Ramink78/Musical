@@ -18,7 +18,7 @@ internal fun rememberScaleIndication(pressedScale: Float = 0.85f): ScaleIndicati
 }
 
 internal class ScaleIndication(
-    private val pressedScale: Float,
+    private val pressedScale: Float
 ) : Indication {
     @Composable
     override fun rememberUpdatedInstance(interactionSource: InteractionSource): IndicationInstance {
@@ -27,7 +27,7 @@ internal class ScaleIndication(
         val scale =
             animateFloatAsState(
                 targetValue = if (isPressed) pressedScale else 1f,
-                label = "",
+                label = ""
             )
 
         return remember(scale) {
@@ -37,7 +37,7 @@ internal class ScaleIndication(
 }
 
 private class ScaleIndicationInstance(
-    private val scaleProvider: () -> Float,
+    private val scaleProvider: () -> Float
 ) : IndicationInstance {
     override fun ContentDrawScope.drawIndication() {
         val contentScope = this
@@ -47,7 +47,7 @@ private class ScaleIndicationInstance(
             },
             drawBlock = {
                 contentScope.drawContent()
-            },
+            }
         )
     }
 }

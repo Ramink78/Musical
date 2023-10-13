@@ -38,7 +38,7 @@ fun rememberDraggableMenuState(): DraggableMenuState {
 internal data class HoveredItem(
     val index: Int,
     val height: Int = 0,
-    val pointerYToTop: Float = 0f,
+    val pointerYToTop: Float = 0f
 ) {
     fun isNone() = index < 0
 
@@ -52,7 +52,7 @@ class DraggableMenuState(
     private val coroutineScope: CoroutineScope,
     private val density: Density,
     private val layoutDirection: LayoutDirection,
-    internal var onItemSelected: ((index: Int) -> Unit)? = null,
+    internal var onItemSelected: ((index: Int) -> Unit)? = null
 ) {
     private var itemProvider = DraggableMenuItemProvider()
 
@@ -122,14 +122,14 @@ class DraggableMenuState(
 
     internal fun updateItemCoordinates(
         index: Int,
-        coordinates: LayoutCoordinates,
+        coordinates: LayoutCoordinates
     ) {
         itemCoordinatesMap[index] = coordinates
     }
 
     internal fun updateItemInteractionSource(
         index: Int,
-        source: MutableInteractionSource,
+        source: MutableInteractionSource
     ) {
         itemInteractionSources[index] = source
     }
@@ -226,7 +226,7 @@ class DraggableMenuState(
                     return HoveredItem(
                         index = 0,
                         height = firstItemCoordinates.size.height,
-                        pointerYToTop = positionToMenuTopLeft.y,
+                        pointerYToTop = positionToMenuTopLeft.y
                     )
                 }
             }
@@ -241,7 +241,7 @@ class DraggableMenuState(
                     return HoveredItem(
                         index = itemCount - 1,
                         height = lastItemCoordinates.size.height,
-                        pointerYToTop = positionToMenuTopLeft.y - itemPos.y,
+                        pointerYToTop = positionToMenuTopLeft.y - itemPos.y
                     )
                 }
             }
@@ -263,7 +263,7 @@ class DraggableMenuState(
                     return HoveredItem(
                         index = index,
                         height = itemCoordinates.size.height,
-                        pointerYToTop = positionToMenuTopLeft.y - itemPos.y,
+                        pointerYToTop = positionToMenuTopLeft.y - itemPos.y
                     )
                 }
             }
@@ -289,7 +289,7 @@ class DraggableMenuState(
             val targetY =
                 y.coerceIn(
                     menuContentBounds.top,
-                    menuContentBounds.bottom - hoverBarHeight.value,
+                    menuContentBounds.bottom - hoverBarHeight.value
                 )
             hoverBarOffset.snapTo(targetY)
         } catch (e: IllegalArgumentException) {
@@ -312,7 +312,7 @@ class DraggableMenuState(
                 left = pos.x + paddingLeft,
                 top = pos.y + paddingTop,
                 right = pos.x + size.width - paddingRight,
-                bottom = pos.y + size.height - paddingBottom,
+                bottom = pos.y + size.height - paddingBottom
             )
         }
     }
@@ -334,17 +334,17 @@ class DraggableMenuState(
             val v1 =
                 Offset(
                     anchorPos.x + anchorSize.width / 2,
-                    anchorPos.y + anchorSize.height / 2,
+                    anchorPos.y + anchorSize.height / 2
                 )
             val v2 =
                 Offset(
                     menuPosOnScreen.x,
-                    menuPosOnScreen.y,
+                    menuPosOnScreen.y
                 )
             val v3 =
                 Offset(
                     menuPosOnScreen.x + menuSize.width,
-                    menuPosOnScreen.y,
+                    menuPosOnScreen.y
                 )
             if (isPointInsideTriangle(positionOnScreen, v1, v2, v3)) {
                 // Inside the top triangle gap
@@ -356,17 +356,17 @@ class DraggableMenuState(
             val v1 =
                 Offset(
                     anchorPos.x + anchorSize.width / 2,
-                    anchorPos.y + anchorSize.height / 2,
+                    anchorPos.y + anchorSize.height / 2
                 )
             val v2 =
                 Offset(
                     menuPosOnScreen.x,
-                    menuPosOnScreen.y + menuSize.height,
+                    menuPosOnScreen.y + menuSize.height
                 )
             val v3 =
                 Offset(
                     menuPosOnScreen.x + menuSize.width,
-                    menuPosOnScreen.y + menuSize.height,
+                    menuPosOnScreen.y + menuSize.height
                 )
             if (isPointInsideTriangle(positionOnScreen, v1, v2, v3)) {
                 // Inside the bottom triangle gap
@@ -385,7 +385,7 @@ class DraggableMenuState(
         pt: Offset,
         v1: Offset,
         v2: Offset,
-        v3: Offset,
+        v3: Offset
     ): Boolean {
         val d1 = sign(pt, v1, v2)
         val d2 = sign(pt, v2, v3)
@@ -400,7 +400,7 @@ class DraggableMenuState(
     private fun sign(
         p1: Offset,
         p2: Offset,
-        p3: Offset,
+        p3: Offset
     ): Float {
         return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
     }

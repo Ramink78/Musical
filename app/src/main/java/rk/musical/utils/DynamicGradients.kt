@@ -32,7 +32,7 @@ fun rememberDominantColorState(
     context: Context = LocalContext.current,
     defaultColor: Color = MaterialTheme.colorScheme.background,
     cacheSize: Int = 12,
-    isColorValid: (Color) -> Boolean = { true },
+    isColorValid: (Color) -> Boolean = { true }
 ): DominantColorState =
     remember {
         DominantColorState(context, defaultColor, cacheSize, isColorValid)
@@ -45,16 +45,16 @@ fun rememberDominantColorState(
 @Composable
 fun DynamicThemePrimaryColorsFromImage(
     dominantColorState: DominantColorState = rememberDominantColorState(),
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val colors =
         MaterialTheme.colorScheme.copy(
             background =
-                animateColorAsState(
-                    dominantColorState.color,
-                    spring(stiffness = Spring.StiffnessLow),
-                    label = "",
-                ).value,
+            animateColorAsState(
+                dominantColorState.color,
+                spring(stiffness = Spring.StiffnessLow),
+                label = ""
+            ).value
         )
     MaterialTheme(colorScheme = colors, content = content)
 }
@@ -75,7 +75,7 @@ class DominantColorState(
     private val context: Context,
     private val defaultColor: Color,
     cacheSize: Int = 12,
-    private val isColorValid: (Color) -> Boolean = { true },
+    private val isColorValid: (Color) -> Boolean = { true }
 ) {
     var color by mutableStateOf(defaultColor)
         private set
@@ -107,7 +107,7 @@ class DominantColorState(
             // If we found a valid swatch, wrap it in a [DominantColors]
             ?.let { swatch ->
                 DominantColors(
-                    color = Color(swatch.rgb),
+                    color = Color(swatch.rgb)
                 )
             }
             // Cache the resulting [DominantColors]
@@ -127,7 +127,7 @@ private data class DominantColors(val color: Color)
 
 private suspend fun calculateSwatchesInCoverImage(
     context: Context,
-    coverUri: String,
+    coverUri: String
 ): List<Palette.Swatch> {
     val request =
         ImageRequest.Builder(context)
@@ -167,12 +167,12 @@ private suspend fun calculateSwatchesInCoverImage(
 @Composable
 fun NowPlayingDynamicTheme(
     coverUri: String,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val dominantColorState =
         rememberDominantColorState(
-            defaultColor = MaterialTheme.colorScheme.surface,
+            defaultColor = MaterialTheme.colorScheme.surface
         ) { color ->
             // We want a color which has sufficient contrast against the surface color
             color.contrastAgainst(surfaceColor) >= MinContrastOfPrimaryVsSurface

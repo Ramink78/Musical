@@ -14,7 +14,7 @@ data class Song(
     val songUri: String,
     val albumName: String,
     val duration: Long,
-    val coverUri: String? = null,
+    val coverUri: String? = null
 ) {
     companion object {
         val Empty =
@@ -24,7 +24,7 @@ data class Song(
                 artist = "",
                 songUri = "",
                 albumName = "",
-                duration = 0,
+                duration = 0
             )
     }
 }
@@ -37,7 +37,7 @@ fun Song.toMediaItem() =
         songUri = songUri.toUri(),
         albumName = albumName,
         coverUri = coverUri?.toUri(),
-        duration = duration,
+        duration = duration
     )
 
 fun MediaItem.toSong() =
@@ -48,7 +48,7 @@ fun MediaItem.toSong() =
         songUri = ContentUris.withAppendedId(SONGS_URI, mediaId.toLongOrNull() ?: 0L).toString(),
         albumName = mediaMetadata.albumTitle.toString(),
         coverUri = mediaMetadata.artworkUri.toString(),
-        duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0,
+        duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0
     )
 
 fun List<MediaItem>.toSongs() = map { it.toSong() }

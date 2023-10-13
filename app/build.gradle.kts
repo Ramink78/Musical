@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.compose.compiler.report.generator)
-    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -57,7 +57,15 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
+}
+tasks.getByName("preBuild").dependsOn("ktlintFormat")
+ktlint {
+    android = true
+    ignoreFailures = false
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
 }
 
 dependencies {
@@ -87,7 +95,6 @@ dependencies {
     implementation(libs.waveslider)
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.androidx.palette.ktx)
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

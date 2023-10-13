@@ -73,7 +73,7 @@ fun Modifier.draggableMenuContainer(state: DraggableMenuState): Modifier {
 
 fun Modifier.draggableMenuAnchor(
     state: DraggableMenuState,
-    onClick: (() -> Unit)? = { state.showMenu() },
+    onClick: (() -> Unit)? = { state.showMenu() }
 ): Modifier =
     composed {
         val scope = rememberCoroutineScope()
@@ -86,7 +86,7 @@ fun Modifier.draggableMenuAnchor(
 
         fun shouldHideAnchor(
             isStretchingDown: Boolean,
-            isStretchingUp: Boolean,
+            isStretchingUp: Boolean
         ): Boolean {
             val menuCoordinates = state.menuCoordinates ?: return false
             val anchorCoordinates = state.anchorCoordinates ?: return false
@@ -120,10 +120,10 @@ fun Modifier.draggableMenuAnchor(
                         scale.animateTo(
                             targetValue = if (shouldHideAnchor) 0f else 1f,
                             animationSpec =
-                                spring(
-                                    dampingRatio = Spring.DampingRatioLowBouncy,
-                                    stiffness = Spring.StiffnessMediumLow,
-                                ),
+                            spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
                         )
                     }
                 }
@@ -191,7 +191,7 @@ internal fun Modifier.handleMenuTapAndDragGestures(state: DraggableMenuState): M
                 try {
                     change =
                         withTimeout(
-                            timeMillis = viewConfiguration.longPressTimeoutMillis,
+                            timeMillis = viewConfiguration.longPressTimeoutMillis
                         ) {
                             waitForUpOrCancellation()
                         }
@@ -236,13 +236,13 @@ internal fun Modifier.handleMenuTapAndDragGestures(state: DraggableMenuState): M
 
 internal fun Modifier.animateMenuEnterExit(
     menuState: DraggableMenuState,
-    visibleState: MutableTransitionState<Boolean>,
+    visibleState: MutableTransitionState<Boolean>
 ): Modifier =
     composed {
         val transition =
             updateTransition(
                 transitionState = visibleState,
-                label = "DraggableMenuTransition",
+                label = "DraggableMenuTransition"
             )
 
         val transitionValue by transition.animateFloat(
@@ -250,16 +250,16 @@ internal fun Modifier.animateMenuEnterExit(
                 if (false isTransitioningTo true) {
                     spring(
                         dampingRatio = Spring.DampingRatioLowBouncy - 0.05f,
-                        stiffness = Spring.StiffnessMediumLow - 50f,
+                        stiffness = Spring.StiffnessMediumLow - 50f
                     )
                 } else {
                     spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow,
+                        stiffness = Spring.StiffnessMediumLow
                     )
                 }
             },
-            label = "transitionValue",
+            label = "transitionValue"
         ) { visible ->
             if (visible) 1f else 0f
         }
@@ -289,7 +289,7 @@ internal fun Modifier.animateMenuEnterExit(
             val anchorCenter =
                 Offset(
                     x = anchorPosition.x + anchorSize.width / 2,
-                    y = anchorPosition.y + anchorSize.height / 2,
+                    y = anchorPosition.y + anchorSize.height / 2
                 )
 
             val pivotX = (anchorCenter.x - menuPosition.x) / menuSize.width
@@ -297,7 +297,7 @@ internal fun Modifier.animateMenuEnterExit(
             transformOrigin =
                 TransformOrigin(
                     pivotX.coerceIn(0f, 1f),
-                    pivotY.coerceIn(0f, 1f),
+                    pivotY.coerceIn(0f, 1f)
                 )
             scaleX = transitionValue
             scaleY = transitionValue
