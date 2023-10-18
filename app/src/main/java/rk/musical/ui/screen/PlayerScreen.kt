@@ -1,6 +1,8 @@
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
@@ -13,7 +15,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -72,19 +73,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
+import androidx.media3.ui.DefaultTimeBar
+import androidx.media3.ui.TimeBar
+import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
-import com.galaxygoldfish.waveslider.LocalThumbColor
-import com.galaxygoldfish.waveslider.WaveSliderDefaults
 import kotlinx.coroutines.launch
+import rk.musical.data.model.Song
 import rk.musical.ui.component.PlaybackSpeedMenu
-import rk.musical.ui.component.SongDetailPlaceholder
 import rk.musical.ui.component.SongPlaceholder
-import rk.musical.ui.component.WaveSlider
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.PurpleGrey40
 import rk.musical.utils.NowPlayingDynamicTheme
@@ -222,11 +224,44 @@ private fun CollapsedPlayer(modifier: Modifier = Modifier) {
 @Composable
 private fun ExpandedPlayer(modifier: Modifier = Modifier) {
     val viewModel: ExpandedNowPlayingViewModel = hiltViewModel()
-    val uiState by viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
+    val uiState = viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
     val repeatMode by viewModel.repeatModeFlow.collectAsStateWithLifecycle()
     val isShuffleMode by viewModel.shuffleModeFlow.collectAsStateWithLifecycle()
-    val progress by viewModel.uiProgress.collectAsStateWithLifecycle()
-    NowPlayingDynamicTheme(coverUri = uiState.currentSong.coverUri ?: "") {
+    val context = LocalContext.current
+    val positionLambda: () -> Long = remember {
+        { uiState.value.playbackPosition }
+    }
+    val skipToNext: () -> Unit = remember {
+        { viewModel.skipToNext() }
+    }
+    val skipToPrevious: () -> Unit = remember {
+        { viewModel.skipToPrevious() }
+    }
+    val togglePlay: () -> Unit = remember {
+        { viewModel.togglePlay() }
+    }
+    val changeRepeatMode: () -> Unit = remember {
+        { viewModel.changeRepeatMode() }
+    }
+    val toggleShuffleMode: () -> Unit = remember {
+        { viewModel.toggleShuffleMode() }
+    }
+    val seekToProgress: (Long) -> Unit = remember {
+        { viewModel.seekToProgress(it) }
+    }
+    val currentSongDuration: () -> Long = remember {
+        { uiState.value.currentSong.duration }
+    }
+    val setPlaybackSpeed: (Int) -> Unit = remember {
+        { viewModel.setPlaybackSpeed(it) }
+    }
+    val currentSong: () -> Song = remember {
+        { uiState.value.currentSong }
+    }
+    val remainingTime: () -> String = remember {
+        { uiState.value.currentTime }
+    }
+    NowPlayingDynamicTheme(coverUri = currentSong().coverUri ?: "") {
         Column(
             modifier =
             modifier
@@ -237,44 +272,50 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CoverImage(
-                coverUri = uiState.currentSong.coverUri,
-                modifier =
-                Modifier
+            AsyncImage(
+                model =
+                ImageRequest.Builder(context)
+                    .data(currentSong().coverUri)
+                    .size(Size.ORIGINAL)
+                    .build(),
+                modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .padding(horizontal = 8.dp)
                     .statusBarsPadding()
                     .clip(RoundedCornerShape(10.dp)),
-                placeholder = { SongDetailPlaceholder() }
+                contentScale = ContentScale.Crop,
+                contentDescription = ""
+
             )
+
             Spacer(modifier = Modifier.height(8.dp))
             SongInfo(
-                title = uiState.currentSong.title,
-                subtitle = uiState.currentSong.artist,
+                title = currentSong().title,
+                subtitle = currentSong().artist,
                 modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                onItemSelected = viewModel::setPlaybackSpeed
+                onItemSelected = setPlaybackSpeed
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             PlayerControls(
-                onPlayPauseClicked = viewModel::togglePlay,
-                isPlaying = uiState.isPlaying,
-                remainingTime = uiState.currentTime,
-                totalTime = uiState.totalTime,
-                progress = progress,
+                onPlayPauseClicked = togglePlay,
+                isPlaying = uiState.value.isPlaying,
+                remainingTime = remainingTime,
+                totalTime = uiState.value.totalTime,
                 repeatMode = repeatMode,
                 isShuffleOn = isShuffleMode,
-                onSeekValueChange = viewModel::updateProgress,
-                onSeekFinished = viewModel::seekToProgress,
-                onSkipNext = viewModel::skipToNext,
-                onSkipPrevious = viewModel::skipToPrevious,
+                onSkipNext = skipToNext,
+                onSkipPrevious = skipToPrevious,
                 modifier = Modifier.padding(horizontal = 12.dp),
-                onRepeatClick = viewModel::changeRepeatMode,
-                onShuffleClick = viewModel::toggleShuffleMode
+                onRepeatClick = changeRepeatMode,
+                onShuffleClick = toggleShuffleMode,
+                onPositionChanged = seekToProgress,
+                currentPos = positionLambda,
+                duration = currentSongDuration
             )
         }
     }
@@ -402,43 +443,36 @@ fun RepeatModeButtonPreview() {
 }
 
 @Composable
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 private fun PlayerControls(
     modifier: Modifier = Modifier,
     onSkipNext: () -> Unit = {},
     onSkipPrevious: () -> Unit = {},
     onPlayPauseClicked: () -> Unit,
     isPlaying: Boolean,
-    remainingTime: String,
+    remainingTime: () -> String,
     totalTime: String,
-    progress: Float,
     isShuffleOn: Boolean = false,
     onShuffleClick: () -> Unit,
     repeatMode: Int = 0,
     onRepeatClick: () -> Unit,
-    onSeekValueChange: (Float) -> Unit,
-    onSeekFinished: (Float) -> Unit
+    currentPos: () -> Long = { 0L },
+    duration: () -> Long = { 0L },
+    onPositionChanged: (Long) -> Unit = {}
 ) {
-    val nextIcon =
-        remember {
-            Icons.Rounded.SkipNext
-        }
-    val previousIcon =
-        remember {
-            Icons.Rounded.SkipPrevious
-        }
+    val sliderListener = remember {
+        object : TimeBar.OnScrubListener {
+            override fun onScrubStart(timeBar: TimeBar, position: Long) {
+            }
 
-    val shuffleIcon =
-        remember {
-            Icons.Rounded.Shuffle
-        }
-    val repeatIcon =
-        remember(key1 = repeatMode) {
-            when (repeatMode) {
-                0 -> Icons.Rounded.Repeat
-                1 -> Icons.Rounded.RepeatOne
-                else -> Icons.Rounded.Repeat
+            override fun onScrubMove(timeBar: TimeBar, position: Long) {
+            }
+
+            override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                onPositionChanged(position)
             }
         }
+    }
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -450,31 +484,32 @@ private fun PlayerControls(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val seconds = remainingTime.substring(3..4)
+            val seconds = remainingTime().substring(3..4)
             ElapsedTimeText(
                 second = seconds,
-                minuet = remainingTime.substring(0..1),
+                minuet = remainingTime().substring(0..1),
                 style = MaterialTheme.typography.labelMedium
             )
-            WaveSlider(
-                value = progress,
-                onValueChange = onSeekValueChange,
-                onValueChangeFinished = onSeekFinished,
-                animationOptions =
-                WaveSliderDefaults.animationOptions(
-                    animateWave = isPlaying
-                ),
+            AndroidView(
+                factory = { context ->
+                    DefaultTimeBar(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                        addListener(sliderListener)
+                    }
+                },
                 modifier = Modifier.weight(1f),
-                thumb = {
-                    Box(
-                        modifier =
-                        Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(LocalThumbColor.current)
-                    )
+                update = {
+                    it.setDuration(duration())
+                    it.setPosition(currentPos())
+                },
+                onRelease = {
+                    it.removeListener(sliderListener)
                 }
             )
+
             Text(text = totalTime, style = MaterialTheme.typography.labelMedium)
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -494,7 +529,11 @@ private fun PlayerControls(
             RepeatModeButton(
                 enableColor = PurpleGrey40,
                 disableColor = Color.Transparent,
-                icon = repeatIcon,
+                icon = when (repeatMode) {
+                    0 -> Icons.Rounded.Repeat
+                    1 -> Icons.Rounded.RepeatOne
+                    else -> Icons.Rounded.Repeat
+                },
                 repeatMode = repeatMode,
                 onRepeatClick = onRepeatClick
             )
@@ -506,7 +545,7 @@ private fun PlayerControls(
                     .size(40.dp)
             ) {
                 Icon(
-                    imageVector = previousIcon,
+                    imageVector = Icons.Rounded.SkipPrevious,
                     contentDescription = "",
                     modifier = Modifier.fillMaxSize()
                 )
@@ -537,14 +576,14 @@ private fun PlayerControls(
                     .size(40.dp)
             ) {
                 Icon(
-                    imageVector = nextIcon,
+                    imageVector = Icons.Rounded.SkipNext,
                     contentDescription = "",
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
             ShuffleModeButton(
-                icon = shuffleIcon,
+                icon = Icons.Rounded.Shuffle,
                 enableColor = PurpleGrey40,
                 disableColor = Color.Transparent,
                 onShuffleClick = onShuffleClick,
@@ -562,11 +601,8 @@ fun PlayerControlsPreview() {
         PlayerControls(
             onPlayPauseClicked = { /*TODO*/ },
             isPlaying = true,
-            remainingTime = "00:00",
+            remainingTime = { "00:00" },
             totalTime = "12:22",
-            progress = .3f,
-            onSeekValueChange = {},
-            onSeekFinished = {},
             onRepeatClick = {},
             onShuffleClick = {}
         )

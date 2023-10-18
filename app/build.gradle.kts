@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.session)
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.coroutines.guava)
@@ -92,10 +93,8 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.waveslider)
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.androidx.palette.ktx)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
