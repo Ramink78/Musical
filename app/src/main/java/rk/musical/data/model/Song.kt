@@ -48,7 +48,7 @@ fun MediaItem.toSong() =
         songUri = ContentUris.withAppendedId(SONGS_URI, mediaId.toLongOrNull() ?: 0L).toString(),
         albumName = mediaMetadata.albumTitle.toString(),
         coverUri = mediaMetadata.artworkUri.toString(),
-        duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0
+        duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0L
     )
 
 fun List<MediaItem>.toSongs() = map { it.toSong() }
