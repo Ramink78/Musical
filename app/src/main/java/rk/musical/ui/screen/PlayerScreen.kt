@@ -1,20 +1,21 @@
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -55,23 +57,32 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -90,6 +101,7 @@ import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.ui.theme.PurpleGrey40
 import rk.musical.utils.NowPlayingDynamicTheme
+import rk.musical.utils.readableDuration
 import rk.musical.utils.verticalGradientScrim
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -299,7 +311,7 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                     .padding(horizontal = 16.dp),
                 onItemSelected = setPlaybackSpeed
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             PlayerControls(
                 onPlayPauseClicked = togglePlay,
@@ -460,16 +472,60 @@ private fun PlayerControls(
     duration: () -> Long = { 0L },
     onPositionChanged: (Long) -> Unit = {}
 ) {
+    var isShowTimeTexts by remember {
+        mutableStateOf(true)
+    }
+
+    val density = LocalDensity.current
+    val sliderScale by
+    animateFloatAsState(
+        targetValue =
+        if (isShowTimeTexts) 1f else 1.4f,
+        label = ""
+    )
+    val remainingTimeOffset by
+    animateIntOffsetAsState(
+        targetValue =
+        if (isShowTimeTexts) {
+            IntOffset.Zero
+        } else {
+            with(density) {
+                IntOffset(x = 100.dp.roundToPx(), y = 0)
+            }
+        },
+        label = ""
+    )
+    val totalTimeOffset by
+    animateIntOffsetAsState(
+        targetValue =
+        if (isShowTimeTexts) {
+            IntOffset.Zero
+        } else {
+            with(density) {
+                IntOffset(x = (-100).dp.roundToPx(), y = 0)
+            }
+        },
+        label = ""
+    )
+    val sliderColor =
+        MaterialTheme.colorScheme.primary.toArgb()
+    val sliderBufferColor = Color.White.copy(.15f).toArgb()
+    val sliderThumbColor = MaterialTheme.colorScheme.primary.toArgb()
+    val sliderPosition = remember {
+        mutableLongStateOf(0L)
+    }
+
     val sliderListener = remember {
         object : TimeBar.OnScrubListener {
-            override fun onScrubStart(timeBar: TimeBar, position: Long) {
-            }
-
+            override fun onScrubStart(timeBar: TimeBar, position: Long) {}
             override fun onScrubMove(timeBar: TimeBar, position: Long) {
+                sliderPosition.longValue = position
+                isShowTimeTexts = false
             }
 
             override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
                 onPositionChanged(position)
+                isShowTimeTexts = true
             }
         }
     }
@@ -477,6 +533,9 @@ private fun PlayerControls(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        TimeIndicator(currentPos = { sliderPosition.longValue }, isVisible = !isShowTimeTexts)
+        Spacer(modifier = Modifier.height(8.dp))
+
         Row(
             modifier =
             Modifier
@@ -488,19 +547,27 @@ private fun PlayerControls(
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime().substring(0..1),
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.offset {
+                    totalTimeOffset
+                }
             )
             AndroidView(
                 factory = { context ->
                     DefaultTimeBar(context).apply {
-                        layoutParams = LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
                         addListener(sliderListener)
+                        setPlayedColor(sliderColor)
+                        setUnplayedColor(sliderBufferColor)
+                        setScrubberColor(sliderThumbColor)
                     }
                 },
-                modifier = Modifier.weight(1f),
+                modifier =
+                Modifier
+                    .weight(1f)
+                    .graphicsLayer {
+                        scaleY = sliderScale
+                        scaleX = sliderScale
+                    },
                 update = {
                     it.setDuration(duration())
                     it.setPosition(currentPos())
@@ -509,8 +576,14 @@ private fun PlayerControls(
                     it.removeListener(sliderListener)
                 }
             )
+            Text(
+                text = totalTime,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.offset {
+                    remainingTimeOffset
+                }
 
-            Text(text = totalTime, style = MaterialTheme.typography.labelMedium)
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -594,6 +667,38 @@ private fun PlayerControls(
     }
 }
 
+@Composable
+fun TimeIndicator(
+    currentPos: () -> Long,
+    modifier: Modifier = Modifier,
+    isVisible: Boolean
+) {
+    val scaleAndAlpha by animateFloatAsState(
+        targetValue =
+        if (isVisible) 1f else 0f,
+        label = ""
+    )
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleY = scaleAndAlpha
+                scaleX = scaleAndAlpha
+                alpha = scaleAndAlpha
+            }
+            .background(Color.White.copy(.15f), shape = RoundedCornerShape(50))
+            .shadow(6.dp, shape = RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+    ) {
+        Text(
+            text = readableDuration(currentPos()),
+            style = MaterialTheme.typography.titleLarge,
+            color = contentColorFor(
+                Color.White.copy(.15f)
+            )
+        )
+    }
+}
+
 @Preview
 @Composable
 fun PlayerControlsPreview() {
@@ -642,9 +747,10 @@ private fun SongInfo(
 fun ElapsedTimeText(
     second: String,
     minuet: String,
+    modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current
 ) {
-    Row {
+    Row(modifier = modifier) {
         // first digit of minuet
         SlideUpAnimatedText(value = minuet[0].digitToInt(), textStyle = style)
         // second digit of minuet
@@ -665,21 +771,21 @@ fun SlideUpAnimatedText(
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
             (
-                slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
-                    animationSpec = spring()
-                )
-                ).togetherWith(
-                slideOutVertically { height -> -height } + fadeOut()
-            )
-        } else {
-            (
-                slideInVertically(animationSpec = spring()) { height -> -height } +
-                    fadeIn(
+                    slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
                         animationSpec = spring()
                     )
-                ).togetherWith(
-                slideOutVertically { height -> height } + fadeOut()
-            )
+                    ).togetherWith(
+                    slideOutVertically { height -> -height } + fadeOut()
+                )
+        } else {
+            (
+                    slideInVertically(animationSpec = spring()) { height -> -height } +
+                            fadeIn(
+                                animationSpec = spring()
+                            )
+                    ).togetherWith(
+                    slideOutVertically { height -> height } + fadeOut()
+                )
         }.using(
             SizeTransform(clip = false)
         )

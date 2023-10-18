@@ -47,7 +47,7 @@ fun Player.currentPositionFlow() =
     flow {
         while (true) {
             emit(currentPosition)
-            delay(800)
+            delay(700)
         }
     }.flowOn(Dispatchers.Main)
 
