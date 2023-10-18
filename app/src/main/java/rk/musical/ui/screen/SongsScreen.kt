@@ -3,32 +3,48 @@ package rk.musical.ui.screen
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +60,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import rk.musical.R
 import rk.musical.data.model.Song
 import rk.musical.ui.RationaleWarning
@@ -51,6 +68,7 @@ import rk.musical.ui.RequiredMediaPermission
 import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.mediaPermission
 import rk.musical.ui.theme.MusicalTheme
+import rk.musical.ui.theme.Purple40
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -85,15 +103,35 @@ fun SongsScreen(
                 }
 
                 is SongsScreenUiState.Loaded -> {
+                    val scope = rememberCoroutineScope()
                     val onSongClick: (Song) -> Unit = remember {
                         { viewModel.playSong(uiState.songs.indexOf(it)) }
+                    }
+                    val listState = rememberLazyListState()
+
+                    val isVisibleGoButton by remember {
+                        derivedStateOf {
+                            (listState.firstVisibleItemIndex > 0) &&
+                                    playingSong.value != Song.Empty
+                        }
                     }
                     SongsList(
                         modifier = modifier,
                         songs = uiState.songs.toImmutableList(),
                         contentPadding = contentPadding,
                         onSongClick = onSongClick,
-                        playingSong = currentSong
+                        playingSong = currentSong,
+                        listState = listState,
+                        isVisibleGoButton = isVisibleGoButton,
+                        onGotoClick = {
+                            scope.launch {
+                                listState.animateScrollToItem(
+                                    index = uiState.songs.indexOf(
+                                        playingSong.value
+                                    )
+                                )
+                            }
+                        }
                     )
                 }
 
@@ -146,24 +184,62 @@ fun SongsList(
     modifier: Modifier = Modifier,
     playingSong: () -> Song = { Song.Empty },
     onSongClick: (Song) -> Unit,
+    isVisibleGoButton: Boolean = false,
+    onGotoClick: () -> Unit,
+    listState: LazyListState,
     contentPadding: PaddingValues = PaddingValues()
 ) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        contentPadding = contentPadding,
-        modifier = modifier
-    ) {
-        items(
-            items = songs,
-            key = {
-                it.id
-            }
+    Box(modifier = modifier) {
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = contentPadding
         ) {
-            SongItem(
-                song = it,
-                onClick = onSongClick,
-                isChecked = it.id == playingSong().id
-            )
+            items(
+                items = songs,
+                key = {
+                    it.id
+                }
+            ) {
+                SongItem(
+                    song = it,
+                    onClick = onSongClick,
+                    isChecked = it.id == playingSong().id
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = isVisibleGoButton,
+            enter = slideInVertically(initialOffsetY = { -it }),
+            exit = slideOutVertically(targetOffsetY = { -it })
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(
+                    modifier = Modifier.height(
+                        WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                    )
+                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(color = Purple40.copy(.4f), shape = CircleShape)
+                        .clickable {
+                            onGotoClick()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MusicNote,
+                        contentDescription = "",
+                        modifier = Modifier.size(28.dp),
+                        tint = contentColorFor(backgroundColor = Purple40.copy(.4f))
+                    )
+                }
+            }
         }
     }
 }
