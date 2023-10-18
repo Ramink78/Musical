@@ -771,21 +771,21 @@ fun SlideUpAnimatedText(
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
             (
-                    slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
-                        animationSpec = spring()
-                    )
-                    ).togetherWith(
-                    slideOutVertically { height -> -height } + fadeOut()
+                slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
+                    animationSpec = spring()
                 )
+                ).togetherWith(
+                slideOutVertically { height -> -height } + fadeOut()
+            )
         } else {
             (
-                    slideInVertically(animationSpec = spring()) { height -> -height } +
-                            fadeIn(
-                                animationSpec = spring()
-                            )
-                    ).togetherWith(
-                    slideOutVertically { height -> height } + fadeOut()
-                )
+                slideInVertically(animationSpec = spring()) { height -> -height } +
+                    fadeIn(
+                        animationSpec = spring()
+                    )
+                ).togetherWith(
+                slideOutVertically { height -> height } + fadeOut()
+            )
         }.using(
             SizeTransform(clip = false)
         )

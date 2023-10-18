@@ -23,12 +23,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,8 +61,11 @@ fun SongsScreen(
     val context = LocalContext.current
     val viewModel: SongsScreenViewModel = hiltViewModel()
     val uiState = viewModel.uiState
-    val playingSong by viewModel.playingSongFlow.collectAsStateWithLifecycle()
     val permissionState = rememberPermissionState(permission = mediaPermission)
+    val playingSong = viewModel.playingSongFlow.collectAsStateWithLifecycle()
+    val currentSong: () -> Song = remember {
+        { playingSong.value }
+    }
 
     RequiredMediaPermission(
         permissionState = permissionState,
@@ -82,12 +85,15 @@ fun SongsScreen(
                 }
 
                 is SongsScreenUiState.Loaded -> {
+                    val onSongClick: (Song) -> Unit = remember {
+                        { viewModel.playSong(uiState.songs.indexOf(it)) }
+                    }
                     SongsList(
                         modifier = modifier,
                         songs = uiState.songs.toImmutableList(),
                         contentPadding = contentPadding,
-                        onSongClick = viewModel::playSong,
-                        playingSong = playingSong
+                        onSongClick = onSongClick,
+                        playingSong = currentSong
                     )
                 }
 
@@ -138,29 +144,26 @@ fun SongsScreen(
 fun SongsList(
     songs: ImmutableList<Song>,
     modifier: Modifier = Modifier,
-    playingSong: Song = Song.Empty,
-    onSongClick: (index: Int) -> Unit,
+    playingSong: () -> Song = { Song.Empty },
+    onSongClick: (Song) -> Unit,
     contentPadding: PaddingValues = PaddingValues()
 ) {
-    Surface(
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = contentPadding,
         modifier = modifier
     ) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = contentPadding
-        ) {
-            items(
-                items = songs,
-                key = {
-                    it.id
-                }
-            ) {
-                SongItem(
-                    song = it,
-                    onClick = { onSongClick(songs.indexOf(it)) },
-                    isChecked = it.id == playingSong.id
-                )
+        items(
+            items = songs,
+            key = {
+                it.id
             }
+        ) {
+            SongItem(
+                song = it,
+                onClick = onSongClick,
+                isChecked = it.id == playingSong().id
+            )
         }
     }
 }
@@ -169,7 +172,7 @@ fun SongsList(
 @Composable
 fun SongItem(
     song: Song,
-    onClick: () -> Unit,
+    onClick: (Song) -> Unit,
     modifier: Modifier = Modifier,
     isChecked: Boolean = false
 ) {
@@ -208,7 +211,7 @@ fun SongItem(
                 scaleY = cardScale
                 scaleX = cardScale
             },
-        onClick = onClick,
+        onClick = { onClick(song) },
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
     ) {
         Row(
