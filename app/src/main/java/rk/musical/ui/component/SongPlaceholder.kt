@@ -6,19 +6,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import rk.musical.ui.theme.PurpleGrey80
-import rk.musical.ui.theme.SurfaceVariantColor
 
 @Composable
 fun SongPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = PurpleGrey80
+        color = MaterialTheme.colorScheme.surface
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -36,7 +35,7 @@ fun SongPlaceholder(modifier: Modifier = Modifier) {
 fun SongDetailPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = SurfaceVariantColor
+        color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Box(
             contentAlignment = Alignment.Center

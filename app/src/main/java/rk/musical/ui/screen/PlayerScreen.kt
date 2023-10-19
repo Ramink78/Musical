@@ -90,13 +90,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.ui.DefaultTimeBar
 import androidx.media3.ui.TimeBar
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
 import rk.musical.ui.component.PlaybackSpeedMenu
+import rk.musical.ui.component.SongDetailPlaceholder
 import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.theme.MusicalTheme
 import rk.musical.utils.NowPlayingDynamicTheme
@@ -207,6 +207,7 @@ private fun CollapsedPlayer(modifier: Modifier = Modifier) {
             Modifier
                 .size(48.dp)
                 .clip(CircleShape),
+            size = Size(width = 128, 128),
             placeholder = { SongPlaceholder() }
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -238,7 +239,6 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
     val uiState = viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
     val repeatMode by viewModel.repeatModeFlow.collectAsStateWithLifecycle()
     val isShuffleMode by viewModel.shuffleModeFlow.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val positionLambda: () -> Long = remember {
         { uiState.value.playbackPosition }
     }
@@ -283,23 +283,18 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model =
-                ImageRequest.Builder(context)
-                    .data(currentSong().coverUri)
-                    .size(Size.ORIGINAL)
-                    .build(),
+            CoverImage(
+                coverUri = currentSong().coverUri,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .padding(horizontal = 8.dp)
                     .statusBarsPadding()
                     .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop,
-                contentDescription = ""
-
+                placeholder = {
+                    SongDetailPlaceholder()
+                }
             )
-
             Spacer(modifier = Modifier.height(8.dp))
             SongInfo(
                 title = currentSong().title,
@@ -310,7 +305,7 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                     .padding(horizontal = 16.dp),
                 onItemSelected = setPlaybackSpeed
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             PlayerControls(
                 onPlayPauseClicked = togglePlay,
@@ -336,6 +331,7 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
 fun CoverImage(
     coverUri: String?,
     modifier: Modifier = Modifier,
+    size: Size = Size.ORIGINAL,
     placeholder: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -343,7 +339,7 @@ fun CoverImage(
         model =
         ImageRequest.Builder(context)
             .data(coverUri)
-            .size(Size.ORIGINAL)
+            .size(size = size)
             .build(),
         contentScale = ContentScale.Crop,
         modifier = modifier,

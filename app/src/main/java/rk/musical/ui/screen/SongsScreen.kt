@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.size.Size
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.collections.immutable.ImmutableList
@@ -228,6 +229,7 @@ fun SongItem(
                 Modifier
                     .size(60.dp)
                     .clip(CircleShape),
+                size = Size(width = 128, 128),
                 placeholder = { SongPlaceholder() }
             )
             Column(

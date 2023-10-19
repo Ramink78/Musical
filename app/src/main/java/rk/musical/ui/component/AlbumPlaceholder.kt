@@ -6,18 +6,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import rk.musical.ui.theme.SurfaceVariantColor
 
 @Composable
 fun AlbumPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = SurfaceVariantColor
+        color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
