@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
@@ -93,9 +92,7 @@ fun AlbumsScreen(
                         onSongClick = { index ->
                         },
                         modifier = modifier,
-                        contentPadding = contentPadding,
-                        listState = rememberLazyListState(),
-                        onGotoClick = {}
+                        contentPadding = contentPadding
                     )
                 }
 
