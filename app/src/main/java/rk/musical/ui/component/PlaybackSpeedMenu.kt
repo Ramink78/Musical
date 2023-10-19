@@ -31,17 +31,16 @@ import rk.musical.ui.component.draggablemenu.draggableMenuAnchor
 import rk.musical.ui.component.draggablemenu.draggableMenuContainer
 import rk.musical.ui.component.draggablemenu.rememberDraggableMenuState
 import rk.musical.ui.theme.MusicalTheme
-import rk.musical.ui.theme.Purple80
 
 @Composable
 fun PlaybackSpeedMenu(
     modifier: Modifier = Modifier,
     onItemSelected: (index: Int) -> Unit
 ) {
+    val enabledColor = MaterialTheme.colorScheme.primary
+    val disabledColor = MaterialTheme.colorScheme.onSurface
     var speedIconColor by remember {
-        mutableStateOf(
-            Color.White
-        )
+        mutableStateOf(disabledColor)
     }
     val state = rememberDraggableMenuState()
     val halfSpeed = PlaybackSpeed(Icons.Rounded.Speed, .5f, "0.5x")
@@ -77,9 +76,9 @@ fun PlaybackSpeedMenu(
                 onItemSelected = {
                     speedIconColor =
                         if (it == 1) {
-                            Color.White
+                            disabledColor
                         } else {
-                            Purple80
+                            enabledColor
                         }
                     onItemSelected(it)
                 },
