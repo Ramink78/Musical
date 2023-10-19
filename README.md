@@ -6,7 +6,27 @@
 
   
   
-<h2>🧐 Features</h2>
+  <h2>Screenshots</h2>
+  <details>
+<summary>Light shots</summary>
+ <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Now%20playing%20Light.png?raw=true" alt="drawing" width="200"/> <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Songs%20Light.png?raw=true" alt="drawing" width="200"/>
+      <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Albums%20Light.png?raw=true" alt="drawing" width="200"/> 
+    <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Album%20Details%20Light.png?raw=true" alt="drawing" width="200"/> 
+</details>
+ <details>
+<summary>Dark shots</summary>
+  <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Now%20playing%20Dark.png?raw=true" alt="drawing" width="200"/>     <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Songs%20Dark.png?raw=true" alt="drawing" width="200"/>
+ <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Albums%20Dark.png?raw=true" alt="drawing" width="200"/>
+    <img src="https://github.com/Ramink78/Musical/blob/develop/Screenshots/Album%20Details%20Dark.png?raw=true" alt="drawing" width="200"/>
+
+</details>
+
+
+
+
+
+
+<h2>Features</h2>
 
 Here're some of the project's best features:
 
@@ -19,7 +39,7 @@ Here're some of the project's best features:
 
   
   
-<h2>💻 Built with</h2>
+<h2>Built with</h2>
 
 Technologies used in the project:
 
