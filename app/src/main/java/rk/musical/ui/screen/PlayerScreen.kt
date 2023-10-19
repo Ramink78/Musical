@@ -99,7 +99,6 @@ import rk.musical.data.model.Song
 import rk.musical.ui.component.PlaybackSpeedMenu
 import rk.musical.ui.component.SongPlaceholder
 import rk.musical.ui.theme.MusicalTheme
-import rk.musical.ui.theme.PurpleGrey40
 import rk.musical.utils.NowPlayingDynamicTheme
 import rk.musical.utils.readableDuration
 import rk.musical.utils.verticalGradientScrim
@@ -600,7 +599,7 @@ private fun PlayerControls(
                 }
             Spacer(modifier = Modifier.weight(1f))
             RepeatModeButton(
-                enableColor = PurpleGrey40,
+                enableColor = MaterialTheme.colorScheme.surface,
                 disableColor = Color.Transparent,
                 icon = when (repeatMode) {
                     0 -> Icons.Rounded.Repeat
@@ -657,7 +656,7 @@ private fun PlayerControls(
             Spacer(modifier = Modifier.weight(1f))
             ShuffleModeButton(
                 icon = Icons.Rounded.Shuffle,
-                enableColor = PurpleGrey40,
+                enableColor = MaterialTheme.colorScheme.surface,
                 disableColor = Color.Transparent,
                 onShuffleClick = onShuffleClick,
                 isEnable = isShuffleOn
@@ -685,7 +684,7 @@ fun TimeIndicator(
                 scaleX = scaleAndAlpha
                 alpha = scaleAndAlpha
             }
-            .background(Color.White.copy(.15f), shape = RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(50))
             .shadow(6.dp, shape = RoundedCornerShape(50))
             .padding(horizontal = 8.dp, vertical = 2.dp)
     ) {

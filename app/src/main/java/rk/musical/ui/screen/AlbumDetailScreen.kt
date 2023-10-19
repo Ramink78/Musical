@@ -36,7 +36,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import rk.musical.data.model.Song
 import rk.musical.ui.component.AlbumPlaceholder
 import rk.musical.ui.theme.MusicalTheme
-import rk.musical.ui.theme.Purple80
 
 @Composable
 fun AlbumDetailScreen(albumId: String) {
@@ -136,7 +135,7 @@ private fun AlbumChildItem(
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
             modifier = Modifier.padding(start = 12.dp),
-            color = Purple80
+            color = MaterialTheme.colorScheme.primary
         )
         ChildItem(song = song, onClick = onItemClick, isChecked = isChecked)
     }
