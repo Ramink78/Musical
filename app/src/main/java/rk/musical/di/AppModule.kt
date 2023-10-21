@@ -11,7 +11,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import rk.musical.data.AlbumRepository
+import rk.musical.data.LyricRepository
 import rk.musical.data.SongRepository
+import rk.musical.data.db.LyricDao
 import rk.musical.data.db.MusicalDatabase
 import javax.inject.Singleton
 
@@ -65,4 +67,9 @@ object AppModule {
     fun provideAlbumRepository(
         @ApplicationContext context: Context
     ) = AlbumRepository(context = context)
+
+    @Singleton
+    @Provides
+    fun provideLyricRepository(lyricDao: LyricDao) =
+        LyricRepository(lyricDao = lyricDao)
 }
