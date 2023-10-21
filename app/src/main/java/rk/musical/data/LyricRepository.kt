@@ -1,10 +1,10 @@
 package rk.musical.data
 
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import rk.musical.data.db.LyricDao
 import rk.musical.data.model.Lyric
-import javax.inject.Inject
 
 class LyricRepository @Inject constructor(
     private val lyricDao: LyricDao
@@ -25,5 +25,4 @@ class LyricRepository @Inject constructor(
     suspend fun deleteLyric(lyric: Lyric) = withContext(Dispatchers.IO) {
         lyricDao.deleteLyric(lyric)
     }
-
 }

@@ -22,6 +22,4 @@ interface LyricDao {
 
     @Delete
     suspend fun deleteLyric(lyric: Lyric)
-
-
 }

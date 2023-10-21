@@ -10,12 +10,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import rk.musical.data.AlbumRepository
 import rk.musical.data.LyricRepository
 import rk.musical.data.SongRepository
 import rk.musical.data.db.LyricDao
 import rk.musical.data.db.MusicalDatabase
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
