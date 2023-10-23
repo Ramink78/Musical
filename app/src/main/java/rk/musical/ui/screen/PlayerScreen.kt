@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package rk.musical.ui.screen
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
@@ -39,6 +42,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Repeat
@@ -67,9 +71,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -95,6 +101,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import kotlinx.coroutines.launch
 import rk.musical.data.model.Song
+import rk.musical.ui.component.LyricContent
 import rk.musical.ui.component.PlaybackSpeedMenu
 import rk.musical.ui.component.SongDetailPlaceholder
 import rk.musical.ui.component.SongPlaceholder
@@ -234,11 +241,37 @@ private fun CollapsedPlayer(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun LyricButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            imageVector = Icons.Rounded.Lyrics,
+            tint = MaterialTheme.colorScheme.onSurface,
+            contentDescription = ""
+        )
+    }
+}
+
+@Composable
 private fun ExpandedPlayer(modifier: Modifier = Modifier) {
     val viewModel: ExpandedNowPlayingViewModel = hiltViewModel()
     val uiState = viewModel.nowPlayingUiStateFlow.collectAsStateWithLifecycle()
+    val currentLyric by viewModel.currentLyric.collectAsStateWithLifecycle()
+    val lyricUiState by viewModel.lyricUiState.collectAsStateWithLifecycle()
     val repeatMode by viewModel.repeatModeFlow.collectAsStateWithLifecycle()
     val isShuffleMode by viewModel.shuffleModeFlow.collectAsStateWithLifecycle()
+    val coverBlurRadius by
+    animateDpAsState(
+        targetValue =
+        if (lyricUiState.isVisibleLyric) {
+            10.dp
+        } else {
+            0.dp
+        },
+        label = ""
+    )
     val positionLambda: () -> Long = remember {
         { uiState.value.playbackPosition }
     }
@@ -272,57 +305,108 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
     val remainingTime: () -> String = remember {
         { uiState.value.currentTime }
     }
-    NowPlayingDynamicTheme(coverUri = currentSong().coverUri ?: "") {
-        Column(
-            modifier =
-            modifier
-                .verticalGradientScrim(
-                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.50f),
-                    startYPercentage = 1f,
-                    endYPercentage = 0f
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CoverImage(
-                coverUri = currentSong().coverUri,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .padding(horizontal = 8.dp)
-                    .statusBarsPadding()
-                    .clip(RoundedCornerShape(10.dp)),
-                placeholder = {
-                    SongDetailPlaceholder()
-                }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            SongInfo(
-                title = currentSong().title,
-                subtitle = currentSong().artist,
-                modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                onItemSelected = setPlaybackSpeed
-            )
-            Spacer(modifier = Modifier.height(12.dp))
 
-            PlayerControls(
-                onPlayPauseClicked = togglePlay,
-                isPlaying = uiState.value.isPlaying,
-                remainingTime = remainingTime,
-                totalTime = uiState.value.totalTime,
-                repeatMode = repeatMode,
-                isShuffleOn = isShuffleMode,
-                onSkipNext = skipToNext,
-                onSkipPrevious = skipToPrevious,
-                modifier = Modifier.padding(horizontal = 12.dp),
-                onRepeatClick = changeRepeatMode,
-                onShuffleClick = toggleShuffleMode,
-                onPositionChanged = seekToProgress,
-                currentPos = positionLambda,
-                duration = currentSongDuration
-            )
+    NowPlayingDynamicTheme(coverUri = currentSong().coverUri ?: "") {
+        Box {
+            Column(
+                modifier =
+                modifier
+                    .verticalGradientScrim(
+                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.50f),
+                        startYPercentage = 1f,
+                        endYPercentage = 0f
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box {
+                    CoverImage(
+                        coverUri = currentSong().coverUri,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .padding(horizontal = 8.dp)
+                            .statusBarsPadding()
+                            .clip(RoundedCornerShape(10.dp))
+                            .blur(coverBlurRadius),
+                        placeholder = {
+                            SongDetailPlaceholder()
+                        }
+                    )
+                    if (lyricUiState.isVisibleLyric) {
+                        LyricContent(
+                            lyricText = currentLyric?.lyricText,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .padding(horizontal = 8.dp)
+                                .statusBarsPadding()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = .9f)),
+                            onEditClick = {
+                                viewModel.showEditorLyric()
+                                viewModel.fetchLyric(currentSong().id)
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                SongInfo(
+                    title = currentSong().title,
+                    subtitle = currentSong().artist,
+                    modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    onItemSelected = setPlaybackSpeed,
+                    onLyricButtonClicked = {
+                        if (lyricUiState.isVisibleLyric) {
+                            viewModel.hideLyricCover()
+                        } else {
+                            viewModel.fetchLyric(currentSong().id)
+                            viewModel.showLyricCover()
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                PlayerControls(
+                    onPlayPauseClicked = togglePlay,
+                    isPlaying = uiState.value.isPlaying,
+                    remainingTime = remainingTime,
+                    totalTime = uiState.value.totalTime,
+                    repeatMode = repeatMode,
+                    isShuffleOn = isShuffleMode,
+                    onSkipNext = skipToNext,
+                    onSkipPrevious = skipToPrevious,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    onRepeatClick = changeRepeatMode,
+                    onShuffleClick = toggleShuffleMode,
+                    onPositionChanged = seekToProgress,
+                    currentPos = positionLambda,
+                    duration = currentSongDuration
+                )
+            }
+            AnimatedVisibility(
+                visible = lyricUiState.isEditMode,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                LyricEditorScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    backHandler = {
+                        viewModel.hideEditorLyric()
+                    },
+                    onDismiss = { viewModel.hideEditorLyric() },
+                    lyric = currentLyric,
+                    song = currentSong(),
+                    onSubmit = {
+                        viewModel.submitLyric(it)
+                        viewModel.hideEditorLyric()
+                    }
+
+                )
+            }
         }
     }
 }
@@ -714,7 +798,8 @@ private fun SongInfo(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    onItemSelected: (index: Int) -> Unit
+    onItemSelected: (index: Int) -> Unit,
+    onLyricButtonClicked: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -733,6 +818,7 @@ private fun SongInfo(
                 maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
+            LyricButton(onClick = onLyricButtonClicked)
             PlaybackSpeedMenu(onItemSelected = onItemSelected)
         }
     }

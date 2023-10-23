@@ -8,12 +8,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import rk.musical.R
 
+val irSharp =
+    FontFamily(
+        Font(R.font.irsharp_light, FontWeight.Light),
+        Font(R.font.irsharp_regular, FontWeight.Normal),
+        Font(R.font.irsharp_bold, FontWeight.Bold)
+    )
 val openSans =
     FontFamily(
         Font(R.font.opensans_light, FontWeight.Light),
         Font(R.font.opensans_regular, FontWeight.Normal),
         Font(R.font.opensans_medium, FontWeight.Medium),
         Font(R.font.opensans_semibold, FontWeight.SemiBold)
+    )
+val persianTypography =
+    Typography(
+        bodyMedium =
+        TextStyle(
+            fontFamily = irSharp,
+            fontWeight = FontWeight.Normal,
+            fontSize = 20.sp
+        ),
+        titleMedium = TextStyle(
+            fontFamily = irSharp,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
     )
 val Typography =
     Typography(
