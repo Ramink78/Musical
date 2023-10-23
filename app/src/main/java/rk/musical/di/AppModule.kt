@@ -29,6 +29,7 @@ object AppModule {
             klass = MusicalDatabase::class.java,
             name = "MusicalDatabase"
         )
+            .build()
 
     @Provides
     fun provideLyricDao(db: MusicalDatabase) =

@@ -3,9 +3,9 @@ package rk.musical.ui.component
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,11 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import rk.musical.R
 import rk.musical.ui.component.draggablemenu.DraggableMenu
 import rk.musical.ui.component.draggablemenu.draggableMenuAnchor
 import rk.musical.ui.component.draggablemenu.draggableMenuContainer
@@ -62,13 +60,13 @@ fun PlaybackSpeedMenu(
                 .align(Alignment.Center)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.playback_speed_icon),
+                imageVector = Icons.Rounded.GraphicEq,
                 contentDescription = null,
-                modifier =
-                Modifier
+                tint = speedIconColor,
+                modifier = Modifier
                     .draggableMenuAnchor(state)
-                    .size(32.dp),
-                tint = speedIconColor
+                    .padding(12.dp)
+
             )
 
             DraggableMenu(

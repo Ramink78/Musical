@@ -26,8 +26,13 @@ val persianTypography =
         bodyMedium =
         TextStyle(
             fontFamily = irSharp,
+            fontWeight = FontWeight.Normal,
+            fontSize = 20.sp
+        ),
+        titleMedium = TextStyle(
+            fontFamily = irSharp,
             fontWeight = FontWeight.Bold,
-            fontSize = 24.sp
+            fontSize = 20.sp
         )
     )
 val Typography =
