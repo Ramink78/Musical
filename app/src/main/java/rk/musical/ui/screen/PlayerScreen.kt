@@ -28,8 +28,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.areNavigationBarsVisible
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -113,6 +111,7 @@ import rk.musical.utils.verticalGradientScrim
 @Composable
 fun PlayerScreen(
     behindContent: @Composable (PaddingValues) -> Unit,
+    sheetPeakHeight: Dp = 0.dp,
     sheetState: BottomSheetScaffoldState
 ) {
     val viewModel: PlayerScreenViewModel = hiltViewModel()
@@ -126,6 +125,7 @@ fun PlayerScreen(
         sheetState = sheetState,
         isSheetVisible = isVisibleState,
         sheetRadius = sheetRadius,
+        sheetPeakHeight = sheetPeakHeight,
         behindContent = behindContent
     )
 }
@@ -136,15 +136,13 @@ private fun PlayerScreen(
     sheetState: BottomSheetScaffoldState,
     isSheetVisible: Boolean,
     sheetRadius: Dp = 16.dp,
+    sheetPeakHeight: Dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val bottomNavigationHeight = 80.dp
-    val collapsedHeight = if (WindowInsets.Companion.areNavigationBarsVisible) 90.dp else 60.dp
-    val peekHeight = bottomNavigationHeight + collapsedHeight
-    val sheetPeekHeight by animateDpAsState(
+    val sheetPeekHeightAnimate by animateDpAsState(
         targetValue =
-        if (isSheetVisible) peekHeight else 0.dp,
+        if (isSheetVisible) sheetPeakHeight else 0.dp,
         label = ""
     )
     BackHandler(
@@ -187,7 +185,7 @@ private fun PlayerScreen(
             }
         },
         sheetTonalElevation = 0.dp,
-        sheetPeekHeight = sheetPeekHeight,
+        sheetPeekHeight = sheetPeekHeightAnimate,
         scaffoldState = sheetState
     ) {
         behindContent(it)
@@ -851,21 +849,21 @@ fun SlideUpAnimatedText(
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
             (
-                slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
-                    animationSpec = spring()
-                )
-                ).togetherWith(
-                slideOutVertically { height -> -height } + fadeOut()
-            )
-        } else {
-            (
-                slideInVertically(animationSpec = spring()) { height -> -height } +
-                    fadeIn(
+                    slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
                         animationSpec = spring()
                     )
-                ).togetherWith(
-                slideOutVertically { height -> height } + fadeOut()
-            )
+                    ).togetherWith(
+                    slideOutVertically { height -> -height } + fadeOut()
+                )
+        } else {
+            (
+                    slideInVertically(animationSpec = spring()) { height -> -height } +
+                            fadeIn(
+                                animationSpec = spring()
+                            )
+                    ).togetherWith(
+                    slideOutVertically { height -> height } + fadeOut()
+                )
         }.using(
             SizeTransform(clip = false)
         )
