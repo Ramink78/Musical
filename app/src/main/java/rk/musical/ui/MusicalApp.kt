@@ -22,7 +22,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -86,62 +85,62 @@ fun MusicalApp() {
                 isVisible = sheetState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
             )
         }
-    ) { paddingValues ->
-        Surface {
-            PlayerScreen(
-                sheetState = sheetState,
-                behindContent = { sheetPadding ->
-                    NavHost(
-                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                        navController = navController,
-                        startDestination = MusicalRoutes.Songs.name
+    ) { innerPadding ->
+        val sheetPeakHeight = innerPadding.calculateBottomPadding() + 60.dp
+        PlayerScreen(
+            sheetState = sheetState,
+            sheetPeakHeight = sheetPeakHeight,
+            behindContent = { sheetPadding ->
+                NavHost(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                    navController = navController,
+                    startDestination = MusicalRoutes.Songs.name
+                ) {
+                    composable(route = MusicalRoutes.Songs.name) {
+                        SongsScreen(
+                            contentPadding =
+                            PaddingValues(
+                                top =
+                                WindowInsets.statusBars.asPaddingValues()
+                                    .calculateTopPadding(),
+                                bottom = sheetPadding.calculateBottomPadding(),
+                                end = 8.dp,
+                                start = 8.dp
+                            ),
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    composable(route = MusicalRoutes.Albums.name) {
+                        AlbumsScreen(
+                            contentPadding =
+                            PaddingValues(
+                                bottom = sheetPadding.calculateBottomPadding(),
+                                top =
+                                WindowInsets.statusBars.asPaddingValues()
+                                    .calculateTopPadding()
+                            ),
+                            modifier = Modifier.fillMaxSize(),
+                            onItemClick = {
+                                navController.navigate(
+                                    "${MusicalRoutes.AlbumDetail.name}/${it.id}"
+                                )
+                            }
+                        )
+                    }
+                    composable(
+                        route = "${MusicalRoutes.AlbumDetail.name}/{albumId}",
+                        arguments =
+                        listOf(
+                            navArgument("albumId") { type = NavType.StringType }
+                        )
                     ) {
-                        composable(route = MusicalRoutes.Songs.name) {
-                            SongsScreen(
-                                contentPadding =
-                                PaddingValues(
-                                    top =
-                                    WindowInsets.statusBars.asPaddingValues()
-                                        .calculateTopPadding(),
-                                    bottom = sheetPadding.calculateBottomPadding(),
-                                    end = 8.dp,
-                                    start = 8.dp
-                                ),
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                        composable(route = MusicalRoutes.Albums.name) {
-                            AlbumsScreen(
-                                contentPadding =
-                                PaddingValues(
-                                    bottom = sheetPadding.calculateBottomPadding(),
-                                    top =
-                                    WindowInsets.statusBars.asPaddingValues()
-                                        .calculateTopPadding()
-                                ),
-                                modifier = Modifier.fillMaxSize(),
-                                onItemClick = {
-                                    navController.navigate(
-                                        "${MusicalRoutes.AlbumDetail.name}/${it.id}"
-                                    )
-                                }
-                            )
-                        }
-                        composable(
-                            route = "${MusicalRoutes.AlbumDetail.name}/{albumId}",
-                            arguments =
-                            listOf(
-                                navArgument("albumId") { type = NavType.StringType }
-                            )
-                        ) {
-                            AlbumDetailScreen(
-                                it.arguments?.getString("albumId") ?: ""
-                            )
-                        }
+                        AlbumDetailScreen(
+                            it.arguments?.getString("albumId") ?: ""
+                        )
                     }
                 }
-            )
-        }
+            }
+        )
     }
 }
 

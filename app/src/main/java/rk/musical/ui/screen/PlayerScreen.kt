@@ -11,7 +11,6 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -28,17 +27,15 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.areNavigationBarsVisible
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,7 +50,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -82,13 +79,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -113,6 +109,7 @@ import rk.musical.utils.verticalGradientScrim
 @Composable
 fun PlayerScreen(
     behindContent: @Composable (PaddingValues) -> Unit,
+    sheetPeakHeight: Dp = 0.dp,
     sheetState: BottomSheetScaffoldState
 ) {
     val viewModel: PlayerScreenViewModel = hiltViewModel()
@@ -126,6 +123,7 @@ fun PlayerScreen(
         sheetState = sheetState,
         isSheetVisible = isVisibleState,
         sheetRadius = sheetRadius,
+        sheetPeakHeight = sheetPeakHeight,
         behindContent = behindContent
     )
 }
@@ -136,15 +134,13 @@ private fun PlayerScreen(
     sheetState: BottomSheetScaffoldState,
     isSheetVisible: Boolean,
     sheetRadius: Dp = 16.dp,
+    sheetPeakHeight: Dp,
     behindContent: @Composable (PaddingValues) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val bottomNavigationHeight = 80.dp
-    val collapsedHeight = if (WindowInsets.Companion.areNavigationBarsVisible) 90.dp else 60.dp
-    val peekHeight = bottomNavigationHeight + collapsedHeight
-    val sheetPeekHeight by animateDpAsState(
+    val sheetPeekHeightAnimate by animateDpAsState(
         targetValue =
-        if (isSheetVisible) peekHeight else 0.dp,
+        if (isSheetVisible) sheetPeakHeight else 0.dp,
         label = ""
     )
     BackHandler(
@@ -187,7 +183,7 @@ private fun PlayerScreen(
             }
         },
         sheetTonalElevation = 0.dp,
-        sheetPeekHeight = sheetPeekHeight,
+        sheetPeekHeight = sheetPeekHeightAnimate,
         scaffoldState = sheetState
     ) {
         behindContent(it)
@@ -337,7 +333,7 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
-                                .padding(horizontal = 8.dp)
+                                .padding(horizontal = 16.dp)
                                 .statusBarsPadding()
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(MaterialTheme.colorScheme.surface.copy(alpha = .9f)),
@@ -356,19 +352,9 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                     modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    onItemSelected = setPlaybackSpeed,
-                    onLyricButtonClicked = {
-                        if (lyricUiState.isVisibleLyric) {
-                            viewModel.hideLyricCover()
-                        } else {
-                            viewModel.fetchLyric(currentSong().id)
-                            viewModel.showLyricCover()
-                        }
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                        .padding(horizontal = 16.dp)
 
+                )
                 PlayerControls(
                     onPlayPauseClicked = togglePlay,
                     isPlaying = uiState.value.isPlaying,
@@ -378,11 +364,23 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                     isShuffleOn = isShuffleMode,
                     onSkipNext = skipToNext,
                     onSkipPrevious = skipToPrevious,
-                    modifier = Modifier.padding(horizontal = 12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 32.dp),
                     onRepeatClick = changeRepeatMode,
                     onShuffleClick = toggleShuffleMode,
                     onPositionChanged = seekToProgress,
                     currentPos = positionLambda,
+                    onItemSelected = setPlaybackSpeed,
+                    onLyricButtonClicked = {
+                        if (lyricUiState.isVisibleLyric) {
+                            viewModel.hideLyricCover()
+                        } else {
+                            viewModel.fetchLyric(currentSong().id)
+                            viewModel.showLyricCover()
+                        }
+                    },
                     duration = currentSongDuration
                 )
             }
@@ -441,7 +439,7 @@ fun ShuffleModeButton(
     onShuffleClick: () -> Unit,
     modifier: Modifier = Modifier,
     isEnable: Boolean = false,
-    enableShape: Shape = CircleShape
+    enableShape: Shape = RoundedCornerShape(8.dp)
 ) {
     val backgroundColor by animateColorAsState(
         targetValue =
@@ -455,7 +453,8 @@ fun ShuffleModeButton(
     Box(
         modifier =
         modifier
-            .size(42.dp)
+            .wrapContentSize()
+            .padding(12.dp)
             .clip(enableShape)
             .drawBehind {
                 drawRect(backgroundColor)
@@ -483,7 +482,7 @@ fun RepeatModeButton(
     icon: ImageVector,
     onRepeatClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enableShape: Shape = CircleShape,
+    enableShape: Shape = RoundedCornerShape(8.dp),
     @Player.RepeatMode repeatMode: Int = Player.REPEAT_MODE_OFF
 ) {
     val backgroundColor by animateColorAsState(
@@ -498,7 +497,8 @@ fun RepeatModeButton(
     Box(
         modifier =
         modifier
-            .size(42.dp)
+            .wrapContentSize()
+            .padding(12.dp)
             .clip(enableShape)
             .drawBehind {
                 drawRect(backgroundColor)
@@ -548,47 +548,16 @@ private fun PlayerControls(
     onRepeatClick: () -> Unit,
     currentPos: () -> Long = { 0L },
     duration: () -> Long = { 0L },
-    onPositionChanged: (Long) -> Unit = {}
+    onPositionChanged: (Long) -> Unit = {},
+    onItemSelected: (index: Int) -> Unit,
+    onLyricButtonClicked: () -> Unit = {}
 ) {
     var isShowTimeTexts by remember {
         mutableStateOf(true)
     }
-
-    val density = LocalDensity.current
-    val sliderScale by
-    animateFloatAsState(
-        targetValue =
-        if (isShowTimeTexts) 1f else 1.4f,
-        label = ""
-    )
-    val remainingTimeOffset by
-    animateIntOffsetAsState(
-        targetValue =
-        if (isShowTimeTexts) {
-            IntOffset.Zero
-        } else {
-            with(density) {
-                IntOffset(x = 100.dp.roundToPx(), y = 0)
-            }
-        },
-        label = ""
-    )
-    val totalTimeOffset by
-    animateIntOffsetAsState(
-        targetValue =
-        if (isShowTimeTexts) {
-            IntOffset.Zero
-        } else {
-            with(density) {
-                IntOffset(x = (-100).dp.roundToPx(), y = 0)
-            }
-        },
-        label = ""
-    )
     val sliderColor =
         MaterialTheme.colorScheme.primary.toArgb()
     val sliderBufferColor = Color.White.copy(.15f).toArgb()
-    val sliderThumbColor = MaterialTheme.colorScheme.primary.toArgb()
     val sliderPosition = remember {
         mutableLongStateOf(0L)
     }
@@ -609,62 +578,55 @@ private fun PlayerControls(
     }
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        TimeIndicator(currentPos = { sliderPosition.longValue }, isVisible = !isShowTimeTexts)
-        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.align(Alignment.End),
+            horizontalArrangement = Arrangement.End
+        ) {
+            LyricButton(onClick = onLyricButtonClicked)
+            PlaybackSpeedMenu(onItemSelected = onItemSelected)
+        }
 
+        TimeIndicator(currentPos = { sliderPosition.longValue }, isVisible = !isShowTimeTexts)
         Row(
             modifier =
             Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val seconds = remainingTime().substring(3..4)
             ElapsedTimeText(
                 second = seconds,
                 minuet = remainingTime().substring(0..1),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.offset {
-                    totalTimeOffset
-                }
+                style = MaterialTheme.typography.titleMedium
             )
-            AndroidView(
-                factory = { context ->
-                    DefaultTimeBar(context).apply {
-                        addListener(sliderListener)
-                        setPlayedColor(sliderColor)
-                        setUnplayedColor(sliderBufferColor)
-                        setScrubberColor(sliderThumbColor)
-                    }
-                },
-                modifier =
-                Modifier
-                    .weight(1f)
-                    .graphicsLayer {
-                        scaleY = sliderScale
-                        scaleX = sliderScale
-                    },
-                update = {
-                    it.setDuration(duration())
-                    it.setPosition(currentPos())
-                },
-                onRelease = {
-                    it.removeListener(sliderListener)
-                }
-            )
+            Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = totalTime,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.offset {
-                    remainingTimeOffset
-                }
-
+                style = MaterialTheme.typography.titleMedium
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
-
+        AndroidView(
+            factory = { context ->
+                DefaultTimeBar(context).apply {
+                    addListener(sliderListener)
+                    setPlayedColor(sliderColor)
+                    setUnplayedColor(sliderBufferColor)
+                    setScrubberColor(sliderColor)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            update = {
+                it.setDuration(duration())
+                it.setPosition(currentPos())
+            },
+            onRelease = {
+                it.removeListener(sliderListener)
+            }
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -678,7 +640,7 @@ private fun PlayerControls(
                 }
             Spacer(modifier = Modifier.weight(1f))
             RepeatModeButton(
-                enableColor = MaterialTheme.colorScheme.surface,
+                enableColor = MaterialTheme.colorScheme.background,
                 disableColor = Color.Transparent,
                 icon = when (repeatMode) {
                     0 -> Icons.Rounded.Repeat
@@ -690,52 +652,36 @@ private fun PlayerControls(
             )
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
-                onClick = onSkipPrevious,
-                modifier =
-                Modifier
-                    .size(40.dp)
+                onClick = onSkipPrevious
             ) {
                 Icon(
                     imageVector = Icons.Rounded.SkipPrevious,
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize()
+                    contentDescription = ""
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            FilledIconToggleButton(
-                checked = isPlaying,
-                onCheckedChange = { _ ->
-                    onPlayPauseClicked()
-                },
-                modifier =
-                Modifier
-                    .padding(horizontal = 8.dp)
-                    .size(60.dp)
+            FloatingActionButton(
+                onClick = onPlayPauseClicked,
+                containerColor = MaterialTheme.colorScheme.background
             ) {
                 Icon(
                     imageVector = playImageVector,
-                    contentDescription = "",
-                    modifier = Modifier.size(36.dp)
+                    contentDescription = ""
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-
             IconButton(
-                onClick = onSkipNext,
-                modifier =
-                Modifier
-                    .size(40.dp)
+                onClick = onSkipNext
             ) {
                 Icon(
                     imageVector = Icons.Rounded.SkipNext,
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize()
+                    contentDescription = ""
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
             ShuffleModeButton(
                 icon = Icons.Rounded.Shuffle,
-                enableColor = MaterialTheme.colorScheme.surface,
+                enableColor = MaterialTheme.colorScheme.background,
                 disableColor = Color.Transparent,
                 onShuffleClick = onShuffleClick,
                 isEnable = isShuffleOn
@@ -787,7 +733,8 @@ fun PlayerControlsPreview() {
             remainingTime = { "00:00" },
             totalTime = "12:22",
             onRepeatClick = {},
-            onShuffleClick = {}
+            onShuffleClick = {},
+            onItemSelected = {}
         )
     }
 }
@@ -796,30 +743,24 @@ fun PlayerControlsPreview() {
 private fun SongInfo(
     title: String,
     subtitle: String,
-    modifier: Modifier = Modifier,
-    onItemSelected: (index: Int) -> Unit,
-    onLyricButtonClicked: () -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = title,
             modifier = Modifier.padding(bottom = 4.dp),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 20.sp),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
-        Row {
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                modifier = Modifier.weight(1f)
-            )
-            LyricButton(onClick = onLyricButtonClicked)
-            PlaybackSpeedMenu(onItemSelected = onItemSelected)
-        }
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1
+        )
     }
 }
 
@@ -851,21 +792,21 @@ fun SlideUpAnimatedText(
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
             (
-                slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
-                    animationSpec = spring()
-                )
-                ).togetherWith(
-                slideOutVertically { height -> -height } + fadeOut()
-            )
-        } else {
-            (
-                slideInVertically(animationSpec = spring()) { height -> -height } +
-                    fadeIn(
+                    slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
                         animationSpec = spring()
                     )
-                ).togetherWith(
-                slideOutVertically { height -> height } + fadeOut()
-            )
+                    ).togetherWith(
+                    slideOutVertically { height -> -height } + fadeOut()
+                )
+        } else {
+            (
+                    slideInVertically(animationSpec = spring()) { height -> -height } +
+                            fadeIn(
+                                animationSpec = spring()
+                            )
+                    ).togetherWith(
+                    slideOutVertically { height -> height } + fadeOut()
+                )
         }.using(
             SizeTransform(clip = false)
         )
