@@ -7,6 +7,6 @@
     <string name="songs_permission_rationale">Musical needs to access your media, after that you granted you will see all songs</string>
     <string name="albums_permission_rationale">Musical needs to access your media, after that you granted you will see all albums</string>
     <string name="media_permission_title">Media Permission</string>
-    <string name="empty_lyric">Lyric doesn\'t found</string>
+    <string name="empty_lyric">Write the lyric</string>
     <string name="write_the_lyric">Write the lyric</string>
 </resources>

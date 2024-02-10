@@ -333,7 +333,7 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
-                                .padding(horizontal = 16.dp)
+                                .padding(horizontal = 8.dp)
                                 .statusBarsPadding()
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(MaterialTheme.colorScheme.surface.copy(alpha = .9f)),
@@ -792,21 +792,21 @@ fun SlideUpAnimatedText(
     AnimatedContent(targetState = value, label = "", transitionSpec = {
         if (targetState > initialState || targetState == 0) {
             (
-                    slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
-                        animationSpec = spring()
-                    )
-                    ).togetherWith(
-                    slideOutVertically { height -> -height } + fadeOut()
+                slideInVertically(animationSpec = spring()) { height -> height } + fadeIn(
+                    animationSpec = spring()
                 )
+                ).togetherWith(
+                slideOutVertically { height -> -height } + fadeOut()
+            )
         } else {
             (
-                    slideInVertically(animationSpec = spring()) { height -> -height } +
-                            fadeIn(
-                                animationSpec = spring()
-                            )
-                    ).togetherWith(
-                    slideOutVertically { height -> height } + fadeOut()
-                )
+                slideInVertically(animationSpec = spring()) { height -> -height } +
+                    fadeIn(
+                        animationSpec = spring()
+                    )
+                ).togetherWith(
+                slideOutVertically { height -> height } + fadeOut()
+            )
         }.using(
             SizeTransform(clip = false)
         )
