@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.media3.exoplayer)
