@@ -11,7 +11,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.guava.future
 
-abstract class CoroutineMediaSessionCallback(
+abstract class MediaSessionCallbackWrapper(
     private val serviceScope: CoroutineScope,
 ) : MediaLibrarySession.Callback {
     override fun onGetLibraryRoot(
