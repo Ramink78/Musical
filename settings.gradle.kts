@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Musical"
 include(":app")
+include(":PlaybackService")

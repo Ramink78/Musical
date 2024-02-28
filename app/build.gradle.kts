@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.androidx.material3.window.size)
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
+    implementation(project(":PlaybackService"))
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.hilt.android)
