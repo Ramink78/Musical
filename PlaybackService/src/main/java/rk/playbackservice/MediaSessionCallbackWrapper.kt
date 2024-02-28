@@ -7,6 +7,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.guava.future
@@ -19,14 +20,7 @@ abstract class MediaSessionCallbackWrapper(
         browser: MediaSession.ControllerInfo,
         params: MediaLibraryService.LibraryParams?
     ): ListenableFuture<LibraryResult<MediaItem>> {
-        return serviceScope.future {
-            try {
-                onGetLibraryRootWrapper(session, browser, params)
-            } catch (e: Exception) {
-                Log.e(this::class.simpleName, e.toString())
-                LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
-            }
-        }
+        return Futures.immediateFuture(onGetLibraryRootWrapper(session, browser, params))
     }
 
     override fun onGetChildren(
@@ -105,7 +99,7 @@ abstract class MediaSessionCallbackWrapper(
         params: MediaLibraryService.LibraryParams?
     ): LibraryResult<ImmutableList<MediaItem>>
 
-    protected abstract suspend fun onGetLibraryRootWrapper(
+    protected abstract fun onGetLibraryRootWrapper(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,
         params: MediaLibraryService.LibraryParams?

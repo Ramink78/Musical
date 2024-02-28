@@ -44,7 +44,7 @@ fun buildAlbumMediaItem(
     .setMediaMetadata(
         MediaMetadata.Builder()
             .setIsBrowsable(true)
-            .setIsPlayable(false)
+            .setIsPlayable(true)
             .setTitle(title)
             .setArtist(artist)
             .setMediaType(MediaMetadata.MEDIA_TYPE_ALBUM)

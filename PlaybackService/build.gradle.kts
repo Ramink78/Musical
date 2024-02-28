@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -37,6 +38,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation("androidx.lifecycle:lifecycle-service:2.7.0")
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
     testImplementation(libs.junit)
