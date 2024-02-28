@@ -13,9 +13,11 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import rk.musical.data.AlbumRepository
 import rk.musical.data.LyricRepository
+import rk.musical.data.MediaItemTreeImpl
 import rk.musical.data.SongRepository
 import rk.musical.data.db.LyricDao
 import rk.musical.data.db.MusicalDatabase
+import rk.playbackservice.MediaItemTree
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -73,4 +75,12 @@ object AppModule {
     @Provides
     fun provideLyricRepository(lyricDao: LyricDao) =
         LyricRepository(lyricDao = lyricDao)
+
+    @Singleton
+    @Provides
+    fun provideMediaItemTree(
+        albumRepository: AlbumRepository,
+        songRepository: SongRepository
+    ): MediaItemTree =
+        MediaItemTreeImpl(albumRepository, songRepository)
 }

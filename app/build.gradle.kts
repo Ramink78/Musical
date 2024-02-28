@@ -43,7 +43,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.androidx.material3.window.size)
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
+    implementation(project(":PlaybackService"))
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.hilt.android)
