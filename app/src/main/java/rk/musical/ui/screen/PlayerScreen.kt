@@ -39,6 +39,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -469,7 +472,8 @@ fun ShuffleModeButton(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = ""
+            contentDescription = "",
+            tint = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -513,7 +517,8 @@ fun RepeatModeButton(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = ""
+            contentDescription = "",
+            tint = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -528,6 +533,22 @@ fun RepeatModeButtonPreview() {
             icon = Icons.Rounded.RepeatOne,
             onRepeatClick = {},
             repeatMode = Player.REPEAT_MODE_ALL
+        )
+    }
+}
+
+@Composable
+fun FavoriteButton(
+    isFavorite: Boolean = false,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val icon = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "",
+            tint = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -582,9 +603,17 @@ private fun PlayerControls(
         verticalArrangement = Arrangement.Center
     ) {
         Row(
-            modifier = Modifier.align(Alignment.End),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.End),
             horizontalArrangement = Arrangement.End
+
         ) {
+            var isFavorite by remember {
+                mutableStateOf(false)
+            }
+            FavoriteButton(onClick = { isFavorite = !isFavorite }, isFavorite = isFavorite)
+            Spacer(modifier = Modifier.weight(1f))
             LyricButton(onClick = onLyricButtonClicked)
             PlaybackSpeedMenu(onItemSelected = onItemSelected)
         }
