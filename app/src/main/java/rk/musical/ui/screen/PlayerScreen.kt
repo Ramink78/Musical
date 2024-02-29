@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Lyrics
@@ -384,7 +383,11 @@ private fun ExpandedPlayer(modifier: Modifier = Modifier) {
                             viewModel.showLyricCover()
                         }
                     },
-                    duration = currentSongDuration
+                    duration = currentSongDuration,
+                    onFavoriteClick = {
+                        viewModel.toggleLike(currentSong())
+                    },
+                    isFavorite = uiState.value.isFavorite
                 )
             }
             AnimatedVisibility(
@@ -571,7 +574,9 @@ private fun PlayerControls(
     duration: () -> Long = { 0L },
     onPositionChanged: (Long) -> Unit = {},
     onItemSelected: (index: Int) -> Unit,
-    onLyricButtonClicked: () -> Unit = {}
+    onLyricButtonClicked: () -> Unit = {},
+    isFavorite: Boolean = false,
+    onFavoriteClick: () -> Unit = {}
 ) {
     var isShowTimeTexts by remember {
         mutableStateOf(true)
@@ -609,10 +614,7 @@ private fun PlayerControls(
             horizontalArrangement = Arrangement.End
 
         ) {
-            var isFavorite by remember {
-                mutableStateOf(false)
-            }
-            FavoriteButton(onClick = { isFavorite = !isFavorite }, isFavorite = isFavorite)
+            FavoriteButton(onClick = onFavoriteClick, isFavorite = isFavorite)
             Spacer(modifier = Modifier.weight(1f))
             LyricButton(onClick = onLyricButtonClicked)
             PlaybackSpeedMenu(onItemSelected = onItemSelected)

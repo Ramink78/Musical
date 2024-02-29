@@ -3,12 +3,15 @@ package rk.musical.data.model
 import android.content.ContentUris
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import rk.musical.utils.SONGS_URI
 import rk.musical.utils.SONG_DURATION
 import rk.musical.utils.buildSongMediaItem
 
+@Entity(tableName = "favorite")
 data class Song(
-    val id: String,
+    @PrimaryKey val id: String,
     val title: String,
     val artist: String,
     val songUri: String,
