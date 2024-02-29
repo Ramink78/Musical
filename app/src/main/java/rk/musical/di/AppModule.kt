@@ -83,4 +83,8 @@ object AppModule {
         songRepository: SongRepository
     ): MediaItemTree =
         MediaItemTreeImpl(albumRepository, songRepository)
+
+    @Provides
+    fun provideFavoriteDao(db: MusicalDatabase) =
+        db.favoriteDao()
 }

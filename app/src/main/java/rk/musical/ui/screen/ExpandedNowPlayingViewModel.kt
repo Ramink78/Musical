@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import rk.musical.data.FavoriteRepository
 import rk.musical.data.LyricRepository
 import rk.musical.data.model.Lyric
 import rk.musical.data.model.Song
@@ -24,7 +25,8 @@ class ExpandedNowPlayingViewModel
 @Inject
 constructor(
     private val musicalRemote: MusicalRemote,
-    private val lyricRepository: LyricRepository
+    private val lyricRepository: LyricRepository,
+    private val favoriteRepository: FavoriteRepository
 ) : ViewModel() {
     private val _currentLyric = MutableStateFlow<Lyric?>(null)
     val currentLyric = _currentLyric.asStateFlow()
@@ -59,6 +61,7 @@ constructor(
                     currentTime = readableDuration(it.currentPosition),
                     totalTime = readableDuration(it.currentSong.duration),
                     isPlaying = it.isPlaying,
+                    isFavorite = favoriteRepository.isLiked(it.currentSong),
                     playbackPosition = it.currentPosition
                 )
             }
@@ -122,6 +125,12 @@ constructor(
         }
     }
 
+    fun toggleLike(song: Song) {
+        viewModelScope.launch {
+            favoriteRepository.toggleLike(song)
+        }
+    }
+
     fun setPlaybackSpeed(index: Int) {
         when (index) {
             0 -> musicalRemote.setPlaybackSpeed(.5f)
@@ -134,6 +143,7 @@ constructor(
 
 data class ExpandedNowPlayingUiState(
     val currentSong: Song = Song.Empty,
+    val isFavorite: Boolean = false,
     val totalTime: String = "00:00",
     val currentTime: String = "00:00",
     val isPlaying: Boolean = false,
