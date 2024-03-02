@@ -12,7 +12,7 @@ const val SONG_TITLE = Media.TITLE
 const val SONG_ARTIST = Media.ARTIST
 const val SONG_DURATION = Media.DURATION
 const val SONG_DATE_ADDED = Media.DATE_ADDED
-const val ALBUM_ID = Albums._ID
+const val ALBUM_ID = Albums.ALBUM_ID
 const val ALBUM_ART = Albums.ALBUM_ART
 const val ALBUM_NAME = Media.ALBUM
 const val ALBUM_SONGS_COUNT = Albums.NUMBER_OF_SONGS
@@ -23,7 +23,8 @@ val songColumns =
         SONG_TITLE,
         SONG_ARTIST,
         SONG_DURATION,
-        ALBUM_NAME
+        ALBUM_NAME,
+        ALBUM_ID
     )
 val albumColumns =
     arrayOf(

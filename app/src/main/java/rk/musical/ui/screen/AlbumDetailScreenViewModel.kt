@@ -31,8 +31,7 @@ constructor(
     fun findAlbumById(id: String) = albumRepository.cachedAlbums.find { it.id == id }
 
     fun getAlbumChildren(albumId: String): List<Song> {
-        val album = findAlbumById(albumId) ?: return emptyList()
-        currentSongs = songRepository.getAlbumSongs(album.title)
+        currentSongs = songRepository.getAlbumSongs(albumId)
         return currentSongs
     }
 

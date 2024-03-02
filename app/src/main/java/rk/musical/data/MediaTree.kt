@@ -58,9 +58,6 @@ class MediaTree(
             albumsRoot.add(album.toMediaItem())
         }
         val songsRoot = mutableListOf<MediaItem>()
-        songsDataSource.forEach {
-            songsRoot.add(it.toMediaItem())
-        }
         mediaIdToChildren[SONGS_NODE] = songsRoot
         mediaIdToChildren[ALBUMS_NODE] = albumsRoot
         albumsRoot.forEach {

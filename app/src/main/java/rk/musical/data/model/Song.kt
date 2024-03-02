@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import rk.musical.utils.ALBUM_ID
 import rk.musical.utils.SONGS_URI
 import rk.musical.utils.SONG_DURATION
 import rk.musical.utils.buildSongMediaItem
@@ -17,7 +18,8 @@ data class Song(
     val songUri: String,
     val albumName: String,
     val duration: Long,
-    val coverUri: String? = null
+    val coverUri: String? = null,
+    val albumId: String
 ) {
     companion object {
         val Empty =
@@ -27,7 +29,8 @@ data class Song(
                 artist = "",
                 songUri = "",
                 albumName = "",
-                duration = 0
+                duration = 0,
+                albumId = ""
             )
     }
 }
@@ -40,7 +43,8 @@ fun Song.toMediaItem() =
         songUri = songUri.toUri(),
         albumName = albumName,
         coverUri = coverUri?.toUri(),
-        duration = duration
+        duration = duration,
+        albumId = albumId
     )
 
 fun MediaItem.toSong() =
@@ -51,7 +55,8 @@ fun MediaItem.toSong() =
         songUri = ContentUris.withAppendedId(SONGS_URI, mediaId.toLongOrNull() ?: 0L).toString(),
         albumName = mediaMetadata.albumTitle.toString(),
         coverUri = mediaMetadata.artworkUri.toString(),
-        duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0L
+        duration = mediaMetadata.extras?.getLong(SONG_DURATION, 0L) ?: 0L,
+        albumId = mediaMetadata.extras?.getString(ALBUM_ID, "") ?: ""
     )
 
 fun List<MediaItem>.toSongs() = map { it.toSong() }

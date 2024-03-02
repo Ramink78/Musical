@@ -269,7 +269,8 @@ fun SongsScreenPreview() {
             artist = "Artist name",
             songUri = "",
             albumName = "",
-            duration = 0
+            duration = 0,
+            albumId = ""
         )
     MusicalTheme(darkTheme = true) {
         SongItem(

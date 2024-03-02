@@ -38,8 +38,9 @@ class SuspendedMediaSessionCallback @Inject constructor(
         controller: MediaSession.ControllerInfo,
         mediaItems: MutableList<MediaItem>
     ): MutableList<MediaItem> {
-        val playlistId = mediaItems.first().mediaId
-        return mediaItemTree.getChildren(playlistId).toMutableList()
+        return mediaItems.map {
+            mediaItemTree.getMediaItem(it.mediaId)!!
+        }.toMutableList()
     }
 
     override suspend fun onGetSearchResultWrapper(

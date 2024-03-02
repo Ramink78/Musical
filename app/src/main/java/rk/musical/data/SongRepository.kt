@@ -11,6 +11,7 @@ import rk.musical.data.model.Song
 import rk.musical.utils.IS_MUSIC_CLAUSE
 import rk.musical.utils.SONGS_URI
 import rk.musical.utils.SortOrder
+import rk.musical.utils.albumIdColumnIndex
 import rk.musical.utils.albumNameColumnIndex
 import rk.musical.utils.artistColumnIndex
 import rk.musical.utils.kuery
@@ -47,10 +48,12 @@ class SongRepository(
                 val artistCol = cursor.artistColumnIndex
                 val albumNameCol = cursor.albumNameColumnIndex
                 val songDurationCol = cursor.songDurationColumnIndex
+                val albumIdCol = cursor.albumIdColumnIndex
                 val tempList = mutableListOf<Song>()
                 while (cursor.moveToNext()) {
                     val songId = cursor.getLong(idCol)
                     val songUri = ContentUris.withAppendedId(SONGS_URI, songId)
+                    val albumId = cursor.getLong(albumIdCol).toString()
                     tempList.add(
                         Song(
                             id = songId.toString(),
@@ -59,7 +62,8 @@ class SongRepository(
                             songUri = songUri.toString(),
                             albumName = cursor.getString(albumNameCol),
                             coverUri = buildCoverUri(songId),
-                            duration = cursor.getLong(songDurationCol)
+                            duration = cursor.getLong(songDurationCol),
+                            albumId = albumId
                         )
                     )
                 }
@@ -80,9 +84,7 @@ class SongRepository(
         state = DataSourceState.Success
     }
 
-    override fun getAlbumSongs(albumName: String): List<Song> {
-        return chacedSongs.filter { it.albumName == albumName }
+    override fun getAlbumSongs(albumId: String): List<Song> {
+        return chacedSongs.filter { it.albumId == albumId }
     }
-
-    override fun iterator(): Iterator<Song> = chacedSongs.iterator()
 }

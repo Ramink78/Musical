@@ -17,7 +17,8 @@ fun Album.toMediaItem() =
         title = title,
         artist = artist,
         coverUri = coverUri?.toUri(),
-        songsCount = songsCount
+        songsCount = songsCount,
+        id = id
     )
 
 fun List<Album>.toMediaItems() = map { it.toMediaItem() }

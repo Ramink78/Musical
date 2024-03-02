@@ -37,7 +37,7 @@ class AlbumRepository(
             context.contentResolver.kuery(
                 uri = ALBUMS_URI,
                 columns = albumColumns
-            )?.use {
+            )?.use { it ->
                 val albumNameCol = it.albumNameColumnIndex
                 val albumIdCol = it.albumIdColumnIndex
                 val albumArtCol = it.albumArtColumnIndex
@@ -51,16 +51,6 @@ class AlbumRepository(
                         Uri
                             .parse("content://media/external/audio/albumart")
                     val albumArtUri = ContentUris.withAppendedId(sArtworkUri, albumId)
-
-//                    val coverUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                        ContentUris.withAppendedId(
-//                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-//                            albumId
-//                        ).toString()
-//                    } else {
-//                        it.getString(albumArtCol)
-//                    }
-
                     tempList.add(
                         Album(
                             id = albumId.toString(),

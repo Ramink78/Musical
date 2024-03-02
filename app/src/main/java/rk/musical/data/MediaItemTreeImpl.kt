@@ -1,54 +1,87 @@
 package rk.musical.data
 
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import rk.musical.data.model.toMediaItem
 import rk.musical.data.model.toMediaItems
 import rk.playbackservice.MediaItemTree
 
 class MediaItemTreeImpl(
     private val albumRepository: AlbumRepository,
-    private val songRepository: SongRepository
+    private val songRepository: SongRepository,
+    private val favoriteRepository: FavoriteRepository
 ) : MediaItemTree {
+    private val idToChildren = mutableMapOf<String, MutableList<MediaItem>>()
+    private val idToMediaItem = mutableMapOf<String, MediaItem>()
+    private val rootId = "/"
+    private val albumCategoryId = "Album"
+    private val recentCategoryId = "Recent"
+    private val favoriteCategoryId = "Favorite"
+    private val rootMediaItem = MediaItem.Builder().setMediaId(rootId).setMediaMetadata(
+        MediaMetadata.Builder().setIsPlayable(false).setIsBrowsable(true).build()
+    ).build()
+    private val albumCategory = MediaItem.Builder().setMediaId(albumCategoryId).setMediaMetadata(
+        MediaMetadata.Builder().setTitle(albumCategoryId).setIsPlayable(false).setIsBrowsable(true)
+            .build()
+    ).build()
+    private val recentCategory = MediaItem.Builder().setMediaId(recentCategoryId).setMediaMetadata(
+        MediaMetadata.Builder().setTitle(recentCategoryId).setIsPlayable(false).setIsBrowsable(true)
+            .build()
+    ).build()
+    private val favoriteCategory =
+        MediaItem.Builder().setMediaId(favoriteCategoryId).setMediaMetadata(
+            MediaMetadata.Builder().setTitle(favoriteCategoryId).setIsPlayable(false)
+                .setIsBrowsable(true).build()
+        ).build()
+
+    init {
+        initRoot()
+    }
+
+    private fun initRoot() {
+        val rootList = mutableListOf<MediaItem>()
+        rootList += albumCategory
+        rootList += favoriteCategory
+        rootList += recentCategory
+        idToChildren[rootId] = rootList
+    }
+
+    private suspend fun initAlbumCategory() {
+        val albumList = mutableListOf<MediaItem>()
+        albumRepository.load()
+        songRepository.load()
+        albumList.addAll(albumRepository.cachedAlbums.toMediaItems())
+        albumRepository.cachedAlbums.forEach {
+            idToMediaItem[it.id] = it.toMediaItem()
+        }
+        songRepository.chacedSongs.forEach {
+            idToMediaItem[it.id] = it.toMediaItem()
+        }
+        idToChildren[albumCategoryId] = albumList
+        val songsByAlbumId = songRepository.chacedSongs.groupBy { it.albumId }.mapValues {
+            it.value.toMediaItems().toMutableList()
+        }
+        idToChildren.putAll(songsByAlbumId)
+    }
+
+    private suspend fun initFavoriteCategory() {
+        val favoriteList = mutableListOf<MediaItem>()
+        favoriteList.addAll(favoriteRepository.getAllFavorites().toMediaItems())
+        idToChildren[favoriteCategoryId] = favoriteList
+    }
+
     override fun getRootMediaItem(): MediaItem {
-        return MediaItemTree.rootMediaItem
+        return rootMediaItem
     }
 
     override suspend fun getChildren(parentId: String): List<MediaItem> {
-        return when (parentId) {
-            MediaItemTree.ROOT ->
-                listOf(
-                    MediaItemTree.albumFolder,
-                    MediaItemTree.recentFolder,
-                    MediaItemTree.favoriteFolder
-                )
-
-            MediaItemTree.ALBUM_FOLDER -> {
-                albumRepository.loadAlbums()
-                albumRepository.cachedAlbums.toMediaItems()
-            }
-
-            MediaItemTree.FAVORITE_FOLDER -> {
-                // implement favorite folder
-                emptyList()
-            }
-
-            MediaItemTree.RECENT_FOLDER -> {
-                // implement recent folder
-                emptyList()
-            }
-
-            else -> {
-                // select an album child
-                songRepository.load()
-                // parentId is album name
-                songRepository.getAlbumSongs(parentId).toMediaItems()
-            }
-        }
+        initAlbumCategory()
+        initFavoriteCategory()
+        return idToChildren[parentId]?.toList() ?: emptyList()
     }
 
     override suspend fun getMediaItem(mediaId: String): MediaItem? {
-        songRepository.load()
-        val foundedSong = songRepository.chacedSongs.find { it.id == mediaId }
-        return foundedSong?.toMediaItem()
+        return idToMediaItem[mediaId]
+
     }
 }

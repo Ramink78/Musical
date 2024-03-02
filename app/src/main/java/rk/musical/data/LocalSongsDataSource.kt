@@ -2,10 +2,10 @@ package rk.musical.data
 
 import rk.musical.data.model.Song
 
-interface LocalSongsDataSource : Iterable<Song> {
+interface LocalSongsDataSource {
     val isReady: Boolean
 
     suspend fun load()
 
-    fun getAlbumSongs(albumName: String): List<Song>
+    fun getAlbumSongs(albumId: String): List<Song>
 }
